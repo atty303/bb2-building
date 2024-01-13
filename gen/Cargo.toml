@@ -3,3 +3,5 @@ name = "gen"
 version = "0.1.0"
 
 [dependencies]
+data = { path = "../data" }
+yaml-rust = "0.4"
