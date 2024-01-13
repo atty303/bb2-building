@@ -3,6 +3,7 @@ extern crate data;
 extern crate json;
 extern crate prettytable;
 extern crate yaml_rust;
+extern crate regex;
 
 use std::collections::HashMap;
 
@@ -15,7 +16,7 @@ mod skill;
 mod idhash;
 
 fn main() {
-    // terms::write_terms();
+    terms::write_terms();
 
     let s = std::fs::read_to_string("dump/db.json").unwrap();
     let db_json = json::parse(s.as_str()).unwrap();

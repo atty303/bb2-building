@@ -1,11 +1,11 @@
-use data::{SkillMap, TermMap};
+use data::{SkillCategory, SkillMap, TermMap};
 
 fn main() {
     let term_map = TermMap::read(std::io::BufReader::new(std::fs::File::open("public/i18n/ja/terms.avro").unwrap())).unwrap();
     let skill_map = SkillMap::read(std::io::BufReader::new(std::fs::File::open("public/skill.avro").unwrap())).unwrap();
 
-    for skill in skill_map.values() {
-        println!("* {}", term_map.get_name(&skill.modes[0].id));
+    for skill in skill_map.values().filter(|s| s.category != SkillCategory::Enemy) {
+        println!("* {} ({:?})", term_map.get_name(&skill.modes[0].id), &skill.category);
         for mode in &skill.modes {
             println!("  + [{}{}{}{}] {} (-{} +{})",
                      if mode.is_alt { "A" } else { " " },
@@ -16,6 +16,16 @@ fn main() {
                      if mode.is_brave { mode.use_brave } else { mode.use_num },
                      mode.cooldown,
             );
+
+            for act in &mode.acts {
+                println!("    - {}", term_map.get_name(&act.id));
+                for node in &act.nodes {
+                    if node.action_type == "Visual" {
+                        continue;
+                    }
+                    println!("      - {}", term_map.get_action_type(&node.action_type));
+                }
+            }
         }
     }
 }

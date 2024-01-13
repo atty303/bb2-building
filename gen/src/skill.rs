@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::hash::{BuildHasher, Hash, Hasher};
 
 use json::JsonValue;
@@ -93,29 +93,37 @@ impl<'a> ActRow<'a> {
 
 struct ActNodeRow<'a> {
     row_id: &'a str,
-    name: &'a str,
     id: &'a str,
+    inner_name: &'a str,
+    order: usize,
     act: &'a str,
+    p_order: usize,
+    action_type: &'a str,
 }
 
 impl<'a> ActNodeRow<'a> {
     fn new(e: &'a HashMap<String, JsonValue>) -> Self {
         Self {
             row_id: e["_row_id"].as_str().unwrap(),
-            name: e["name"].as_str().unwrap(),
             id: e["ID"].as_str().unwrap(),
+            inner_name: e["name"].as_str().unwrap(),
+            order: e["Order"].as_str().unwrap().parse::<usize>().unwrap(),
             act: e["act"].as_str().unwrap(),
+            p_order: e["POrder"].as_str().unwrap().parse::<usize>().unwrap(),
+            action_type: e["ActionType"].as_str().unwrap(),
         }
     }
 }
 
 struct SkillModeRow<'a> {
     row_id: &'a str,
-    inner_name: &'a str,
     id: &'a str,
+    inner_name: &'a str,
     /// skill_mode(N) = skill(1) relation (format: `skill_mode.{}_{}_{}`)
     skill: &'a str,
+    order: usize,
     icon: &'a str,
+    category: SkillCategory,
     alt_mode: bool,
     is_brave: bool,
     use_num: i8,
@@ -123,16 +131,20 @@ struct SkillModeRow<'a> {
     cooldown: i8,
     use_init: bool,
     is_quick: bool,
+    sm_act: &'a str,
+    skill_tag: &'a str,
 }
 
 impl<'a> SkillModeRow<'a> {
     fn new(e: &'a HashMap<String, JsonValue>) -> Self {
         Self {
             row_id: e["_row_id"].as_str().unwrap(),
-            inner_name: e["name"].as_str().unwrap(),
             id: e["ID"].as_str().unwrap(),
+            inner_name: e["name"].as_str().unwrap(),
             skill: e["skill"].as_str().unwrap(),
+            order: e["Order"].as_str().unwrap().parse::<usize>().unwrap(),
             icon: e["Icon"].as_str().unwrap(),
+            category: SkillCategory::from_str(e["Category"].as_str().unwrap()).unwrap(),
             alt_mode: str_to_bool(e["AltMode"].as_str().unwrap()),
             is_brave: str_to_bool(e["IsBrave"].as_str().unwrap()),
             use_num: e["UseNum"].as_str().unwrap().parse::<i8>().unwrap(),
@@ -140,6 +152,8 @@ impl<'a> SkillModeRow<'a> {
             cooldown: e["Cooldown"].as_str().unwrap().parse::<i8>().unwrap(),
             use_init: str_to_bool(e["UseInit"].as_str().unwrap()),
             is_quick: str_to_bool(e["IsQuick"].as_str().unwrap()),
+            sm_act: e["sm_act"].as_str().unwrap(),
+            skill_tag: e["SkillTag"].as_str().unwrap(),
         }
     }
 }
@@ -166,9 +180,10 @@ impl Hash for SkillWithId<'_> {
 
 pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, act_table: &Table, act_node_table: &Table) {
     let act_node_entities = act_node_table.entities();
-    let act_node_rows = act_node_entities.iter().map(|e| {
+    let mut act_node_rows = act_node_entities.iter().map(|e| {
         ActNodeRow::new(e)
     }).collect::<Vec<_>>();
+    act_node_rows.sort_by_key(|row| row.order);
 
     let act_entities = act_table.entities();
     let act_rows = act_entities.iter().map(|e| {
@@ -177,9 +192,10 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, act_table: &
 
     assert_eq!(skill_mode_table.id(), "E6p/0cim2Ui4oFyQYHe+8w");
     let skill_mode_entities = skill_mode_table.entities();
-    let skill_mode_rows = skill_mode_entities.iter().map(|e| {
+    let mut skill_mode_rows = skill_mode_entities.iter().map(|e| {
         SkillModeRow::new(e)
     }).collect::<Vec<_>>();
+    skill_mode_rows.sort_by_key(|row| row.order);
 
     let skill_entities = skill_table.entities();
     let mut skills = skill_entities.iter().flat_map(|e| {
@@ -189,6 +205,8 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, act_table: &
             row.skill == format!("{}_{}", skill_row.name, skill_row.row_id)
         }).collect::<Vec<_>>();
 
+        let mut mode_categories = HashSet::new();
+
         let modes = mode_rows.iter().map(|mode_row| {
             let acts = act_rows.iter().filter(|act_row| {
                 act_row.namer == format!("skill_mode.{}_{}_{}", mode_row.inner_name, skill_mode_table.id(), mode_row.row_id)
@@ -196,11 +214,20 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, act_table: &
                 let nodes = act_node_rows.iter().filter(|act_node_row| {
                     act_node_row.act == format!("{}_{}", act_row.name, act_row.row_id)
                 }).map(|act_node_row| {
-                    ActNode { id: act_node_row.id.to_string() }
+                    ActNode {
+                        id: act_node_row.id.to_string(),
+                        action_type: act_node_row.action_type.to_string(),
+                    }
                 }).collect::<Vec<_>>();
 
-                Act { id: act_row.id.to_string(), nodes }
+                Act {
+                    id: act_row.id.to_string(),
+                    nodes
+                }
             }).collect::<Vec<_>>();
+
+            mode_categories.insert(mode_row.category.clone());
+
             SkillMode {
                 id: mode_row.id.to_string(),
                 icon: mode_row.icon.to_string(),
@@ -215,8 +242,16 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, act_table: &
             }
         }).collect::<Vec<_>>();
 
-        let skill = Skill { hash: 0, id: skill_row.id.to_string(), modes };
-        // println!("{:#?}", skill);
+        assert!(modes.len() > 0, "skill {} has no modes", skill_row.name);
+        assert_eq!(mode_categories.len(), 1, "skill {} has multiple categories: {:?}", skill_row.name, mode_categories);
+
+        let skill = Skill {
+            hash: 0,
+            id: skill_row.id.to_string(),
+            category: skill_row.category.clone(),
+            modes
+        };
+
         Some(SkillWithId { skill, row : skill_row })
     }).collect::<Vec<_>>();
 

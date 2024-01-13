@@ -70,10 +70,15 @@ impl TermMap {
         let key = format!("NM-{}", id);
         self.inner.get(&key).map(|v| &v.value).unwrap_or(id)
     }
+
+    pub fn get_action_type<'a>(&'a self, action_type: &'a String) -> &String {
+        let key = format!("DC-SkillNodeDesc-{}", action_type);
+        self.inner.get(&key).map(|v| &v.value).unwrap_or(action_type)
+    }
 }
 
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema)]
 pub enum SkillCategory {
     Attack,
     Summon,
@@ -105,7 +110,7 @@ pub struct Skill {
     // pub name: String,
     // pub id: String,
     // pub icon: String,
-    // pub category: SkillCategory,
+    pub category: SkillCategory,
     // pub poss_num: i8,
     // pub for_user: bool,
     // pub on_dict: bool,
@@ -194,4 +199,5 @@ pub struct Act {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
 pub struct ActNode {
     pub id: String,
+    pub action_type: String,
 }
