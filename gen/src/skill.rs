@@ -111,18 +111,35 @@ impl<'a> ActNodeRow<'a> {
 
 struct SkillModeRow<'a> {
     row_id: &'a str,
-    name: &'a str,
+    inner_name: &'a str,
     id: &'a str,
+    /// skill_mode(N) = skill(1) relation (format: `skill_mode.{}_{}_{}`)
     skill: &'a str,
+    icon: &'a str,
+    alt_mode: bool,
+    is_brave: bool,
+    use_num: i8,
+    use_brave: i8,
+    cooldown: i8,
+    use_init: bool,
+    is_quick: bool,
 }
 
 impl<'a> SkillModeRow<'a> {
     fn new(e: &'a HashMap<String, JsonValue>) -> Self {
         Self {
             row_id: e["_row_id"].as_str().unwrap(),
-            name: e["name"].as_str().unwrap(),
+            inner_name: e["name"].as_str().unwrap(),
             id: e["ID"].as_str().unwrap(),
             skill: e["skill"].as_str().unwrap(),
+            icon: e["Icon"].as_str().unwrap(),
+            alt_mode: str_to_bool(e["AltMode"].as_str().unwrap()),
+            is_brave: str_to_bool(e["IsBrave"].as_str().unwrap()),
+            use_num: e["UseNum"].as_str().unwrap().parse::<i8>().unwrap(),
+            use_brave: e["UseBrave"].as_str().unwrap().parse::<i8>().unwrap(),
+            cooldown: e["Cooldown"].as_str().unwrap().parse::<i8>().unwrap(),
+            use_init: str_to_bool(e["UseInit"].as_str().unwrap()),
+            is_quick: str_to_bool(e["IsQuick"].as_str().unwrap()),
         }
     }
 }
@@ -174,7 +191,7 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, act_table: &
 
         let modes = mode_rows.iter().map(|mode_row| {
             let acts = act_rows.iter().filter(|act_row| {
-                act_row.namer == format!("skill_mode.{}_{}_{}", mode_row.name, skill_mode_table.id(), mode_row.row_id)
+                act_row.namer == format!("skill_mode.{}_{}_{}", mode_row.inner_name, skill_mode_table.id(), mode_row.row_id)
             }).map(|act_row| {
                 let nodes = act_node_rows.iter().filter(|act_node_row| {
                     act_node_row.act == format!("{}_{}", act_row.name, act_row.row_id)
@@ -184,7 +201,18 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, act_table: &
 
                 Act { id: act_row.id.to_string(), nodes }
             }).collect::<Vec<_>>();
-            SkillMode { id: mode_row.id.to_string(), acts }
+            SkillMode {
+                id: mode_row.id.to_string(),
+                icon: mode_row.icon.to_string(),
+                is_alt: mode_row.alt_mode,
+                is_brave: mode_row.is_brave,
+                use_num: mode_row.use_num,
+                use_brave: mode_row.use_brave,
+                cooldown: mode_row.cooldown,
+                use_init: mode_row.use_init,
+                is_quick: mode_row.is_quick,
+                acts
+            }
         }).collect::<Vec<_>>();
 
         let skill = Skill { hash: 0, id: skill_row.id.to_string(), modes };

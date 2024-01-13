@@ -2,6 +2,7 @@ extern crate apache_avro;
 extern crate serde;
 
 use std::collections::HashMap;
+use std::fmt::Display;
 use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
 use apache_avro::AvroSchema;
@@ -63,6 +64,11 @@ impl TermMap {
             map.insert(r.key, r.term);
         }
         Ok(TermMap { inner: map })
+    }
+
+    pub fn get_name<'a>(&'a self, id: &'a String) -> &String {
+        let key = format!("NM-{}", id);
+        self.inner.get(&key).map(|v| &v.value).unwrap_or(id)
     }
 }
 
@@ -137,6 +143,18 @@ impl SkillMap {
         }
         Ok(())
     }
+
+    pub fn read<R: Read>(avro_read: R) -> Result<Self, apache_avro::Error> {
+        let reader = apache_avro::Reader::new(avro_read)?;
+        let mut map = HashMap::new();
+        for result in reader {
+            let value = &result.expect("Error reading value from avro reader");
+            let r = apache_avro::from_value::<Skill>(&value).expect("Error deserializing value");
+            map.insert(r.hash, r);
+        }
+        Ok(SkillMap { inner: map })
+    }
+
 }
 
 impl Deref for SkillMap {
@@ -156,6 +174,14 @@ impl DerefMut for SkillMap {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
 pub struct SkillMode {
     pub id: String,
+    pub icon: String,
+    pub is_alt: bool,
+    pub is_brave: bool,
+    pub use_num: i8,
+    pub use_brave: i8,
+    pub cooldown: i8,
+    pub use_init: bool,
+    pub is_quick: bool,
     pub acts: Vec<Act>,
 }
 
