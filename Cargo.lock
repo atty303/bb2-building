@@ -3,5 +3,9 @@
 version = 3
 
 [[package]]
-name = "bb2-building"
+name = "gen"
+version = "0.1.0"
+
+[[package]]
+name = "web"
 version = "0.1.0"
