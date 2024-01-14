@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 pub fn Sprite<'a>(cx: Scope<'a>, sprite: &'a data::Sprite) -> Element {
     let texture_height = 4096;
     let x = sprite.x;
-    let y = texture_height - sprite.y - sprite.height as u16;
+    let y = sprite.y;
     let width = sprite.width;
     let height = sprite.height;
     render! {

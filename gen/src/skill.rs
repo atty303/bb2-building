@@ -304,6 +304,7 @@ fn parse_icon(name: &str) -> Sprite {
     let doc = &docs[0];
     let texture = &doc["Sprite"]["m_RD"]["texture"];
     assert_eq!(texture["guid"].as_str().unwrap(), "a50549b8827f09843841d13f031f165f");
+    let texture_height = 4096;
     let rect = &doc["Sprite"]["m_Rect"];
     let x: Result<u16, _> = parse_number(&rect["x"]).try_into();
     let y: Result<u16, _> = parse_number(&rect["y"]).try_into();
@@ -311,7 +312,7 @@ fn parse_icon(name: &str) -> Sprite {
     let height: Result<u8, _> = parse_number(&rect["height"]).try_into();
     Sprite {
         x: x.unwrap(),
-        y: y.unwrap(),
+        y: texture_height - y.unwrap() - height.unwrap() as u16,
         width: width.unwrap(),
         height: height.unwrap(),
     }
