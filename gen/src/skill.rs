@@ -274,6 +274,7 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, act_table: &
             id: skill_row.id.to_string(),
             modes,
             category: skill_row.category.clone(),
+            rarity: skill_row.rarity,
             in_dictionary: skill_row.in_dict,
             is_free: skill_row.is_free,
         };

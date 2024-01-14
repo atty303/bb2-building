@@ -1,6 +1,8 @@
 #![allow(non_snake_case)]
 
 use dioxus::prelude::*;
+use dioxus_free_icons::Icon;
+use dioxus_free_icons::icons::hi_outline_icons;
 
 use data::Database;
 use crate::components::sprite::Sprite;
@@ -17,6 +19,9 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
                 span {
                     title: skill.id.as_str(),
                     database.tr(&skill.name())
+                }
+                span {
+                    Rarity { rarity: skill.rarity }
                 }
             }
             ul {
@@ -52,6 +57,22 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
                             &node.format(&database.read()).as_str()
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn Rarity(cx: Scope, rarity: i8) -> Element {
+    render! {
+        div {
+            class: "flex flex-row",
+            for _ in 0..(*rarity) {
+                Icon {
+                    icon: hi_outline_icons::HiStar,
+                    width: 16,
+                    height: 16,
                 }
             }
         }

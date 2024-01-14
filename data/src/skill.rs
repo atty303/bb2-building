@@ -104,7 +104,7 @@ pub struct Skill {
     // pub poss_num: i8,
     // pub for_user: bool,
     // pub on_dict: bool,
-    // pub rarity: i8,
+    pub rarity: i8,
     // pub freq: i8,
     // pub aff1: i8,
     // pub aff2: i8,

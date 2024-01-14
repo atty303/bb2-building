@@ -96,6 +96,7 @@ fn ThemeSelect(cx: Scope) -> Element {
                 tabindex: 0,
                 role: "button",
                 Icon {
+                    class: "text-primary",
                     icon: hi_outline_icons::HiColorSwatch,
                     width: 28,
                     height: 28,
