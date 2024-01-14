@@ -1,14 +1,16 @@
 #![allow(non_snake_case)]
 
 use dioxus::prelude::*;
+use fermi::use_read;
 
 use data::Database;
+use crate::atoms::DATABASE;
 
 use crate::components::sprite::Sprite;
 
 #[component]
 pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
-    let database = use_shared_state::<Database>(cx).unwrap().read();
+    let database = use_read(cx, &DATABASE);
     render! {
         div {
             class: "flex flex-col border-solid border border-base-300 rounded-md my-2",
@@ -38,7 +40,7 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
 
 #[component]
 pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element {
-    let database = use_shared_state::<Database>(cx).unwrap();
+    let database = use_read(cx, &DATABASE);
 
     render! {
         div {
@@ -47,14 +49,14 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
                 class: "flex flex-row items-center gap-2",
                 Sprite { sprite: &mode.icon }
                 div {
-                    database.read().tr(&mode.name())
+                    database.tr(&mode.name())
                 }
             }
             for act in &mode.acts {
                 ul {
                     for node in &act.nodes {
                         li {
-                            &node.format(&database.read()).as_str()
+                            &node.format(database).as_str()
                         }
                     }
                 }

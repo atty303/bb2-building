@@ -11,6 +11,8 @@ data = { path = "./data" }
 
 dioxus = "0.4"
 dioxus-web = "0.4"
+dioxus-router = "0.4"
+fermi = "0.4"
 
 web-sys = { version = "0.3", features = ["Window", "History", "Location"] }
 gloo-utils = "0.2"

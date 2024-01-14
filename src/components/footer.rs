@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 pub fn Footer(cx: Scope) -> Element {
     render! {
         footer {
-            class: "footer p-4 mt-8 bg-neutral text-neutral-content",
+            class: "footer p-4 bg-neutral text-neutral-content",
             div {
                 p {
                     "2024 Created by "

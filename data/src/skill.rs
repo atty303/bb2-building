@@ -2,11 +2,12 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
-use std::vec::IntoIter;
+
 use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
+
 use ::{Database, Sprite};
-use term::{TermMap, Tr};
+use term::Tr;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema)]
 pub enum SkillCategory {

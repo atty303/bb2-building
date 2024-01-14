@@ -2,14 +2,14 @@
 
 use anyhow::anyhow;
 use dioxus::prelude::*;
+use dioxus_router::prelude::{Router, RouterConfig, RouterConfigFactory, WebHistory};
+use fermi::{use_init_atom_root, use_read, use_set};
 
-use data::{Database, LANGUAGES};
+use data::Database;
 use data::term::TermMap;
-use crate::components::footer::Footer;
-use crate::components::nav_bar::NavBar;
+use crate::atoms::DATABASE;
 
-use crate::components::skill_view::SkillView;
-use crate::hooks::persistent::use_persistent;
+use crate::pages::Route;
 
 pub struct Language {
     pub code: &'static str,
@@ -37,21 +37,22 @@ async fn fetch_i18n(lang: &str) -> anyhow::Result<TermMap> {
     TermMap::read(cursor).map_err(|err| anyhow!(err))
 }
 
-pub fn App<'a>(cx: Scope<'a>) -> Element<'a> {
+pub fn App(cx: Scope) -> Element {
+    use_init_atom_root(cx);
+
     use_shared_state_provider(cx, || Language { code: "en" });
     let language_state = use_shared_state::<Language>(cx).unwrap();
 
-    use_shared_state_provider(cx, || Database::default());
-    let database_state = use_shared_state::<Database>(cx).unwrap();
+    let set_database = use_set(cx, &DATABASE);
     let database_future = use_future(cx, language_state, |_| {
-        to_owned![language_state, database_state];
+        to_owned![language_state, set_database];
         async move {
             let i18n = fetch_i18n(language_state.read().code).await?;
             let mut db = fetch_database().await;
             match db {
                 Ok(ref mut v) => {
                     v.set_term(i18n);
-                    *database_state.write() = v.clone()
+                    set_database(v.clone());
                 },
                 _ => ()
             }
@@ -60,17 +61,11 @@ pub fn App<'a>(cx: Scope<'a>) -> Element<'a> {
     });
 
     match database_future.value() {
-        Some(Ok(database)) => {
+        Some(Ok(_)) => {
             render! {
-                NavBar {}
-
-                div {
-                    class: "container mx-auto",
-                    for skill in database.skill.iter().filter(|s| s.in_dictionary) {
-                        SkillView { skill: skill }
-                    }
+                Router::<Route> {
+                    config: RouterConfigFactory::from(|| RouterConfig::default().history(WebHistory::<Route>::default())),
                 }
-                Footer {}
             }
         }
         Some(Err(err)) => {
