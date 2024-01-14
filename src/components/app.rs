@@ -3,12 +3,17 @@
 use anyhow::anyhow;
 use dioxus::prelude::*;
 
-use data::Database;
+use data::{Database, LANGUAGES};
 use data::term::TermMap;
 use crate::components::footer::Footer;
 use crate::components::nav_bar::NavBar;
 
 use crate::components::skill_view::SkillView;
+use crate::hooks::persistent::use_persistent;
+
+pub struct Language {
+    pub code: &'static str,
+}
 
 async fn fetch_database() -> anyhow::Result<Database> {
     let base_uri = gloo_utils::document().base_uri().map_err(|err| anyhow!(format!("{:?}", err)))?;
@@ -33,14 +38,15 @@ async fn fetch_i18n(lang: &str) -> anyhow::Result<TermMap> {
 }
 
 pub fn App<'a>(cx: Scope<'a>) -> Element<'a> {
-    let lang = use_state(cx, || "ja");
+    use_shared_state_provider(cx, || Language { code: "en" });
+    let language_state = use_shared_state::<Language>(cx).unwrap();
 
     use_shared_state_provider(cx, || Database::default());
     let database_state = use_shared_state::<Database>(cx).unwrap();
-    let database_future = use_future(cx, lang, |_| {
-        to_owned![lang, database_state];
+    let database_future = use_future(cx, language_state, |_| {
+        to_owned![language_state, database_state];
         async move {
-            let i18n = fetch_i18n(*lang).await?;
+            let i18n = fetch_i18n(language_state.read().code).await?;
             let mut db = fetch_database().await;
             match db {
                 Ok(ref mut v) => {
