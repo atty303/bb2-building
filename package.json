@@ -1,0 +1,21 @@
+{
+    "name": "bb2-building",
+    "version": "1.0.0",
+    "description": "# Running the app locally",
+    "main": "index.js",
+    "scripts": {
+        "build": "run-script-os",
+        "build:win32": "tailwindcss -m -i public\\input.css -o %TRUNK_STAGING_DIR%\\tailwind.css",
+        "build:default": "tailwindcss -m -i public/input.css -o $TRUNK_STAGING_DIR/tailwind.css",
+        "serve": "trunk serve"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "daisyui": "^4.6.0",
+        "tailwindcss": "^3.4.1"
+    },
+    "devDependencies": {
+        "run-script-os": "^1.1.6"
+    }
+}

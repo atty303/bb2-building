@@ -4,6 +4,25 @@ A build planner for BB2 game.
 
 ## Development
 
+### Setup
+
+```bash
+cargo install trunk
+npm ci
+```
+
+### Serve local server
+
+```bash
+trunk serve
+```
+
+### Build
+
+```bash
+npm run build
+```
+
 ### How to update the database
 
 1. Install [Melon Loader](https://github.com/LavaGang/MelonLoader). (v0.6.2).

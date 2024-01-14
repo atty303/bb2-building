@@ -2,7 +2,6 @@ extern crate apache_avro;
 extern crate serde;
 
 use std::collections::HashMap;
-use std::fmt::Display;
 use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
 use apache_avro::AvroSchema;
