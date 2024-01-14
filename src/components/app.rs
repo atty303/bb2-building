@@ -54,7 +54,7 @@ pub fn App<'a>(cx: Scope<'a>) -> Element<'a> {
     match database_future.value() {
         Some(Ok(database)) => {
             render! {
-                for skill in database.skill.values() {
+                for skill in database.skill.values().filter(|skill| skill.id == "SKA01010") {
                     SkillView { skill: skill }
                 }
             }

@@ -1,10 +1,11 @@
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
 use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
-use Sprite;
-use term::Tr;
+use ::{Database, Sprite};
+use term::{TermMap, Tr};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema)]
 pub enum SkillCategory {
@@ -30,13 +31,73 @@ impl SkillCategory {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema)]
+pub enum AvoidType {
+    None,
+    C,
+    A,
+    LastHit,
+}
+
+impl AvoidType {
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "" => Some(AvoidType::None),
+            "C" => Some(AvoidType::C),
+            "A" => Some(AvoidType::A),
+            "LastHit" => Some(AvoidType::LastHit),
+            _ => None
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema)]
+pub enum ParamKey {
+    None,
+    All,
+    Random,
+    RandomD,
+    GearByPos,
+    Act,
+    Combat,
+    LastAutoUse,
+    Current,
+    Master,
+    Push,
+    Debuffs,
+    Buffs,
+    Shadow,
+    LastEnemy,
+}
+
+impl ParamKey {
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "" => Some(ParamKey::None),
+            "All" => Some(ParamKey::All),
+            "Random" => Some(ParamKey::Random),
+            "RandomD" => Some(ParamKey::RandomD),
+            "GearByPos" => Some(ParamKey::GearByPos),
+            "Act" => Some(ParamKey::Act),
+            "Combat" => Some(ParamKey::Combat),
+            "LastAutoUse" => Some(ParamKey::LastAutoUse),
+            "Current" => Some(ParamKey::Current),
+            "Master" => Some(ParamKey::Master),
+            "Push" => Some(ParamKey::Push),
+            "Debuffs" => Some(ParamKey::Debuffs),
+            "Buffs" => Some(ParamKey::Buffs),
+            "Shadow" => Some(ParamKey::Shadow),
+            "LastEnemy" => Some(ParamKey::LastEnemy),
+            _ => None
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
 pub struct Skill {
     pub hash: u16,
     pub id: String,
     pub modes: Vec<SkillMode>,
-    // pub name: String,
-    // pub id: String,
     // pub icon: String,
     pub category: SkillCategory,
     // pub poss_num: i8,
@@ -119,14 +180,63 @@ pub struct SkillMode {
     pub acts: Vec<Act>,
 }
 
+impl SkillMode {
+    pub fn name(&self) -> Tr { Tr::Name(self.id.as_str()) }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
 pub struct Act {
     pub id: String,
     pub nodes: Vec<ActNode>,
 }
 
+impl Act {
+    pub fn name(&self) -> Tr { Tr::Name(self.id.as_str()) }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
 pub struct ActNode {
     pub id: String,
     pub action_type: String,
+    pub target: i8,
+    pub param_key: ParamKey,
+    pub avoid_type: AvoidType,
+    pub act_num: u8,
+}
+
+impl ActNode {
+    pub fn name(&self) -> Tr { Tr::Name(self.id.as_str()) }
+    pub fn action_type(&self) -> Tr { Tr::Action(self.action_type.as_str()) }
+
+    pub fn format(&self, db: &Database) -> String {
+        let last_hit = match self.avoid_type {
+            AvoidType::LastHit => db.tr_str("DC-SkillNodeDesc-LastHit"),
+            _ => "".to_string(),
+        };
+        let target = db.tr_str(format!("DC-SkillNodeDesc-TargetName-{}", self.target));
+        let tg = match (self.target, &self.param_key) {
+            (_, ParamKey::All) => db.tr_str("DC-SkillNodeDesc-TargetSkill-All"),
+            (_, ParamKey::Random) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Random"),
+            (_, ParamKey::RandomD) => db.tr_str("DC-SkillNodeDesc-TargetSkill-RandomD"),
+            (_, ParamKey::Current) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Current"),
+            (_, ParamKey::Buffs) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Buffs"),
+            (_, ParamKey::Debuffs) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Debuffs"),
+            (t, p) => format!("<tg {},{:?}>", t, p),
+        };
+
+        let template = db.tr(&Tr::Action(self.action_type.as_str()));
+        let desc = template
+            .replace("<lasthit>", last_hit.as_str())
+            .replace("<t>", target.as_str())
+            .replace("<tg>", tg.as_str())
+            .replace("<dr>", db.tr(&Tr::Raw("WD-DamageType-Direct")).as_str());
+
+        if self.act_num == 1 {
+            desc
+        } else {
+            db.tr_str("DC-SkillNodeDesc-MultipleCase")
+                .replace("{0}", desc.as_str())
+                .replace("{1}", self.act_num.to_string().as_str())
+        }
+    }
 }

@@ -35,6 +35,10 @@ impl Database {
     pub fn tr(&self, key: &Tr) -> String {
         self.term.tr(key)
     }
+
+    pub fn tr_str<S: AsRef<str>>(&self, key: S) -> String {
+        self.term.tr(&Tr::Raw(key.as_ref()))
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]

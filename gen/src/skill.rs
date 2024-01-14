@@ -5,7 +5,7 @@ use std::hash::{BuildHasher, Hash, Hasher};
 use json::JsonValue;
 use yaml_rust::{Yaml, YamlLoader};
 
-use data::skill::{Act, ActNode, Skill, SkillCategory, SkillMap, SkillMode};
+use data::skill::{Act, ActNode, AvoidType, ParamKey, Skill, SkillCategory, SkillMap, SkillMode};
 use data::Sprite;
 use idhash::IdHash;
 use table::Table;
@@ -94,6 +94,7 @@ impl<'a> ActRow<'a> {
     }
 }
 
+#[derive(Debug)]
 struct ActNodeRow<'a> {
     row_id: &'a str,
     id: &'a str,
@@ -102,6 +103,12 @@ struct ActNodeRow<'a> {
     act: &'a str,
     p_order: usize,
     action_type: &'a str,
+    target: i8,
+    param_key: &'a str,
+    any: &'a str,
+    hit_rate: u16,
+    avoid_type: &'a str,
+    act_num: u8,
 }
 
 impl<'a> ActNodeRow<'a> {
@@ -114,6 +121,12 @@ impl<'a> ActNodeRow<'a> {
             act: e["act"].as_str().unwrap(),
             p_order: e["POrder"].as_str().unwrap().parse::<usize>().unwrap(),
             action_type: e["ActionType"].as_str().unwrap(),
+            target: e["Target"].as_str().unwrap().parse::<i8>().unwrap(),
+            param_key: e["ParamKey"].as_str().unwrap(),
+            any: e["any"].as_str().unwrap(),
+            hit_rate: e["HitRate"].as_str().unwrap().parse::<u16>().unwrap(),
+            avoid_type: e["AvoidType"].as_str().unwrap(),
+            act_num: e["ActNum"].as_str().unwrap().parse::<u8>().unwrap(),
         }
     }
 }
@@ -216,12 +229,18 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, act_table: &
             }).map(|act_row| {
                 let nodes = act_node_rows.iter().filter(|act_node_row| {
                     act_node_row.act == format!("{}_{}", act_row.name, act_row.row_id)
-                }).map(|act_node_row| {
+                }).filter(|row| row.action_type != "Visual").map(|act_node_row| {
+                    println!("act_node_row: {:?}", act_node_row);
                     ActNode {
                         id: act_node_row.id.to_string(),
                         action_type: act_node_row.action_type.to_string(),
+                        target: act_node_row.target,
+                        param_key: ParamKey::from_str(act_node_row.param_key).unwrap(),
+                        avoid_type: AvoidType::from_str(act_node_row.avoid_type).unwrap(),
+                        act_num: act_node_row.act_num,
                     }
                 }).collect::<Vec<_>>();
+                println!("act {} has {:?} nodes", act_row.name, nodes);
 
                 Act {
                     id: act_row.id.to_string(),
@@ -276,18 +295,6 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, act_table: &
 
     let file_writer = std::io::BufWriter::new(std::fs::File::create(format!("public/data/skill.avro")).unwrap());
     SkillMap::write(file_writer, &skill_map).unwrap();
-
-    for skill in skill_map.values() {
-        for mode in &skill.modes {
-            // println!("{}: {}", skill.id, mode.id);
-            // let path = format!("dump/asset/ExportedProject/Assets/Sprite/{}.asset", mode.icon);
-            // let exists = std::path::Path::new(&path).exists();
-            // println!("  - {} {}", mode.icon, exists);
-            // if !exists {
-            //     panic!("icon not found: {}", mode.icon);
-            // }
-        }
-    }
 }
 
 fn parse_icon(name: &str) -> Sprite {

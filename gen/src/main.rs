@@ -16,7 +16,7 @@ mod skill;
 mod idhash;
 
 fn main() {
-    terms::write_terms();
+    // terms::write_terms();
 
     let s = std::fs::read_to_string("dump/db.json").unwrap();
     let db_json = json::parse(s.as_str()).unwrap();
@@ -30,9 +30,7 @@ fn main() {
         println!("{}: {}", meta_name, table.id());
 
         db.insert(meta_name.to_string(), table);
-
     }
 
     process_skill(&db["skill"], &db["skill_mode"], &db["act"], &db["act_node"])
 }
-

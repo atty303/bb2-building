@@ -3,22 +3,57 @@
 use dioxus::prelude::*;
 
 use data::Database;
-use data::skill::Skill;
 use crate::components::sprite::Sprite;
 
 #[component]
-pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a Skill) -> Element {
+pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
     let database = use_shared_state::<Database>(cx).unwrap().read();
     render! {
         div {
-            h1 {
+            class: "flex flex-col",
+            div {
+                class: "flex flex-row items-center gap-2",
                 Sprite { sprite: &skill.modes[0].icon }
-                database.tr(&skill.name())
+                span {
+                    title: skill.id.as_str(),
+                    database.tr(&skill.name())
+                }
             }
             ul {
-                li {
+                class: "flex flex-row gap-2",
+                for mode in &skill.modes {
+                    li {
+                        SkillMode { mode: mode }
+                    }
                 }
             }
         }
      }
+}
+
+#[component]
+pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element {
+    let database = use_shared_state::<Database>(cx).unwrap();
+
+    render! {
+        div {
+            class: "flex flex-col gap-2 bg-neutral text-neutral-content rounded-md p-2",
+            div {
+                class: "flex flex-row items-center gap-2",
+                Sprite { sprite: &mode.icon }
+                div {
+                    database.read().tr(&mode.name())
+                }
+            }
+            for act in &mode.acts {
+                ul {
+                    for node in &act.nodes {
+                        li {
+                            &node.format(&database.read()).as_str()
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

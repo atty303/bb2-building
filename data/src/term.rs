@@ -64,6 +64,7 @@ impl TermMap {
         let key = match key {
             Tr::Name(id) => format!("NM-{}", id),
             Tr::Action(action_type) => format!("DC-SkillNodeDesc-{}", action_type),
+            Tr::Raw(key) => key.to_string(),
         };
         self.inner.get(&key).map(|v| &v.value).unwrap_or(&key).to_string()
     }
@@ -72,4 +73,5 @@ impl TermMap {
 pub enum Tr<'a> {
     Name(&'a str),
     Action(&'a str),
+    Raw(&'a str),
 }
