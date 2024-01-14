@@ -4,10 +4,10 @@
 
 .sprite {
     --s: 1;
-    --x: 0;
-    --y: 0;
-    --w: 0;
-    --h: 0;
+    --x: 0px;
+    --y: 0px;
+    --w: 0px;
+    --h: 0px;
 
     background-image: url("image/a50549b8827f09843841d13f031f165f.png");
     width: calc(var(--w) * var(--s));

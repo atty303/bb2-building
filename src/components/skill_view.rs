@@ -10,9 +10,9 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
     let database = use_shared_state::<Database>(cx).unwrap().read();
     render! {
         div {
-            class: "flex flex-col bg-base-300 text-base-content rounded-md p-2 my-2",
+            class: "flex flex-col border-solid border border-base-300 rounded-md my-2",
             div {
-                class: "flex flex-row items-center gap-2",
+                class: "flex flex-row items-center gap-2 bg-base-300 text-base-content p-2",
                 Sprite { sprite: &skill.modes[0].icon }
                 span {
                     title: skill.id.as_str(),

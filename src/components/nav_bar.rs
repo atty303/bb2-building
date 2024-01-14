@@ -4,6 +4,7 @@ use dioxus::prelude::*;
 use crate::hooks::persistent::use_persistent;
 use dioxus_free_icons::Icon;
 use dioxus_free_icons::icons::hi_outline_icons;
+use data::LANGUAGES;
 
 #[component]
 pub fn NavBar(cx: Scope) -> Element {
@@ -21,7 +22,7 @@ pub fn NavBar(cx: Scope) -> Element {
                     a {
                         class: "link link-hover",
                         href: "{base_uri}",
-                        "BB2 Building"
+                        "BB2B"
                     }
                 }
             }
@@ -31,6 +32,7 @@ pub fn NavBar(cx: Scope) -> Element {
                     class: "flex items-center space-x-4",
 
                     ThemeSelect {}
+                    LanguageSelect {}
 
                     a {
                         class: "btn btn-ghost btn-sm rounded-btn",
@@ -84,23 +86,66 @@ fn ThemeSelect(cx: Scope) -> Element {
     });
 
     render! {
-        details {
+        div {
             class: "dropdown dropdown-end",
-            summary {
+            div {
                 class: "btn btn-ghost btn-sm rounded-btn",
+                tabindex: 0,
+                role: "button",
                 Icon {
                     icon: hi_outline_icons::HiColorSwatch,
+                    width: 28,
+                    height: 28,
                 }
                 "Theme"
             }
             div {
                 class: "p-2 shadow menu dropdown-content bg-base-100 text-base-content rounded-box z-10 max-h-96 overflow-y-auto w-48",
+                tabindex: 0,
                 div {
                     class: "grid grid-cols-1 gap-2 p-4",
                     for t in THEMES.iter() {
                         button {
                             class: "btn btn-ghost btn-sm justify-start px-4 py-2",
                             onclick: move |_| theme.set(t.to_string()),
+                            "{t}"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn LanguageSelect(cx: Scope) -> Element {
+    let language = use_persistent(cx, "language", || "en".to_string());
+    use_effect(cx, &language.get(), move |language| async move {
+    });
+
+    render! {
+        div {
+            class: "dropdown dropdown-end",
+            tabindex: 0,
+            div {
+                class: "btn btn-ghost btn-sm rounded-btn",
+                role: "button",
+                Icon {
+                    icon: hi_outline_icons::HiGlobe,
+                    width: 28,
+                    height: 28,
+                }
+                "Language"
+            }
+            div {
+                class: "p-2 shadow menu dropdown-content bg-base-100 text-base-content rounded-box z-10 max-h-fit overflow-y-auto w-48",
+                tabindex: 0,
+                div {
+                    class: "grid grid-cols-1 gap-2 p-4",
+                    for t in LANGUAGES.iter() {
+                        button {
+                            class: "btn btn-ghost btn-sm justify-start px-4 py-2",
+                            onclick: move |_| language.set(t.to_string()),
                             "{t}"
                         }
                     }
