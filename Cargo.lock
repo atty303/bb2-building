@@ -458,6 +458,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2ea539174bb236e0e7dc9c12b19b88eae3cb574dedbd0252a2d43ea7e6de13e2"
 
 [[package]]
+name = "dioxus-free-icons"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba0f39d8cc51f55139246e3527a97153bbc6764bfe8ecf0b2505e7c6b7650580"
+dependencies = [
+ "dioxus",
+]
+
+[[package]]
 name = "dioxus-hooks"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -807,6 +816,21 @@ name = "gimli"
 version = "0.28.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4271d37baee1b8c7e4b708028c57d816cf9d2434acb33a549475f78c181f6253"
+
+[[package]]
+name = "gloo-storage"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fbc8031e8c92758af912f9bc08fbbadd3c6f3cfcbf6b64cdf3d6a81f0139277a"
+dependencies = [
+ "gloo-utils",
+ "js-sys",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "wasm-bindgen",
+ "web-sys",
+]
 
 [[package]]
 name = "gloo-utils"
@@ -2118,10 +2142,13 @@ dependencies = [
  "anyhow",
  "data",
  "dioxus",
+ "dioxus-free-icons",
  "dioxus-web",
+ "gloo-storage",
  "gloo-utils",
  "log",
  "reqwest",
+ "serde",
  "wasm-logger",
  "web-sys",
 ]

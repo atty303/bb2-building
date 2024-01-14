@@ -1,6 +1,7 @@
 use crate::components::app::App;
 
 mod components;
+mod hooks;
 
 fn main() {
     // let term_map = TermMap::read(std::io::BufReader::new(std::fs::File::open("public/i18n/ja/terms.avro").unwrap())).unwrap();

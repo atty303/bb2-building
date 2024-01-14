@@ -5,6 +5,8 @@ use dioxus::prelude::*;
 
 use data::Database;
 use data::term::TermMap;
+use crate::components::footer::Footer;
+use crate::components::nav_bar::NavBar;
 
 use crate::components::skill_view::SkillView;
 
@@ -54,9 +56,15 @@ pub fn App<'a>(cx: Scope<'a>) -> Element<'a> {
     match database_future.value() {
         Some(Ok(database)) => {
             render! {
-                for skill in database.skill.values().filter(|skill| skill.id == "SKA01010") {
-                    SkillView { skill: skill }
+                NavBar {}
+
+                div {
+                    class: "container mx-auto",
+                    for skill in database.skill.values().filter(|skill| skill.id != "SKA01010") {
+                        SkillView { skill: skill }
+                    }
                 }
+                Footer {}
             }
         }
         Some(Err(err)) => {
