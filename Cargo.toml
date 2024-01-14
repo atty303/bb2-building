@@ -11,7 +11,6 @@ data = { path = "./data" }
 
 dioxus = "0.4"
 dioxus-web = "0.4"
-dioxus-free-icons = { version = "0.7", features = ["hero-icons-outline"] }
 
 web-sys = { version = "0.3", features = ["Window", "History", "Location"] }
 gloo-utils = "0.2"

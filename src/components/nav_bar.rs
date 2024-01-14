@@ -1,12 +1,10 @@
 #![allow(non_snake_case)]
 
 use dioxus::prelude::*;
-use dioxus_free_icons::Icon;
-use dioxus_free_icons::icons::hi_outline_icons;
 
 use data::LANGUAGES;
-use crate::components::app::Language;
 
+use crate::components::app::Language;
 use crate::hooks::persistent::use_persistent;
 
 #[component]
@@ -95,13 +93,18 @@ fn ThemeSelect(cx: Scope) -> Element {
                 class: "btn btn-ghost btn-sm rounded-btn",
                 tabindex: 0,
                 role: "button",
-                Icon {
-                    class: "text-primary",
-                    icon: hi_outline_icons::HiColorSwatch,
-                    width: 28,
-                    height: 28,
+                svg {
+                    class: "w-6 h-6",
+                    fill: "none",
+                    view_box: "0 0 24 24",
+                    stroke_width: "1.5",
+                    stroke: "currentColor",
+                    path {
+                        stroke_linecap: "round",
+                        stroke_linejoin: "round",
+                        d: "M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z",
+                    }
                 }
-                "Theme"
             }
             div {
                 class: "p-2 shadow menu dropdown-content bg-base-100 text-base-content rounded-box z-10 max-h-96 overflow-y-auto w-48",
@@ -141,12 +144,18 @@ fn LanguageSelect(cx: Scope) -> Element {
             div {
                 class: "btn btn-ghost btn-sm rounded-btn",
                 role: "button",
-                Icon {
-                    icon: hi_outline_icons::HiGlobe,
-                    width: 28,
-                    height: 28,
+                svg {
+                    class: "w-6 h-6",
+                    fill: "none",
+                    view_box: "0 0 24 24",
+                    stroke_width: "1.5",
+                    stroke: "currentColor",
+                    path {
+                        stroke_linecap: "round",
+                        stroke_linejoin: "round",
+                        d: "m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802",
+                    }
                 }
-                "Language"
             }
             div {
                 class: "p-2 shadow menu dropdown-content bg-base-100 text-base-content rounded-box z-10 max-h-fit overflow-y-auto w-48",
