@@ -1,4 +1,3 @@
-use data::{SkillCategory, SkillMap, TermMap};
 use crate::components::app::App;
 
 mod components;

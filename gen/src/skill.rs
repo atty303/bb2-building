@@ -269,7 +269,7 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, act_table: &
         skill_map.insert(skill.skill.hash, skill.skill.clone());
     }
 
-    let file_writer = std::io::BufWriter::new(std::fs::File::create(format!("public/skill.avro")).unwrap());
+    let file_writer = std::io::BufWriter::new(std::fs::File::create(format!("public/data/skill.avro")).unwrap());
     SkillMap::write(file_writer, &skill_map).unwrap();
 }
 

@@ -12,5 +12,12 @@ data = { path = "./data" }
 dioxus = "0.4"
 dioxus-web = "0.4"
 
+web-sys = { version = "0.3", features = ["Window", "History", "Location"] }
+gloo-utils = "0.2"
+
 log = "0.4"
 wasm-logger = "0.2"
+
+reqwest = "0.11"
+
+anyhow = "1.0"
