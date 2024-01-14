@@ -42,7 +42,7 @@ impl TermMap {
 
     pub fn write<W: Write>(avro_write: W, term_map: &Self) -> Result<(), apache_avro::Error> {
         let schema = TermSer::get_schema();
-        let mut writer = apache_avro::Writer::new(&schema, avro_write);
+        let mut writer = apache_avro::Writer::with_codec(&schema, avro_write, apache_avro::Codec::Deflate);
         for (key, term) in term_map.inner.iter() {
             writer.append_ser(TermSer { key: key.clone(), term: term.clone() })?;
         }

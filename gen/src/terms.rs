@@ -55,5 +55,13 @@ pub fn write_terms() {
 
         let file_writer = std::io::BufWriter::new(std::fs::File::create(format!("public/i18n/{}/terms.avro", lang)).unwrap());
         TermMap::write(file_writer, &new_out).unwrap();
+
+        {
+            let file_writer = std::io::BufWriter::new(std::fs::File::create(format!("dump/{}.csv", lang)).unwrap());
+            let mut csv_writer = csv::Writer::from_writer(file_writer);
+            for (key, value) in new_out.iter() {
+                csv_writer.write_record(&[key, &value.value]).unwrap();
+            }
+        }
     }
 }

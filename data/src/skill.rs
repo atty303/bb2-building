@@ -204,7 +204,7 @@ pub struct SkillRepository {
 impl SkillRepository {
     pub fn write<'a, W: Write, I: Iterator<Item = &'a Skill>>(avro_write: W, skills: I) -> Result<(), apache_avro::Error> {
         let schema = Skill::get_schema();
-        let mut writer = apache_avro::Writer::new(&schema, avro_write);
+        let mut writer = apache_avro::Writer::with_codec(&schema, avro_write, apache_avro::Codec::Deflate);
         for skill in skills {
             writer.append_ser(skill)?;
         }
