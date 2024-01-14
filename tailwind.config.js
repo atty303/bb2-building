@@ -5,7 +5,7 @@ module.exports = {
     theme: {
         extend: {
             fontFamily: {
-                sans: ["DotGothic16", "sans-serif"],
+                sans: ["Noto Sans JP", "sans-serif"],
             },
         },
     },
