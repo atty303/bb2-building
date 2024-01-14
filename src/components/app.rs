@@ -3,12 +3,12 @@
 use anyhow::anyhow;
 use dioxus::prelude::*;
 use dioxus_router::prelude::{Router, RouterConfig, RouterConfigFactory, WebHistory};
-use fermi::{use_init_atom_root, use_read, use_set};
+use fermi::{use_init_atom_root, use_set};
 
 use data::Database;
 use data::term::TermMap;
-use crate::atoms::DATABASE;
 
+use crate::atoms::DATABASE;
 use crate::pages::Route;
 
 pub struct Language {

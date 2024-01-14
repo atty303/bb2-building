@@ -4,9 +4,7 @@ use dioxus::prelude::*;
 use dioxus_router::prelude::Link;
 use fermi::use_read;
 
-use data::Database;
 use crate::atoms::DATABASE;
-
 use crate::components::sprite::Sprite;
 use crate::pages::Route;
 
