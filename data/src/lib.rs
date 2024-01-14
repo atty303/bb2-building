@@ -16,12 +16,12 @@ pub const LANGUAGES: [&str; 12] =
 pub struct Database {
     term: term::TermMap,
 
-    pub skill: skill::SkillMap,
+    pub skill: skill::SkillRepository,
 }
 
 impl Database {
     pub fn read<R: Read>(skill_read: R) -> Result<Self, apache_avro::Error> {
-        let skill = skill::SkillMap::read(skill_read)?;
+        let skill = skill::SkillRepository::read(skill_read)?;
         Ok(Self {
             term: term::TermMap::new(),
             skill,

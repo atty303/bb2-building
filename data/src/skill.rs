@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
+use std::vec::IntoIter;
 use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
 use ::{Database, Sprite};
@@ -109,61 +110,14 @@ pub struct Skill {
     // pub aff2: i8,
     // pub aff3: i8,
     // pub aff4: i8,
-    // pub in_dict: bool,
+    pub in_dictionary: bool,
     // pub drop: bool,
     // pub tag: String,
-    // pub is_free: bool,
+    pub is_free: bool,
 }
 
 impl Skill {
     pub fn name(&self) -> Tr { Tr::Name(self.modes[0].id.as_str()) }
-}
-
-#[derive(Clone, Default)]
-pub struct SkillMap {
-    inner: HashMap<u16, Skill>,
-}
-
-impl SkillMap {
-    pub fn new() -> Self {
-        let map = HashMap::new();
-        Self { inner: map }
-    }
-
-    pub fn write<W: Write>(avro_write: W, skill_map: &Self) -> Result<(), apache_avro::Error> {
-        let schema = Skill::get_schema();
-        let mut writer = apache_avro::Writer::new(&schema, avro_write);
-        for skill in skill_map.inner.values() {
-            writer.append_ser(skill)?;
-        }
-        Ok(())
-    }
-
-    pub fn read<R: Read>(avro_read: R) -> Result<Self, apache_avro::Error> {
-        let reader = apache_avro::Reader::new(avro_read)?;
-        let mut map = HashMap::new();
-        for result in reader {
-            let value = &result.expect("Error reading value from avro reader");
-            let r = apache_avro::from_value::<Skill>(&value).expect("Error deserializing value");
-            map.insert(r.hash, r);
-        }
-        Ok(SkillMap { inner: map })
-    }
-
-}
-
-impl Deref for SkillMap {
-    type Target = HashMap<u16, Skill>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl DerefMut for SkillMap {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
@@ -238,5 +192,54 @@ impl ActNode {
                 .replace("{0}", desc.as_str())
                 .replace("{1}", self.act_num.to_string().as_str())
         }
+    }
+}
+
+#[derive(Clone, Default)]
+pub struct SkillRepository {
+    inner: HashMap<u16, Skill>,
+    order: Vec<u16>,
+}
+
+impl SkillRepository {
+    pub fn write<'a, W: Write, I: Iterator<Item = &'a Skill>>(avro_write: W, skills: I) -> Result<(), apache_avro::Error> {
+        let schema = Skill::get_schema();
+        let mut writer = apache_avro::Writer::new(&schema, avro_write);
+        for skill in skills {
+            writer.append_ser(skill)?;
+        }
+        Ok(())
+    }
+
+    pub fn read<R: Read>(avro_read: R) -> Result<Self, apache_avro::Error> {
+        let reader = apache_avro::Reader::new(avro_read)?;
+        let mut order = Vec::new();
+        let mut map = HashMap::new();
+        for result in reader {
+            let value = &result.expect("Error reading value from avro reader");
+            let r = apache_avro::from_value::<Skill>(&value).expect("Error deserializing value");
+            let hash = r.hash;
+            map.insert(hash, r);
+            order.push(hash);
+        }
+        Ok(SkillRepository { inner: map, order })
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &Skill> {
+        self.order.iter().map(move |k| &self.inner[k])
+    }
+}
+
+impl Deref for SkillRepository {
+    type Target = HashMap<u16, Skill>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl DerefMut for SkillRepository {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
     }
 }

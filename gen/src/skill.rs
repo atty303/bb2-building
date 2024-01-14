@@ -5,7 +5,7 @@ use std::hash::{BuildHasher, Hash, Hasher};
 use json::JsonValue;
 use yaml_rust::{Yaml, YamlLoader};
 
-use data::skill::{Act, ActNode, AvoidType, ParamKey, Skill, SkillCategory, SkillMap, SkillMode};
+use data::skill::{Act, ActNode, AvoidType, ParamKey, Skill, SkillCategory, SkillRepository, SkillMode};
 use data::Sprite;
 use idhash::IdHash;
 use table::Table;
@@ -272,8 +272,10 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, act_table: &
         let skill = Skill {
             hash: 0,
             id: skill_row.id.to_string(),
+            modes,
             category: skill_row.category.clone(),
-            modes
+            in_dictionary: skill_row.in_dict,
+            is_free: skill_row.is_free,
         };
 
         Some(SkillWithId { skill, row : skill_row })
@@ -283,18 +285,14 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, act_table: &
     let mut id_hasher = IdHash::new(0, 16);
     id_hasher.search_seed(&skills);
     assert_eq!(id_hasher.seed, 0);
-
     for skill in &mut skills {
         skill.skill.hash = id_hasher.id_hash(&skill) as u16;
     }
 
-    let mut skill_map = SkillMap::new();
-    for skill in skills.iter() {
-        skill_map.insert(skill.skill.hash, skill.skill.clone());
-    }
+    skills.sort_by_key(|s| (!s.skill.is_free, s.row.order));
 
     let file_writer = std::io::BufWriter::new(std::fs::File::create(format!("public/data/skill.avro")).unwrap());
-    SkillMap::write(file_writer, &skill_map).unwrap();
+    SkillRepository::write(file_writer, skills.iter().map(|s| &s.skill)).unwrap();
 }
 
 fn parse_icon(name: &str) -> Sprite {

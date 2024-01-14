@@ -66,7 +66,7 @@ pub fn App<'a>(cx: Scope<'a>) -> Element<'a> {
 
                 div {
                     class: "container mx-auto",
-                    for skill in database.skill.values().filter(|skill| skill.id != "SKA01010") {
+                    for skill in database.skill.iter().filter(|s| s.in_dictionary) {
                         SkillView { skill: skill }
                     }
                 }
