@@ -16,6 +16,7 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
                 class: "flex flex-row items-center gap-2 bg-base-300 text-base-content p-2",
                 Sprite { sprite: &skill.modes[0].icon }
                 span {
+                    class: "flex-grow",
                     title: skill.id.as_str(),
                     database.tr(&skill.name())
                 }
