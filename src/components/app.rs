@@ -3,29 +3,48 @@
 use anyhow::anyhow;
 use dioxus::prelude::*;
 
-#[derive(Clone, Debug, Default)]
-struct Database {
-}
+use data::Database;
+use data::term::TermMap;
 
-async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
+use crate::components::skill_view::SkillView;
+
+async fn fetch_database() -> anyhow::Result<Database> {
     let base_uri = gloo_utils::document().base_uri().map_err(|err| anyhow!(format!("{:?}", err)))?;
     let base_uri = base_uri.ok_or(anyhow!("base_uri"))?;
 
     let res = reqwest::get(base_uri + "data/skill.avro").await?;
     let body = res.bytes().await?;
+    let cursor = std::io::Cursor::new(body);
 
-    Ok(Database {})
+    Database::read(cursor).map_err(|err| anyhow!(err))
 }
 
-pub fn App(cx: Scope) -> Element {
+async fn fetch_i18n(lang: &str) -> anyhow::Result<TermMap> {
+    let base_uri = gloo_utils::document().base_uri().map_err(|err| anyhow!(format!("{:?}", err)))?;
+    let base_uri = base_uri.ok_or(anyhow!("base_uri"))?;
+
+    let res = reqwest::get(format!("{}i18n/{}/terms.avro", base_uri, lang)).await?;
+    let body = res.bytes().await?;
+    let cursor = std::io::Cursor::new(body);
+
+    TermMap::read(cursor).map_err(|err| anyhow!(err))
+}
+
+pub fn App<'a>(cx: Scope<'a>) -> Element<'a> {
+    let lang = use_state(cx, || "ja");
+
     use_shared_state_provider(cx, || Database::default());
     let database_state = use_shared_state::<Database>(cx).unwrap();
-    let database_future = use_future(cx, (), |_| {
-        to_owned![database_state];
+    let database_future = use_future(cx, lang, |_| {
+        to_owned![lang, database_state];
         async move {
-            let db = fetch_database("ja").await;
+            let i18n = fetch_i18n(*lang).await?;
+            let mut db = fetch_database().await;
             match db {
-                Ok(ref v) => *database_state.write() = v.clone(),
+                Ok(ref mut v) => {
+                    v.set_term(i18n);
+                    *database_state.write() = v.clone()
+                },
                 _ => ()
             }
             db
@@ -35,7 +54,9 @@ pub fn App(cx: Scope) -> Element {
     match database_future.value() {
         Some(Ok(database)) => {
             render! {
-                h1 { "Hello, World!" }
+                for skill in database.skill.values() {
+                    SkillView { skill: skill }
+                }
             }
         }
         Some(Err(err)) => {
