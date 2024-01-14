@@ -9,7 +9,7 @@
     --w: 0px;
     --h: 0px;
 
-    background-image: url("image/a50549b8827f09843841d13f031f165f.png");
+    background-image: url("image/a50549b8827f09843841d13f031f165f.webp");
     width: calc(var(--w) * var(--s));
     min-width: calc(var(--w) * var(--s));
     height: calc(var(--h) * var(--s));
