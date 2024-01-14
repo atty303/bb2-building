@@ -2,6 +2,8 @@ extern crate apache_avro;
 extern crate serde;
 
 use std::io::Read;
+use apache_avro::AvroSchema;
+use serde::{Deserialize, Serialize};
 use term::Tr;
 
 pub mod term;
@@ -33,4 +35,12 @@ impl Database {
     pub fn tr(&self, key: &Tr) -> String {
         self.term.tr(key)
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
+pub struct Sprite {
+    pub x: u16,
+    pub y: u16,
+    pub width: u8,
+    pub height: u8,
 }

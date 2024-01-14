@@ -1,7 +1,8 @@
 use regex::Regex;
 use yaml_rust::YamlLoader;
 
-use data::{LANGUAGES, Term, TermMap};
+use data::{LANGUAGES};
+use data::term::{Term, TermMap};
 
 pub fn write_terms() {
     let s = std::fs::read_to_string("dump/asset/ExportedProject/Assets/Resources/I2Languages.asset").unwrap();
@@ -23,6 +24,8 @@ pub fn write_terms() {
             let value = langs[2 + i].as_str().unwrap();
             let value = if (value == "$ja") {
                 langs[2].as_str().unwrap()
+            } else if (value == "$en") {
+                langs[3].as_str().unwrap()
             } else {
                 value
             };

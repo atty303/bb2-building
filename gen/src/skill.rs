@@ -1,9 +1,12 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
+use std::convert::TryInto;
 use std::hash::{BuildHasher, Hash, Hasher};
 
 use json::JsonValue;
+use yaml_rust::{Yaml, YamlLoader};
 
-use data::{Act, ActNode, Skill, SkillCategory, SkillMap, SkillMode};
+use data::skill::{Act, ActNode, Skill, SkillCategory, SkillMap, SkillMode};
+use data::Sprite;
 use idhash::IdHash;
 use table::Table;
 
@@ -228,9 +231,11 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, act_table: &
 
             mode_categories.insert(mode_row.category.clone());
 
+            let icon = parse_icon(mode_row.icon);
+
             SkillMode {
                 id: mode_row.id.to_string(),
-                icon: mode_row.icon.to_string(),
+                icon,
                 is_alt: mode_row.alt_mode,
                 is_brave: mode_row.is_brave,
                 use_num: mode_row.use_num,
@@ -271,5 +276,46 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, act_table: &
 
     let file_writer = std::io::BufWriter::new(std::fs::File::create(format!("public/data/skill.avro")).unwrap());
     SkillMap::write(file_writer, &skill_map).unwrap();
+
+    for skill in skill_map.values() {
+        for mode in &skill.modes {
+            // println!("{}: {}", skill.id, mode.id);
+            // let path = format!("dump/asset/ExportedProject/Assets/Sprite/{}.asset", mode.icon);
+            // let exists = std::path::Path::new(&path).exists();
+            // println!("  - {} {}", mode.icon, exists);
+            // if !exists {
+            //     panic!("icon not found: {}", mode.icon);
+            // }
+        }
+    }
 }
 
+fn parse_icon(name: &str) -> Sprite {
+    let path = format!("dump/asset/ExportedProject/Assets/Sprite/{}.asset", name);
+    let s = std::fs::read_to_string(path).unwrap();
+    let docs = YamlLoader::load_from_str(s.as_str()).unwrap();
+    let doc = &docs[0];
+    let texture = &doc["Sprite"]["m_RD"]["texture"];
+    assert_eq!(texture["guid"].as_str().unwrap(), "a50549b8827f09843841d13f031f165f");
+    let rect = &doc["Sprite"]["m_Rect"];
+    let x: Result<u16, _> = parse_number(&rect["x"]).try_into();
+    let y: Result<u16, _> = parse_number(&rect["y"]).try_into();
+    let width: Result<u8, _> = parse_number(&rect["width"]).try_into();
+    let height: Result<u8, _> = parse_number(&rect["height"]).try_into();
+    Sprite {
+        x: x.unwrap(),
+        y: y.unwrap(),
+        width: width.unwrap(),
+        height: height.unwrap(),
+    }
+}
+
+fn parse_number(v: &Yaml) -> u64 {
+    if let Some(i) = v.as_i64() {
+        i as u64
+    } else if let Some(f) = v.as_f64() {
+        f.round() as u64
+    } else {
+        panic!("invalid number: {:?}", v);
+    }
+}

@@ -3,6 +3,7 @@ use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
 use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
+use Sprite;
 use term::Tr;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema)]
@@ -107,7 +108,7 @@ impl DerefMut for SkillMap {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
 pub struct SkillMode {
     pub id: String,
-    pub icon: String,
+    pub icon: Sprite,
     pub is_alt: bool,
     pub is_brave: bool,
     pub use_num: i8,
