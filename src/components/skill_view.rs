@@ -1,12 +1,14 @@
 #![allow(non_snake_case)]
 
 use dioxus::prelude::*;
+use dioxus_router::prelude::Link;
 use fermi::use_read;
 
 use data::Database;
 use crate::atoms::DATABASE;
 
 use crate::components::sprite::Sprite;
+use crate::pages::Route;
 
 #[component]
 pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
@@ -19,8 +21,11 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
                 Sprite { sprite: &skill.modes[0].icon }
                 span {
                     class: "flex-grow",
-                    title: skill.id.as_str(),
-                    database.tr(&skill.name())
+                    Link {
+                        class: "text-primary hover:underline cursor-pointer",
+                        to: Route::SkillPage { skill_id: skill.id.clone() },
+                        database.tr(&skill.name())
+                    }
                 }
                 span {
                     Rarity { rarity: skill.rarity }
@@ -42,6 +47,12 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
 pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element {
     let database = use_read(cx, &DATABASE);
 
+    let desc = &mode.format(database)
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\n", "<br>");
+
     render! {
         div {
             class: "flex flex-col gap-2 bg-base-200 text-base-content rounded-md p-2",
@@ -52,14 +63,8 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
                     database.tr(&mode.name())
                 }
             }
-            for act in &mode.acts {
-                ul {
-                    for node in &act.nodes {
-                        li {
-                            &node.format(database).as_str()
-                        }
-                    }
-                }
+            span {
+                dangerous_inner_html: "{desc}",
             }
         }
     }
@@ -67,9 +72,12 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
 
 #[component]
 fn Rarity(cx: Scope, rarity: i8) -> Element {
+    let db = use_read(cx, &DATABASE);
+    let color = db.tr_str(format!("CLR-Star-Rarity-{}", rarity));
     render! {
         div {
             class: "flex flex-row",
+            color: "#{color}",
             for _ in 0..(*rarity) {
                 svg {
                     class: "w-4 h-4",

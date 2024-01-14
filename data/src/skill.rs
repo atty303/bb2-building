@@ -137,6 +137,29 @@ pub struct SkillMode {
 
 impl SkillMode {
     pub fn name(&self) -> Tr { Tr::Name(self.id.as_str()) }
+
+    pub fn format(&self, db: &Database) -> String {
+        let mut desc = String::new();
+
+        let mode = if self.is_alt {
+            db.tr_str("NM-SkillNodeDesc-ModeName-AltMode")
+        } else {
+            db.tr_str("NM-SkillNodeDesc-ModeName-Normal")
+        };
+        let mode0 = if self.is_brave { db.tr_str("NM-SkillNodeDesc-ModeName-ForBrave") } else { "".to_string() };
+        let mode = mode.replace("{0}", mode0.as_str());
+        desc.push_str(mode.as_str());
+        desc.push('\n');
+
+        for act in &self.acts {
+            for node in &act.nodes {
+                desc.push_str(&node.format(db));
+                desc.push('\n');
+            }
+        }
+
+        desc.replace("__", "\n")
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]

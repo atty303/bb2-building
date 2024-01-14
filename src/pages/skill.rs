@@ -16,3 +16,20 @@ pub fn SkillListPage(cx: Scope) -> Element {
         }
     }
 }
+
+#[component]
+pub fn SkillPage(cx: Scope, skill_id: String) -> Element {
+    let db = use_read_rc(cx, &DATABASE);
+
+    db.skill.values().find(|s| &s.id == skill_id).map(|skill| {
+        render! {
+            SkillView { skill: &skill }
+        }
+    }).unwrap_or_else(|| {
+        render! {
+            div {
+                "Skill not found"
+            }
+        }
+    })
+}

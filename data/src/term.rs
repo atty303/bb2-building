@@ -4,6 +4,20 @@ use std::ops::{Deref, DerefMut};
 use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
 
+pub enum TermNode {
+    Text(String),
+    Node(Vec<TermNode>),
+    ST,
+    SRPW,
+    STPW,
+    RD,
+    INC,
+    ACCU,
+    CRIT,
+    LAST,
+    POWER,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
 pub struct Term {
     pub value: String,
