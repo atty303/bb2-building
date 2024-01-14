@@ -1,5 +1,6 @@
 /dist
 /dump
+node_modules/
 target/
 
 .idea
