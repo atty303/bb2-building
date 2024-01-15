@@ -252,9 +252,12 @@ impl ActNode {
                         out.push(Node::Text("　".to_string()));
                         out.extend(db.term().get("DC-SkillNodeDesc-AvoidType-C"));
                     }
-                    AvoidType::LastHit =>
-                    //out.push(Node::Error("$accu->LastHit".to_string())),
-                        out.push(Node::Empty),
+                    AvoidType::LastHit => {
+                        out.push(Node::NewLine);
+                        out.push(Node::Text("　".to_string()));
+                        out.extend(db.term().get("DC-SkillNodeDesc-AvoidType-"));
+                        // out.push(Node::Empty),
+                    }
                 }
             }
             "hit" =>
@@ -434,7 +437,12 @@ impl ActNode {
                         vec![Node::Var(s.clone())]
                     } else {
                         replaced = true;
-                        n
+
+                        let mut out = vec![];
+                        // out.push(Node::Text(format!("<{}:", s)));
+                        out.extend(n);
+                        // out.push(Node::Text(">".to_string()));
+                        out
                     }
                 }
                 _ => vec![l.clone()],
@@ -521,7 +529,11 @@ impl ToDescs for Nodes {
                 if adds.is_empty() {
                     vec![n.clone()]
                 } else {
-                    adds
+                    let mut out = vec![];
+                    // out.push(Node::Text(format!("<{}:", s)));
+                    out.extend(adds);
+                    // out.push(Node::Text(">".to_string()));
+                    out
                 }
             }
             n => vec![n.clone()],
