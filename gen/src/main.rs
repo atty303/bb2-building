@@ -8,7 +8,7 @@ extern crate regex;
 use std::collections::HashMap;
 
 use skill::process_skill;
-use table::Table;
+use table::{BGTable, Table};
 
 mod terms;
 mod table;
@@ -24,7 +24,7 @@ fn main() {
     let mut db = HashMap::new();
     for meta in db_json["Metas"].members() {
         let meta_name = meta["Name"].as_str().unwrap();
-        let table = Table::new(meta);
+        let table = BGTable::new(meta);
         // table.to_csv(std::io::BufWriter::new(std::fs::File::create(format!("dump/table/{}.csv", meta_name)).unwrap()));
 
         println!("{}: {}", meta_name, table.id());
@@ -32,5 +32,12 @@ fn main() {
         db.insert(meta_name.to_string(), table);
     }
 
-    process_skill(&db["skill"], &db["skill_mode"], &db["sm_act"], &db["act"], &db["act_node"])
+    let mut db2 = HashMap::new();
+    for meta in db_json["Metas"].members() {
+        let name = meta["Name"].as_str().unwrap();
+        let table = Table::new(meta.to_owned());
+        db2.insert(name.to_string(), table);
+    }
+
+    process_skill(&db["skill"], &db["skill_mode"], &db["sm_act"], &db["act"], &db["act_node"], &db2["state"])
 }

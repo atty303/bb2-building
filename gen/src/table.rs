@@ -1,16 +1,92 @@
 use std::collections::HashMap;
 use std::io::Write;
+use std::marker::PhantomData;
 
 use json::JsonValue;
 use prettytable::{Cell, Row};
 
-pub struct Table<'a> {
+pub mod state;
+
+pub trait TableParser {
+    type Row;
+
+    fn parse_row(p: &EntityParser) -> Self::Row;
+}
+
+pub struct EntityParser {
+    row_id: String,
+    values: HashMap<String, JsonValue>,
+}
+
+impl EntityParser {
+    pub fn new(json_value: &JsonValue) -> Self {
+        let row_id = json_value["Id"].as_str().unwrap().to_owned();
+
+        let mut out = HashMap::new();
+        for field in json_value["Values"].members() {
+            let name = field["Name"].as_str().unwrap();
+            out.insert(name.to_string(), field["Value"].clone());
+        }
+
+        Self {
+            row_id,
+            values: out,
+        }
+    }
+
+    pub fn row_id(&self) -> String {
+        self.row_id.clone()
+    }
+
+    pub fn get_str(&self, name: &str) -> String {
+        self.values[name].as_str().expect(format!("field {} should be string", name).as_str()).to_string()
+    }
+
+    pub fn get_usize(&self, name: &str) -> usize {
+        self.get_str(name).parse().expect(format!("field {} should be usize", name).as_str())
+    }
+
+    pub fn get_i32(&self, name: &str) -> i32 {
+        self.get_str(name).parse().expect(format!("field {} should be i32", name).as_str())
+    }
+
+    pub fn get_bool(&self, name: &str) -> bool {
+        match self.get_str(name).parse().expect(format!("field {} should be i32", name).as_str()) {
+            0 => false,
+            1 => true,
+            _ => panic!("field {} should be bool", name),
+        }
+    }
+}
+
+pub struct Table<T> {
+    meta: JsonValue,
+    phantom_data: PhantomData<T>,
+}
+
+impl<T: TableParser> Table<T> {
+    pub fn new(meta: JsonValue) -> Table<T> {
+        Table {
+            meta,
+            phantom_data: PhantomData,
+        }
+    }
+
+    pub fn iter(&self) -> Box<Iterator<Item = T::Row> + '_> {
+        Box::new(self.meta["Entities"].members().map(|e| {
+            let ep = EntityParser::new(e);
+            T::parse_row(&ep)
+        }))
+    }
+}
+
+pub struct BGTable<'a> {
     db: &'a JsonValue,
 }
 
-impl Table<'_> {
-    pub fn new(db: &JsonValue) -> Table {
-        Table {
+impl BGTable<'_> {
+    pub fn new(db: &JsonValue) -> BGTable {
+        BGTable {
             db,
         }
     }

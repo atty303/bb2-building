@@ -9,7 +9,8 @@ use yaml_rust::{Yaml, YamlLoader};
 use data::skill::{Act, ActNode, ActTrigger, AvoidType, Target, ParamKey, Reduce, Skill, SkillCategory, SkillMode, SkillRepository, StateLast};
 use data::Sprite;
 use idhash::IdHash;
-use table::Table;
+use table::{BGTable, Table};
+use table::state::StateTable;
 
 struct SkillRow<'a> {
     row_id: &'a str,
@@ -258,7 +259,10 @@ impl Hash for SkillWithId<'_> {
     }
 }
 
-pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, sm_act_table: &Table, act_table: &Table, act_node_table: &Table) {
+pub fn process_skill(skill_table: &BGTable, skill_mode_table: &BGTable, sm_act_table: &BGTable, act_table: &BGTable, act_node_table: &BGTable, state_table: &Table<StateTable>) {
+    for row in state_table.iter() {
+        println!("state: {:?}", row);
+    }
     assert_eq!(skill_mode_table.id(), "E6p/0cim2Ui4oFyQYHe+8w");
     let skill_mode_entities = skill_mode_table.entities();
     let mut skill_mode_rows = skill_mode_entities.iter().map(|e| {
