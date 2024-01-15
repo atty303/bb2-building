@@ -215,7 +215,7 @@ pub struct ActNode {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
 pub struct StateLast {
     pub f1: i8,
-    pub f2: i8,
+    pub f2: i8, // TODO: turn
     pub f3: i8,
     pub room: i8,
     pub f5: i8,
@@ -229,8 +229,10 @@ impl ActNode {
                     AvoidType::LastHit => out.extend(db.term().get("DC-SkillNodeDesc-LastHit")),
                     _ => out.push(Node::Empty)
                 }
-            "t" =>
-                out.extend(db.term().get(format!("DC-SkillNodeDesc-TargetName-{}", self.target).as_str())),
+            "t" => {
+                let target = if self.target < 0 { 0 } else { self.target };
+                out.extend(db.term().get(format!("DC-SkillNodeDesc-TargetName-{}", target).as_str()));
+            }
             "tg" =>
                 // TODO: param_key じゃないっぽい(-1)
                 out.extend(db.term().get(format!("DC-SkillNodeDesc-TargetSkill-{}", self.param_key).as_str())),
@@ -348,15 +350,47 @@ impl ActNode {
                 } else if self.state_last.f1 >= 0 {
                     out.push(Node::Error("state_last.f1".to_string()));;
                 } else if self.state_last.f2 >= 0 {
-                    out.push(Node::Error("state_last.f2".to_string()));;
+                    out.push(Node::NewLine);
+                    out.push(Node::Text("　".to_string()));
+                    out.extend(db.term().tr("DC-SkillNodeDesc-LastCombine", |n| n.map_var(|s| match s {
+                        "0" => {
+                            db.term().tr("DC-SkillNodeDesc-LastTurn", |n| n.map_var(|s| match s {
+                                "0" => {
+                                    vec![Node::Text(self.state_last.f2.to_string())]
+                                }
+                                _ => vec![],
+                            }))
+                        },
+                        _ => vec![],
+                    })));
                 } else if self.state_last.f3 >= 0 {
-                    out.push(Node::Error("state_last.f3".to_string()));;
+                    out.push(Node::Error("state_last.f3".to_string()));
                 } else if self.state_last.f5 >= 0 {
-                    out.push(Node::Error("state_last.f5".to_string()));;
+                    out.push(Node::Error("state_last.f5".to_string()));
                 } else {
                     out.push(Node::Empty);
                 }
             }
+            "st" => {
+
+            }
+            "srpw" =>
+            // TODO: 30% の % が足りない
+            //out.push(Node::Text(format!("{}", self.power))),
+                (),
+            "md" =>
+                if self.action_type == "AltMode" {
+                    if self.power == 0 {
+                        out.extend(db.term().get("WD-SkillAltModeName-0"));
+                    } else if self.power == 1 {
+                        out.extend(db.term().get("WD-SkillAltModeName-1"));
+                    } else {
+                        out.push(Node::Error(format!("invalid power {}", self.power)));
+                    }
+                } else {
+                    out.push(Node::Error(format!("invalid action_type {}", self.action_type)));
+                }
+
             _ => (),
         }
     }
