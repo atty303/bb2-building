@@ -130,6 +130,8 @@ pub struct SkillMode {
     pub use_init: bool,
     pub is_quick: bool,
     pub acts: Vec<Act>,
+
+    pub poss_num: i8, // copy from Skill
 }
 
 impl SkillMode {
@@ -158,6 +160,14 @@ impl SkillMode {
             nodes.extend(act.format(db));
             nodes.push(Node::NewLine);
         }
+
+        nodes.extend(db.term().get("WD-Cooldown"));
+        nodes.push(Node::Text(format!(": {}", self.cooldown)));
+        nodes.push(Node::NewLine);
+
+        nodes.extend(db.term().get("WD-SkillPossRemain"));
+        nodes.push(Node::Text(format!(": -{}/{}", self.use_num, self.poss_num)));
+        nodes.push(Node::NewLine);
 
         nodes
     }

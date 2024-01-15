@@ -304,7 +304,8 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &BGTable
                 cooldown: mode_row.cooldown,
                 use_init: mode_row.use_init,
                 is_quick: mode_row.is_quick,
-                acts
+                acts,
+                poss_num: skill_row.poss_num.try_into().unwrap(),
             }
         }).collect::<Vec<_>>();
 
