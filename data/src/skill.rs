@@ -207,8 +207,18 @@ pub struct ActNode {
     pub inc_target: Target,
     pub inc_relate: String,
     pub inc_power: u16,
+    pub state_last: StateLast,
     pub act_num: u8,
     pub crit_rate: u16,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
+pub struct StateLast {
+    pub f1: i8,
+    pub f2: i8,
+    pub f3: i8,
+    pub room: i8,
+    pub f5: i8,
 }
 
 impl ActNode {
@@ -222,6 +232,7 @@ impl ActNode {
             "t" =>
                 out.extend(db.term().get(format!("DC-SkillNodeDesc-TargetName-{}", self.target).as_str())),
             "tg" =>
+                // TODO: param_key じゃないっぽい(-1)
                 out.extend(db.term().get(format!("DC-SkillNodeDesc-TargetSkill-{}", self.param_key).as_str())),
             "dr" =>
                 out.extend(db.term().get("WD-DamageType-Direct")),
@@ -238,7 +249,9 @@ impl ActNode {
                         out.push(Node::Text("　".to_string()));
                         out.extend(db.term().get("DC-SkillNodeDesc-AvoidType-C"));
                     }
-                    AvoidType::LastHit => out.push(Node::Error("$accu->LastHit".to_string())),
+                    AvoidType::LastHit =>
+                    //out.push(Node::Error("$accu->LastHit".to_string())),
+                        out.push(Node::Empty),
                 }
             }
             "hit" =>
@@ -317,6 +330,33 @@ impl ActNode {
             }
             "pw" =>
                 out.push(Node::Text(format!("{}", self.power))),
+            "last" => {
+                if self.state_last.room >= 0 {
+                    out.push(Node::NewLine);
+                    out.push(Node::Text("　".to_string()));
+                    out.extend(db.term().tr("DC-SkillNodeDesc-LastCombine", |n| n.map_var(|s| match s {
+                        "0" => {
+                            db.term().tr("DC-SkillNodeDesc-LastRoom", |n| n.map_var(|s| match s {
+                                "0" => {
+                                    vec![Node::Text(self.state_last.room.to_string())]
+                                }
+                                _ => vec![],
+                            }))
+                        },
+                        _ => vec![],
+                    })));
+                } else if self.state_last.f1 >= 0 {
+                    out.push(Node::Error("state_last.f1".to_string()));;
+                } else if self.state_last.f2 >= 0 {
+                    out.push(Node::Error("state_last.f2".to_string()));;
+                } else if self.state_last.f3 >= 0 {
+                    out.push(Node::Error("state_last.f3".to_string()));;
+                } else if self.state_last.f5 >= 0 {
+                    out.push(Node::Error("state_last.f5".to_string()));;
+                } else {
+                    out.push(Node::Empty);
+                }
+            }
             _ => (),
         }
     }

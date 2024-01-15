@@ -108,14 +108,14 @@ impl<'a> TermMap {
     pub fn get(&'a self, key: &str) -> Vec<Node> {
         match self.inner.get(key) {
             Some(v) => v.nodes.clone(),
-            None => vec![Node::Text(key.to_string())],
+            None => vec![Node::Error(key.to_string())],
         }
     }
 
     pub fn tr<T, F: Fn(&Vec<Node>) -> T>(&'a self, key: &str, f: F) -> T {
         match self.inner.get(key) {
             Some(v) => f(&v.nodes),
-            None => f(&vec![Node::Text(key.to_string())]),
+            None => f(&vec![Node::Error(key.to_string())]),
         }
     }
 }

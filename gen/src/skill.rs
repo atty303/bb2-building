@@ -6,7 +6,7 @@ use std::str::FromStr;
 use json::JsonValue;
 use yaml_rust::{Yaml, YamlLoader};
 
-use data::skill::{Act, ActNode, ActTrigger, AvoidType, Target, ParamKey, Reduce, Skill, SkillCategory, SkillMode, SkillRepository};
+use data::skill::{Act, ActNode, ActTrigger, AvoidType, Target, ParamKey, Reduce, Skill, SkillCategory, SkillMode, SkillRepository, StateLast};
 use data::Sprite;
 use idhash::IdHash;
 use table::Table;
@@ -309,6 +309,11 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, sm_act_table
                     act_node_row.act == format!("{}_{}", act_row.name, act_row.row_id)
                 }).filter(|row| row.action_type != "Visual").map(|act_node_row| {
                     println!("act_node: {:?}", act_node_row);
+
+                    let last = act_node_row.state_last.split('|').collect::<Vec<_>>();
+                    assert_eq!(last.len(), 5, "invalid state_last: {}", act_node_row.state_last);
+                    let last = last.iter().map(|v| v.parse::<i8>().unwrap()).collect::<Vec<_>>();
+
                     ActNode {
                         id: act_node_row.id.to_string(),
                         action_type: act_node_row.action_type.to_string(),
@@ -323,6 +328,7 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, sm_act_table
                         inc_target: Target::from_str(act_node_row.inc_target).unwrap(),
                         inc_relate: act_node_row.inc_relate.to_string(),
                         inc_power: act_node_row.inc_power,
+                        state_last: StateLast { f1: last[0], f2: last[1], f3: last[2], room: last[3], f5: last[4] },
                         act_num: act_node_row.act_num,
                         crit_rate: act_node_row.crit_rate,
                     }
