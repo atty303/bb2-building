@@ -26,7 +26,7 @@ pub fn SkillPage(cx: Scope, skill_id: String) -> Element {
                 ul {
                     li { "Home" }
                     li { "Skill" }
-                    li { db.tr(&skill.name()) }
+                    li { skill.name(db.term()) }
                 }
             }
 

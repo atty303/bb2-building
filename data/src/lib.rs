@@ -28,12 +28,12 @@ impl Database {
         })
     }
 
-    pub fn set_term(&mut self, term: term::TermMap) {
-        self.term = term;
+    pub fn term(&self) -> &term::TermMap {
+        &self.term
     }
 
-    pub fn tr(&self, key: &str) -> Option<&Vec<term::Node>> {
-        self.term.tr(key)
+    pub fn set_term(&mut self, term: term::TermMap) {
+        self.term = term;
     }
 }
 

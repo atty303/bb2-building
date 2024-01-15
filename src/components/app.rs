@@ -30,7 +30,7 @@ async fn fetch_i18n(lang: &str) -> anyhow::Result<TermMap> {
     let base_uri = gloo_utils::document().base_uri().map_err(|err| anyhow!(format!("{:?}", err)))?;
     let base_uri = base_uri.ok_or(anyhow!("base_uri"))?;
 
-    let res = reqwest::get(format!("{}i18n/{}/terms.avro", base_uri, lang)).await?;
+    let res = reqwest::get(format!("{}i18n/{}/term.avro", base_uri, lang)).await?;
     let body = res.bytes().await?;
     let cursor = std::io::Cursor::new(body);
 

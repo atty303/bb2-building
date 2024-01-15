@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use ::{Database, Sprite};
 use term;
-use term::TermMap;
+use term::{nodes_to_string, TermMap};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema)]
 pub enum SkillCategory {
@@ -119,7 +119,9 @@ pub struct Skill {
 }
 
 impl Skill {
-    // pub fn name(&self, terms: &TermMap) -> &Vec<term::Node> { terms.tr(self.modes[0].id.as_str()) }
+    pub fn name(&self, terms: &TermMap) -> String {
+        terms.tr(format!("NM-{}", self.modes[0].id).as_str(), |nodes| nodes_to_string(nodes))
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
@@ -137,30 +139,37 @@ pub struct SkillMode {
 }
 
 impl SkillMode {
-    // pub fn name(&self, terms: &TermMap) -> &Vec<term::Node> { terms.tr(self.id.as_str()) }
+    pub fn name(&self, terms: &TermMap) -> String {
+        terms.tr(format!("NM-{}", self.id).as_str(), |nodes| nodes_to_string(nodes))
+    }
 
-    pub fn format(&self, db: &Database) -> String {
-        let mut desc = String::new();
+    pub fn format(&self, db: &Database) -> Vec<Description> {
+        let mut descs = vec![];
 
-        let mode = if self.is_alt {
-            db.tr("NM-SkillNodeDesc-ModeName-AltMode")
-        } else {
-            db.tr("NM-SkillNodeDesc-ModeName-Normal")
-        };
-        // let mode0 = if self.is_brave { db.tr("NM-SkillNodeDesc-ModeName-ForBrave") } else { &vec![] };
-        // let mode = mode.replace("{0}", mode0.as_str());
-        // desc.push_str(mode.as_str());
-        // desc.push('\n');
-        //
+        let line1 = db.term().tr(
+            if self.is_alt { "NM-SkillNodeDesc-ModeName-AltMode" } else { "NM-SkillNodeDesc-ModeName-Normal" },
+            |n| nodes_to_description(n, |s| {
+                match s {
+                    "0" =>
+                        if self.is_brave {
+                            db.term().tr("NM-SkillNodeDesc-ModeName-ForBrave", |n| nodes_to_description(n, |_| vec![]))
+                        } else {
+                            vec![]
+                        }
+                    _ => vec![]
+                }
+            }));
+        descs.extend(line1);
+        descs.push(Description::NewLine);
+
         // for act in &self.acts {
         //     for node in &act.nodes {
         //         desc.push_str(&node.format(db));
         //         desc.push('\n');
         //     }
         // }
-        //
-        // desc.replace("__", "\n")
-        todo!()
+
+        descs
     }
 }
 
@@ -184,7 +193,7 @@ pub struct ActNode {
 }
 
 impl ActNode {
-    pub fn format(&self, db: &Database) -> String {
+    pub fn format(&self, _db: &Database) -> Vec<Description> {
         // let last_hit = match self.avoid_type {
         //     AvoidType::LastHit => db.tr_str("DC-SkillNodeDesc-LastHit"),
         //     _ => "".to_string(),
@@ -214,7 +223,7 @@ impl ActNode {
         //         .replace("{0}", desc.as_str())
         //         .replace("{1}", self.act_num.to_string().as_str())
         // }
-        todo!()
+        vec![Description::Text("".to_string())]
     }
 }
 
@@ -265,4 +274,25 @@ impl DerefMut for SkillRepository {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
     }
+}
+
+#[derive(Clone, PartialEq)]
+pub enum Description {
+    Text(String),
+    NewLine,
+}
+
+fn nodes_to_description<F: Fn(&str) -> Vec<Description>>(nodes: &[term::Node], f: F) -> Vec<Description> {
+    nodes.iter().flat_map(|n| match n {
+        term::Node::Text(s) => vec![Description::Text(s.clone())],
+        term::Node::Var(s) => {
+            let adds = f(s.as_str());
+            if adds.is_empty() {
+                vec![Description::Text(format!("${}", s))]
+            } else {
+                adds
+            }
+        }
+        term::Node::NewLine => vec![Description::NewLine],
+    }).collect::<Vec<_>>()
 }

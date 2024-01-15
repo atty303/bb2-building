@@ -3,6 +3,7 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::Link;
 use fermi::use_read;
+use data::term::nodes_to_string;
 
 use crate::atoms::DATABASE;
 use crate::components::sprite::Sprite;
@@ -22,7 +23,7 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
                     Link {
                         class: "text-primary hover:underline cursor-pointer",
                         to: Route::SkillPage { skill_id: skill.id.clone() },
-                        database.tr(&skill.name())
+                        skill.name(database.term())
                     }
                 }
                 span {
@@ -45,18 +46,14 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
 pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element {
     let database = use_read(cx, &DATABASE);
 
-    let desc = &mode.format(database)
-        .replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace("\n", "<br>");
+    let desc = mode.format(database);
 
     render! {
         div { class: "flex flex-col gap-2 bg-base-200 text-base-content rounded-md p-2",
             div { class: "flex flex-row items-center gap-2",
                 Sprite { sprite: &mode.icon }
                 div { class: "flex-grow",
-                    database.tr(&mode.name())
+                    mode.name(database.term())
                 }
                 div { class: "dropdown",
                     div { class: "btn btn-ghost btn-circle btn-sm",
@@ -76,8 +73,8 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
                     }
                 }
             }
-            span {
-                dangerous_inner_html: "{desc}",
+            div {
+                Description { descs: desc.clone() }
             }
         }
     }
@@ -86,7 +83,7 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
 #[component]
 fn Rarity(cx: Scope, rarity: i8) -> Element {
     let db = use_read(cx, &DATABASE);
-    let color = db.tr_str(format!("CLR-Star-Rarity-{}", rarity));
+    let color = db.term().tr(format!("CLR-Star-Rarity-{}", rarity).as_str(), |n| nodes_to_string(n));
     render! {
         div {
             class: "flex flex-row",
@@ -105,4 +102,17 @@ fn Rarity(cx: Scope, rarity: i8) -> Element {
             }
         }
     }
+}
+
+
+#[component]
+pub fn Description(cx: Scope, descs: Vec<data::skill::Description>) -> Element {
+    render! {
+            for desc in descs {
+                match desc {
+                    data::skill::Description::Text(text) => rsx! { "{text}" },
+                    data::skill::Description::NewLine => rsx! { br {} },
+                }
+            }
+        }
 }
