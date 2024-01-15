@@ -24,9 +24,9 @@ pub fn write_terms() {
         let langs = term["Languages"].as_vec().unwrap();
         for (i, _) in LANGUAGES.iter().enumerate() {
             let value = langs[2 + i].as_str().unwrap();
-            let value = if (value == "$ja") {
+            let value = if value == "$ja" {
                 langs[2].as_str().unwrap()
-            } else if (value == "$en") {
+            } else if value == "$en" {
                 langs[3].as_str().unwrap()
             } else {
                 value

@@ -115,7 +115,10 @@ pub fn Description(cx: Scope, descs: Vec<data::skill::Description>) -> Element {
                 data::skill::Description::None => rsx! { "" },
                 data::skill::Description::MissingVar(name) => rsx! {
                     span { class: "text-error", "[{name}]" }
-                }
+                },
+                data::skill::Description::Error(text) => rsx! {
+                    span { class: "text-error text-bold", "{text}" }
+                },
             }
         }
     }

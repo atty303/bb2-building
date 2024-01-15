@@ -37,8 +37,8 @@ impl SkillCategory {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema)]
 pub enum AvoidType {
     None,
-    C,
     A,
+    C,
     LastHit,
 }
 
@@ -46,8 +46,8 @@ impl AvoidType {
     pub fn from_str(s: &str) -> Option<Self> {
         match s {
             "" => Some(AvoidType::None),
-            "C" => Some(AvoidType::C),
             "A" => Some(AvoidType::A),
+            "C" => Some(AvoidType::C),
             "LastHit" => Some(AvoidType::LastHit),
             _ => None
         }
@@ -186,8 +186,10 @@ pub struct ActNode {
     pub action_type: String,
     pub target: i8,
     pub param_key: ParamKey,
+    pub hit_rate: u16,
     pub avoid_type: AvoidType,
     pub act_num: u8,
+    pub crit_rate: u16,
 }
 
 impl ActNode {
@@ -203,6 +205,7 @@ impl ActNode {
                         _ => vec![Description::None],
                     }
                 "t" =>
+                    // -1
                     db.term().tr(format!("DC-SkillNodeDesc-TargetName-{}", self.target).as_str(), |n| n.format_none()),
                 "tg" =>
                     match self.param_key {
@@ -216,6 +219,38 @@ impl ActNode {
                     }
                 "dr" =>
                     db.term().tr("WD-DamageType-Direct", |n| n.format_none()),
+                "power" =>
+                    db.term().tr("DC-SkillNodeDesc-AboutPower", |n| n.format_cb(|s| match s {
+                        "pwd" => vec![], // TODO
+                        "rd" => vec![], // TODO
+                        "inc" => vec![], // TODO
+                        "accu" =>
+                            match self.avoid_type {
+                                AvoidType::None => vec![Description::Error("$accu->None".to_string())],
+                                AvoidType::A => db.term().tr("DC-SkillNodeDesc-AvoidType-A", |n| n.format_cb(|s| match s {
+                                    "hit" => vec![Description::Text(self.hit_rate.to_string())],
+                                    _ => vec![],
+                                })),
+                                AvoidType::C => db.term().tr("DC-SkillNodeDesc-AvoidType-C", |n| n.format_cb(|s| match s {
+                                    "hit" => vec![Description::Text(self.hit_rate.to_string())],
+                                    _ => vec![],
+                                })),
+                                AvoidType::LastHit => vec![Description::Error("$accu->LastHit".to_string())],
+                            }
+                        "crit" =>
+                            if self.crit_rate == 100 {
+                                vec![Description::None]
+                            } else {
+                                db.term().tr("DC-SkillNodeDesc-CritRate", |n| n.format_cb(|s| match s {
+                                    "0" => vec![Description::Text(self.crit_rate.to_string())],
+                                    _ => vec![],
+                                }))
+                            }
+                        "last" => vec![], // TODO
+                        _ => vec![],
+                    })),
+
+                // DC-SkillNodeDesc-Reduce-M/P/V
                 _ => vec![],
             })
         );
@@ -288,6 +323,7 @@ impl DerefMut for SkillRepository {
 pub enum Description {
     Text(String),
     MissingVar(String),
+    Error(String),
     NewLine,
     None,
 }
