@@ -198,6 +198,7 @@ pub struct ActNode {
     pub action_type: String,
     pub target: i8,
     pub param_key: ParamKey,
+    pub state_row_id: Option<String>,
     pub hit_rate: u16,
     pub avoid_type: AvoidType,
     pub relate_target: Target,
@@ -372,12 +373,25 @@ impl ActNode {
                 }
             }
             "st" => {
-
+                if let Some(state_row_id) = &self.state_row_id {
+                    if let Some(state) = db.state.get(state_row_id) {
+                        out.extend(db.term().get(&format!("NM-{}", &state.id)))
+                    } else {
+                        out.push(Node::Error(format!("state not found: {}", state_row_id)));
+                    }
+                }
             }
             "srpw" =>
-            // TODO: 30% の % が足りない
-            //out.push(Node::Text(format!("{}", self.power))),
-                (),
+                if let Some(state_row_id) = &self.state_row_id {
+                    if let Some(state) = db.state.get(state_row_id) {
+                        let text = state.format.replace("{v}", &format!("{}", self.power));
+                        out.push(Node::Text(text));
+                    } else {
+                        out.push(Node::Error(format!("state not found: {}", state_row_id)));
+                    }
+                }
+            "stpw" =>
+                out.push(Node::Empty), // TODO:
             "md" =>
                 if self.action_type == "AltMode" {
                     if self.power == 0 {

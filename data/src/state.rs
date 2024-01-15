@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::io::Read;
+use std::ops::Deref;
 
 use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
@@ -14,7 +15,7 @@ pub struct State {
 
 #[derive(Clone, Default)]
 pub struct StateRepository {
-    pub inner: HashMap<String, State>,
+    inner: HashMap<String, State>,
 }
 
 impl StateRepository {
@@ -28,5 +29,13 @@ impl StateRepository {
             out.insert(r.row_id.clone(), r);
         }
         Ok(StateRepository { inner: out })
+    }
+}
+
+impl Deref for StateRepository {
+    type Target = HashMap<String, State>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
     }
 }

@@ -256,11 +256,18 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &BGTable
                     assert_eq!(last.len(), 5, "invalid state_last: {}", act_node_row.state_last);
                     let last = last.iter().map(|v| v.parse::<i8>().unwrap()).collect::<Vec<_>>();
 
+                    let state_row_id = if act_node_row.any.starts_with("state.") {
+                        Some(act_node_row.any.splitn(3, '_').skip(2).next().unwrap().to_string())
+                    } else {
+                        None
+                    };
+
                     ActNode {
                         id: act_node_row.id.to_string(),
                         action_type: act_node_row.action_type.to_string(),
                         target: act_node_row.target,
                         param_key: ParamKey::from_str(act_node_row.param_key).unwrap(),
+                        state_row_id,
                         hit_rate: act_node_row.hit_rate,
                         avoid_type: AvoidType::from_str(act_node_row.avoid_type).unwrap(),
                         relate_target: Target::from_str(act_node_row.relate_target).unwrap(),
