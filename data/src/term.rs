@@ -1,22 +1,11 @@
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
-use apache_avro::AvroSchema;
-use serde::{Deserialize, Serialize};
+use std::sync::OnceLock;
 
-pub enum TermNode {
-    Text(String),
-    Node(Vec<TermNode>),
-    ST,
-    SRPW,
-    STPW,
-    RD,
-    INC,
-    ACCU,
-    CRIT,
-    LAST,
-    POWER,
-}
+use apache_avro::AvroSchema;
+use regex::Regex;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
 pub struct Term {
@@ -89,3 +78,11 @@ pub enum Tr<'a> {
     Action(&'a str),
     Raw(&'a str),
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Node<'a> {
+    Text(&'a str),
+    Var(&'a str),
+    NewLine,
+}
+

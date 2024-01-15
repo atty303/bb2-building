@@ -1,5 +1,6 @@
 extern crate apache_avro;
 extern crate serde;
+extern crate regex;
 
 use std::io::Read;
 use apache_avro::AvroSchema;

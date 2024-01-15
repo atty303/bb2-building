@@ -1,3 +1,4 @@
+use std::sync::OnceLock;
 use regex::Regex;
 use yaml_rust::YamlLoader;
 
@@ -63,5 +64,61 @@ pub fn write_terms() {
                 csv_writer.write_record(&[key, &value.value]).unwrap();
             }
         }
+    }
+}
+
+static RE: OnceLock<Regex> = OnceLock::new();
+
+use crate::data::term::Node;
+
+pub fn parse<'a>(s: &'a str) -> Vec<Node> {
+    let re = RE.get_or_init(|| Regex::new(r"(__)|(<[^>]+>)|(\{[^}]+})").expect("regex"));
+
+    let mut splits = vec![0];
+    for caps in re.captures_iter(s) {
+        let m = caps.get(0).unwrap();
+        splits.push(m.start());
+        splits.push(m.end());
+    }
+    splits.push(s.len());
+
+    let mut at = 0usize;
+    let mut nodes = vec![];
+    for end in splits {
+        if at < end {
+            let span = &s[at..end];
+            if span.starts_with("<") {
+                nodes.push(Node::Var(&s[at + 1..end - 1]));
+            } else if span.starts_with("{") {
+                nodes.push(Node::Var(&s[at + 1..end - 1]));
+            } else if span == "__" {
+                nodes.push(Node::NewLine);
+            } else {
+                nodes.push(Node::Text(span));
+            }
+            at = end;
+        }
+    }
+    nodes
+}
+
+#[cfg(test)]
+mod test {
+    use terms::parse;
+    use super::Node;
+
+    #[test]
+    fn test_parse() {
+        assert_eq!(parse(""), vec![]);
+        assert_eq!(parse("abc"), vec![Node::Text("abc")]);
+        assert_eq!(parse("__"), vec![Node::NewLine]);
+        assert_eq!(parse("<abc>"), vec![Node::Var("abc")]);
+        assert_eq!(parse("<abc><abc>"), vec![Node::Var("abc"), Node::Var("abc")]);
+        assert_eq!(parse("{abc}"), vec![Node::Var("abc")]);
+        assert_eq!(parse("{abc}{abc}"), vec![Node::Var("abc"), Node::Var("abc")]);
+        assert_eq!(parse("abc__def"), vec![Node::Text("abc"), Node::NewLine, Node::Text("def")]);
+        assert_eq!(parse("abc<def>ghi"), vec![Node::Text("abc"), Node::Var("def"), Node::Text("ghi")]);
+        assert_eq!(parse("abc{def}ghi"), vec![Node::Text("abc"), Node::Var("def"), Node::Text("ghi")]);
+        assert_eq!(parse("abc__def<ghi>{jkl}"), vec![Node::Text("abc"), Node::NewLine, Node::Text("def"), Node::Var("ghi"), Node::Var("jkl")]);
     }
 }
