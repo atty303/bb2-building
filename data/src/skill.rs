@@ -7,7 +7,8 @@ use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
 
 use ::{Database, Sprite};
-use term::Tr;
+use term;
+use term::TermMap;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema)]
 pub enum SkillCategory {
@@ -118,7 +119,7 @@ pub struct Skill {
 }
 
 impl Skill {
-    pub fn name(&self) -> Tr { Tr::Name(self.modes[0].id.as_str()) }
+    // pub fn name(&self, terms: &TermMap) -> &Vec<term::Node> { terms.tr(self.modes[0].id.as_str()) }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
@@ -136,29 +137,30 @@ pub struct SkillMode {
 }
 
 impl SkillMode {
-    pub fn name(&self) -> Tr { Tr::Name(self.id.as_str()) }
+    // pub fn name(&self, terms: &TermMap) -> &Vec<term::Node> { terms.tr(self.id.as_str()) }
 
     pub fn format(&self, db: &Database) -> String {
         let mut desc = String::new();
 
         let mode = if self.is_alt {
-            db.tr_str("NM-SkillNodeDesc-ModeName-AltMode")
+            db.tr("NM-SkillNodeDesc-ModeName-AltMode")
         } else {
-            db.tr_str("NM-SkillNodeDesc-ModeName-Normal")
+            db.tr("NM-SkillNodeDesc-ModeName-Normal")
         };
-        let mode0 = if self.is_brave { db.tr_str("NM-SkillNodeDesc-ModeName-ForBrave") } else { "".to_string() };
-        let mode = mode.replace("{0}", mode0.as_str());
-        desc.push_str(mode.as_str());
-        desc.push('\n');
-
-        for act in &self.acts {
-            for node in &act.nodes {
-                desc.push_str(&node.format(db));
-                desc.push('\n');
-            }
-        }
-
-        desc.replace("__", "\n")
+        // let mode0 = if self.is_brave { db.tr("NM-SkillNodeDesc-ModeName-ForBrave") } else { &vec![] };
+        // let mode = mode.replace("{0}", mode0.as_str());
+        // desc.push_str(mode.as_str());
+        // desc.push('\n');
+        //
+        // for act in &self.acts {
+        //     for node in &act.nodes {
+        //         desc.push_str(&node.format(db));
+        //         desc.push('\n');
+        //     }
+        // }
+        //
+        // desc.replace("__", "\n")
+        todo!()
     }
 }
 
@@ -169,7 +171,6 @@ pub struct Act {
 }
 
 impl Act {
-    pub fn name(&self) -> Tr { Tr::Name(self.id.as_str()) }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
@@ -183,39 +184,37 @@ pub struct ActNode {
 }
 
 impl ActNode {
-    pub fn name(&self) -> Tr { Tr::Name(self.id.as_str()) }
-    pub fn action_type(&self) -> Tr { Tr::Action(self.action_type.as_str()) }
-
     pub fn format(&self, db: &Database) -> String {
-        let last_hit = match self.avoid_type {
-            AvoidType::LastHit => db.tr_str("DC-SkillNodeDesc-LastHit"),
-            _ => "".to_string(),
-        };
-        let target = db.tr_str(format!("DC-SkillNodeDesc-TargetName-{}", self.target));
-        let tg = match (self.target, &self.param_key) {
-            (_, ParamKey::All) => db.tr_str("DC-SkillNodeDesc-TargetSkill-All"),
-            (_, ParamKey::Random) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Random"),
-            (_, ParamKey::RandomD) => db.tr_str("DC-SkillNodeDesc-TargetSkill-RandomD"),
-            (_, ParamKey::Current) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Current"),
-            (_, ParamKey::Buffs) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Buffs"),
-            (_, ParamKey::Debuffs) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Debuffs"),
-            (t, p) => format!("<tg {},{:?}>", t, p),
-        };
-
-        let template = db.tr(&Tr::Action(self.action_type.as_str()));
-        let desc = template
-            .replace("<lasthit>", last_hit.as_str())
-            .replace("<t>", target.as_str())
-            .replace("<tg>", tg.as_str())
-            .replace("<dr>", db.tr(&Tr::Raw("WD-DamageType-Direct")).as_str());
-
-        if self.act_num == 1 {
-            desc
-        } else {
-            db.tr_str("DC-SkillNodeDesc-MultipleCase")
-                .replace("{0}", desc.as_str())
-                .replace("{1}", self.act_num.to_string().as_str())
-        }
+        // let last_hit = match self.avoid_type {
+        //     AvoidType::LastHit => db.tr_str("DC-SkillNodeDesc-LastHit"),
+        //     _ => "".to_string(),
+        // };
+        // let target = db.tr_str(format!("DC-SkillNodeDesc-TargetName-{}", self.target));
+        // let tg = match (self.target, &self.param_key) {
+        //     (_, ParamKey::All) => db.tr_str("DC-SkillNodeDesc-TargetSkill-All"),
+        //     (_, ParamKey::Random) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Random"),
+        //     (_, ParamKey::RandomD) => db.tr_str("DC-SkillNodeDesc-TargetSkill-RandomD"),
+        //     (_, ParamKey::Current) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Current"),
+        //     (_, ParamKey::Buffs) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Buffs"),
+        //     (_, ParamKey::Debuffs) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Debuffs"),
+        //     (t, p) => format!("<tg {},{:?}>", t, p),
+        // };
+        //
+        // let template = db.tr(format!("DC-SkillNodeDesc-{}", self.action_type).as_str());
+        // let desc = template
+        //     .replace("<lasthit>", last_hit.as_str())
+        //     .replace("<t>", target.as_str())
+        //     .replace("<tg>", tg.as_str())
+        //     .replace("<dr>", db.tr("WD-DamageType-Direct"));
+        //
+        // if self.act_num == 1 {
+        //     desc
+        // } else {
+        //     db.tr_str("DC-SkillNodeDesc-MultipleCase")
+        //         .replace("{0}", desc.as_str())
+        //         .replace("{1}", self.act_num.to_string().as_str())
+        // }
+        todo!()
     }
 }
 

@@ -1,9 +1,12 @@
 use std::sync::OnceLock;
+
 use regex::Regex;
 use yaml_rust::YamlLoader;
 
-use data::{LANGUAGES};
+use data::LANGUAGES;
 use data::term::{Term, TermMap};
+
+use crate::data::term::Node;
 
 pub fn write_terms() {
     let s = std::fs::read_to_string("dump/asset/ExportedProject/Assets/Resources/I2Languages.asset").unwrap();
@@ -11,17 +14,15 @@ pub fn write_terms() {
     let doc = &docs[0];
     let terms = doc["MonoBehaviour"]["mSource"]["mTerms"].as_vec().unwrap();
 
-    println!("{:?}", terms.len());
-
     let mut outs = Vec::new();
     for _lang in LANGUAGES {
-        outs.push(TermMap::new());
+        outs.push(Vec::<(String, String)>::new());
     }
 
     for term in terms {
         let key = term["Term"].as_str().unwrap();
         let langs = term["Languages"].as_vec().unwrap();
-        for (i, _lang) in LANGUAGES.iter().enumerate() {
+        for (i, _) in LANGUAGES.iter().enumerate() {
             let value = langs[2 + i].as_str().unwrap();
             let value = if (value == "$ja") {
                 langs[2].as_str().unwrap()
@@ -30,7 +31,7 @@ pub fn write_terms() {
             } else {
                 value
             };
-            outs[i].insert(key.to_string(), Term { value: value.to_string() });
+            outs[i].push((key.to_string(), value.to_string()));
         }
     }
 
@@ -38,40 +39,44 @@ pub fn write_terms() {
     for (i, lang) in LANGUAGES.iter().enumerate() {
         let out = &outs[i];
 
-        let mut new_out = TermMap::new();
+        let mut new_out = Vec::<(String, String)>::new();
         for (key, value) in out.iter() {
-            if let Some(m) = re.captures(&value.value) {
+            if let Some(m) = re.captures(value) {
                 let key_ref = &m[1].to_string();
-                let substitute = &out.get(key_ref);
-                if let Some(s) = substitute {
-                    new_out.insert(key.clone(), Term { value: s.value.clone() });
+                let substitute = &out.iter().find(|t| t.0 == key_ref.as_str());
+                if let Some(&ref s) = substitute {
+                    new_out.push(s.clone());
                 } else {
                     println!("{}: '{}' not found", lang, key_ref);
-                    new_out.insert(key.clone(), value.clone());
+                    new_out.push((key.clone(), value.clone()));
                 }
             } else {
-                new_out.insert(key.clone(), value.clone());
+                new_out.push((key.clone(), value.clone()));
             }
         }
-
-        let file_writer = std::io::BufWriter::new(std::fs::File::create(format!("public/i18n/{}/terms.avro", lang)).unwrap());
-        TermMap::write(file_writer, &new_out).unwrap();
 
         {
             let file_writer = std::io::BufWriter::new(std::fs::File::create(format!("dump/{}.csv", lang)).unwrap());
             let mut csv_writer = csv::Writer::from_writer(file_writer);
             for (key, value) in new_out.iter() {
-                csv_writer.write_record(&[key, &value.value]).unwrap();
+                csv_writer.write_record(&[key, &value]).unwrap();
             }
         }
+
+        let nodes = new_out.iter().map(|(key, value)| {
+            let nodes = parse(value);
+            (key.clone(), Term { nodes })
+        }).collect::<Vec<_>>();
+
+        let file_writer = std::io::BufWriter::new(std::fs::File::create(format!("public/i18n/{}/term.avro", lang)).unwrap());
+        TermMap::write(file_writer, nodes.iter()).unwrap();
+
     }
 }
 
 static RE: OnceLock<Regex> = OnceLock::new();
 
-use crate::data::term::Node;
-
-pub fn parse<'a>(s: &'a str) -> Vec<Node> {
+fn parse(s: &str) -> Vec<Node> {
     let re = RE.get_or_init(|| Regex::new(r"(__)|(<[^>]+>)|(\{[^}]+})").expect("regex"));
 
     let mut splits = vec![0];
@@ -88,13 +93,13 @@ pub fn parse<'a>(s: &'a str) -> Vec<Node> {
         if at < end {
             let span = &s[at..end];
             if span.starts_with("<") {
-                nodes.push(Node::Var(&s[at + 1..end - 1]));
+                nodes.push(Node::Var(s[at + 1..end - 1].to_string()));
             } else if span.starts_with("{") {
-                nodes.push(Node::Var(&s[at + 1..end - 1]));
+                nodes.push(Node::Var(s[at + 1..end - 1].to_string()));
             } else if span == "__" {
                 nodes.push(Node::NewLine);
             } else {
-                nodes.push(Node::Text(span));
+                nodes.push(Node::Text(span.to_string()));
             }
             at = end;
         }
@@ -105,6 +110,7 @@ pub fn parse<'a>(s: &'a str) -> Vec<Node> {
 #[cfg(test)]
 mod test {
     use terms::parse;
+
     use super::Node;
 
     #[test]

@@ -1,11 +1,10 @@
 extern crate apache_avro;
 extern crate serde;
-extern crate regex;
 
 use std::io::Read;
+
 use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
-use term::Tr;
 
 pub mod term;
 pub mod skill;
@@ -33,12 +32,8 @@ impl Database {
         self.term = term;
     }
 
-    pub fn tr(&self, key: &Tr) -> String {
+    pub fn tr(&self, key: &str) -> Option<&Vec<term::Node>> {
         self.term.tr(key)
-    }
-
-    pub fn tr_str<S: AsRef<str>>(&self, key: S) -> String {
-        self.term.tr(&Tr::Raw(key.as_ref()))
     }
 }
 
