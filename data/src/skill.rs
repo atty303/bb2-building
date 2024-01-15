@@ -172,41 +172,59 @@ pub struct ActNode {
 }
 
 impl ActNode {
-    pub fn format(&self, db: &Database) -> Vec<Node> {
-        let replacer = |s: &str| match s {
+    fn replacer(&self, name: &str, db: &Database, out: &mut Vec<Node>) {
+        match name {
             "lasthit" =>
                 match self.avoid_type {
-                    AvoidType::LastHit => db.term().get("DC-SkillNodeDesc-LastHit"),
-                    _ => vec![Node::Empty],
+                    AvoidType::LastHit => out.extend(db.term().get("DC-SkillNodeDesc-LastHit")),
+                    _ => out.push(Node::Empty)
                 }
             "t" =>
-            // -1
-                db.term().get(format!("DC-SkillNodeDesc-TargetName-{}", self.target).as_str()),
+                out.extend(db.term().get(format!("DC-SkillNodeDesc-TargetName-{}", self.target).as_str())),
             "tg" =>
-                db.term().get(format!("DC-SkillNodeDesc-TargetSkill-{}", self.param_key).as_str()),
+                out.extend(db.term().get(format!("DC-SkillNodeDesc-TargetSkill-{}", self.param_key).as_str())),
             "dr" =>
-                db.term().get("WD-DamageType-Direct"),
-            "accu" =>
+                out.extend(db.term().get("WD-DamageType-Direct")),
+            "accu" => {
                 match self.avoid_type {
-                    AvoidType::None => vec![Node::Error("$accu->None".to_string())],
-                    AvoidType::A => db.term().get("DC-SkillNodeDesc-AvoidType-A"),
-                    AvoidType::C => db.term().get("DC-SkillNodeDesc-AvoidType-C"),
-                    AvoidType::LastHit => vec![Node::Error("$accu->LastHit".to_string())],
+                    AvoidType::None => out.push(Node::Error("$accu->None".to_string())),
+                    AvoidType::A => {
+                        out.push(Node::NewLine);
+                        out.push(Node::Text("　".to_string()));
+                        out.extend(db.term().get("DC-SkillNodeDesc-AvoidType-A"));
+                    }
+                    AvoidType::C => {
+                        out.push(Node::NewLine);
+                        out.push(Node::Text("　".to_string()));
+                        out.extend(db.term().get("DC-SkillNodeDesc-AvoidType-C"));
+                    }
+                    AvoidType::LastHit => out.push(Node::Error("$accu->LastHit".to_string())),
                 }
+            }
             "hit" =>
-                vec![Node::Text(self.hit_rate.to_string())],
+                out.push(Node::Text(self.hit_rate.to_string())),
             "crit" =>
                 if self.crit_rate == 0 || self.crit_rate == 100 {
-                    vec![Node::Empty]
+                    out.push(Node::Empty)
                 } else {
-                    db.term().tr("DC-SkillNodeDesc-CritRate", |n| n.map_var(|s| match s {
+                    out.push(Node::NewLine);
+                    out.push(Node::Text("　".to_string()));
+                    out.extend(db.term().tr("DC-SkillNodeDesc-CritRate", |n| n.map_var(|s| match s {
                         "0" => vec![Node::Text(self.crit_rate.to_string())],
                         _ => vec![],
-                    }))
+                    })));
                 }
             "power" =>
-                db.term().get("DC-SkillNodeDesc-AboutPower"),
-            _ => vec![],
+                out.extend(db.term().get("DC-SkillNodeDesc-AboutPower")),
+            _ => ()
+        }
+    }
+
+    pub fn format(&self, db: &Database) -> Vec<Node> {
+        let replacer = |s: &str| {
+            let mut out = vec![];
+            self.replacer(s, db, &mut out);
+            out
         };
 
         let mut line: Vec<Node> = db.term().get(format!("DC-SkillNodeDesc-{}", self.action_type).as_str());
