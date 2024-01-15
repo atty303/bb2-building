@@ -75,6 +75,21 @@ pub enum ParamKey {
     LastEnemy,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema, EnumString, Display)]
+pub enum IncTarget {
+    SELF,
+    TARGET,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema, EnumString, Display)]
+pub enum Reduce {
+    #[strum(serialize = "")]
+    None,
+    P,
+    M,
+    V,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
 pub struct Skill {
     pub hash: u16,
@@ -185,6 +200,10 @@ pub struct ActNode {
     pub param_key: ParamKey,
     pub hit_rate: u16,
     pub avoid_type: AvoidType,
+    pub reduce: Reduce,
+    pub inc_target: IncTarget,
+    pub inc_relate: String,
+    pub inc_power: u16,
     pub act_num: u8,
     pub crit_rate: u16,
 }
@@ -232,6 +251,42 @@ impl ActNode {
                         _ => vec![],
                     })));
                 }
+            "rd" =>
+                match self.reduce {
+                    Reduce::None => out.push(Node::Empty),
+                    Reduce::P | Reduce::M | Reduce::V => {
+                        out.push(Node::NewLine);
+                        out.push(Node::Text("　".to_string()));
+                        out.extend(db.term().get(format!("DC-SkillNodeDesc-Reduce-{}", self.reduce).as_str()));
+                    }
+                }
+            "inc" => {
+                if self.inc_relate.is_empty() {
+                    out.push(Node::Empty)
+                } else {
+                    out.push(Node::NewLine);
+                    out.push(Node::Text("　".to_string()));
+                    let pair = self.inc_relate.split(':').collect::<Vec<_>>();
+                    let key = pair[0];
+                    match key {
+                        "CritRate" =>
+                            out.extend(db.term().get("DC-SkillNodeDesc-AboutIncPower")),
+                        _ => (),
+                    }
+                }
+            }
+            "irt" =>
+                match self.inc_target {
+                    IncTarget::SELF => out.extend(db.term().get("DC-SkillNodeDesc-TargetName-0")),
+                    IncTarget::TARGET => out.extend(db.term().get("DC-SkillNodeDesc-TargetName-1")),
+                }
+            "irf" => {
+                let pair = self.inc_relate.split(':').collect::<Vec<_>>();
+                let key = pair[0];
+                out.extend(db.term().get(format!("NM-{}", key).as_str()));
+            }
+            "ipw" =>
+                out.push(Node::Text(format!("{}", self.inc_power))),
             "power" =>
                 out.extend(db.term().get("DC-SkillNodeDesc-AboutPower")),
             _ => ()

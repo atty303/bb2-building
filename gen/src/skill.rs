@@ -6,7 +6,7 @@ use std::str::FromStr;
 use json::JsonValue;
 use yaml_rust::{Yaml, YamlLoader};
 
-use data::skill::{Act, ActNode, ActTrigger, AvoidType, ParamKey, Skill, SkillCategory, SkillMode, SkillRepository};
+use data::skill::{Act, ActNode, ActTrigger, AvoidType, IncTarget, ParamKey, Reduce, Skill, SkillCategory, SkillMode, SkillRepository};
 use data::Sprite;
 use idhash::IdHash;
 use table::Table;
@@ -190,7 +190,7 @@ struct ActNodeRow<'a> {
     freq: u8,
     inc_target: &'a str,
     inc_relate: &'a str,
-    inc_power: &'a str,
+    inc_power: u16,
     state_last: &'a str,
     act_num: u8,
     crit_rate: u16,
@@ -227,7 +227,7 @@ impl<'a> ActNodeRow<'a> {
             freq: e["Freq"].as_str().unwrap().parse::<u8>().unwrap(),
             inc_target: e["IncTarget"].as_str().unwrap(),
             inc_relate: e["IncRelate"].as_str().unwrap(),
-            inc_power: e["IncPower"].as_str().unwrap(),
+            inc_power: e["IncPower"].as_str().unwrap().parse::<u16>().unwrap(),
             state_last: e["StateLast"].as_str().unwrap(),
             act_num: e["ActNum"].as_str().unwrap().parse::<u8>().unwrap(),
             crit_rate: e["CritRate"].as_str().unwrap().parse::<u16>().unwrap(),
@@ -308,6 +308,7 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, sm_act_table
                 let nodes = act_node_rows.iter().filter(|act_node_row| {
                     act_node_row.act == format!("{}_{}", act_row.name, act_row.row_id)
                 }).filter(|row| row.action_type != "Visual").map(|act_node_row| {
+                    println!("act_node: {:?}", act_node_row);
                     ActNode {
                         id: act_node_row.id.to_string(),
                         action_type: act_node_row.action_type.to_string(),
@@ -315,6 +316,10 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, sm_act_table
                         param_key: ParamKey::from_str(act_node_row.param_key).unwrap(),
                         hit_rate: act_node_row.hit_rate,
                         avoid_type: AvoidType::from_str(act_node_row.avoid_type).unwrap(),
+                        reduce: Reduce::from_str(act_node_row.reduce).unwrap(),
+                        inc_target: IncTarget::from_str(act_node_row.inc_target).unwrap(),
+                        inc_relate: act_node_row.inc_relate.to_string(),
+                        inc_power: act_node_row.inc_power,
                         act_num: act_node_row.act_num,
                         crit_rate: act_node_row.crit_rate,
                     }
