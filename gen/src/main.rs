@@ -32,5 +32,5 @@ fn main() {
         db.insert(meta_name.to_string(), table);
     }
 
-    process_skill(&db["skill"], &db["skill_mode"], &db["act"], &db["act_node"])
+    process_skill(&db["skill"], &db["skill_mode"], &db["sm_act"], &db["act"], &db["act_node"])
 }

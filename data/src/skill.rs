@@ -140,23 +140,41 @@ impl SkillMode {
         nodes.push(Node::NewLine);
 
         for act in &self.acts {
-            for node in &act.nodes {
-                nodes.extend(node.format(db));
-                nodes.push(Node::NewLine);
-            }
+            nodes.extend(act.format(db));
+            nodes.push(Node::NewLine);
         }
 
         nodes
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema, EnumString, Display)]
+pub enum ActTrigger {
+    OnUse,
+    TurnStart,
+    Passive,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
 pub struct Act {
     pub id: String,
+    pub act_trigger: ActTrigger,
     pub nodes: Vec<ActNode>,
 }
 
 impl Act {
+    pub fn format(&self, db: &Database) -> Vec<Node> {
+        let mut nodes = vec![];
+
+        nodes.extend(db.term.get(format!("NM-SkillNodeDesc-ActTrigger-{}", self.act_trigger).as_str()));
+        nodes.push(Node::NewLine);
+
+        for node in &self.nodes {
+            nodes.extend(node.format(db));
+            nodes.push(Node::NewLine);
+        }
+        nodes
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
