@@ -6,6 +6,7 @@ use json::JsonValue;
 use prettytable::{Cell, Row};
 
 pub mod state;
+pub mod skill;
 
 pub trait TableParser {
     type Row;
@@ -51,10 +52,10 @@ impl EntityParser {
     }
 
     pub fn get_bool(&self, name: &str) -> bool {
-        match self.get_str(name).parse().expect(format!("field {} should be i32", name).as_str()) {
-            0 => false,
-            1 => true,
-            _ => panic!("field {} should be bool", name),
+        match self.get_str(name).as_str() {
+            "0" => false,
+            "1" => true,
+            v => panic!("field {} should be bool: {:?}", name, v),
         }
     }
 }

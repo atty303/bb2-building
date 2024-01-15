@@ -9,6 +9,8 @@ use std::collections::HashMap;
 
 use skill::process_skill;
 use table::{BGTable, Table};
+use table::skill::SkillTable;
+use table::state::StateTable;
 
 mod terms;
 mod table;
@@ -32,12 +34,22 @@ fn main() {
         db.insert(meta_name.to_string(), table);
     }
 
-    let mut db2 = HashMap::new();
+    let mut skill_table: Option<Table<SkillTable>> = None;
+    let mut state_table: Option<Table<StateTable>> = None;
     for meta in db_json["Metas"].members() {
         let name = meta["Name"].as_str().unwrap();
-        let table = Table::new(meta.to_owned());
-        db2.insert(name.to_string(), table);
+        match name {
+            "skill" => skill_table = Some(Table::new(meta.to_owned())),
+            "state" => state_table = Some(Table::new(meta.to_owned())),
+            _ => ()
+        }
     }
 
-    process_skill(&db["skill"], &db["skill_mode"], &db["sm_act"], &db["act"], &db["act_node"], &db2["state"])
+    process_skill(
+        &skill_table.unwrap(),
+        &db["skill_mode"],
+        &db["sm_act"],
+        &db["act"],
+        &db["act_node"],
+        &state_table.unwrap())
 }
