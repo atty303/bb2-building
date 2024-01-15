@@ -1,11 +1,12 @@
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::hash::{BuildHasher, Hash, Hasher};
+use std::str::FromStr;
 
 use json::JsonValue;
 use yaml_rust::{Yaml, YamlLoader};
 
-use data::skill::{Act, ActNode, AvoidType, ParamKey, Skill, SkillCategory, SkillRepository, SkillMode};
+use data::skill::{Act, ActNode, AvoidType, ParamKey, Skill, SkillCategory, SkillMode, SkillRepository};
 use data::Sprite;
 use idhash::IdHash;
 use table::Table;

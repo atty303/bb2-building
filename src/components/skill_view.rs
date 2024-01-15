@@ -46,7 +46,7 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
 pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element {
     let database = use_read(cx, &DATABASE);
 
-    let desc = mode.format(database);
+    let nodes = mode.format(database);
 
     render! {
         div { class: "flex flex-col gap-2 bg-base-200 text-base-content rounded-md p-2",
@@ -74,7 +74,7 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
                 }
             }
             div {
-                Description { descs: desc.clone() }
+                Description { nodes: nodes.clone() }
             }
         }
     }
@@ -106,18 +106,18 @@ fn Rarity(cx: Scope, rarity: i8) -> Element {
 
 
 #[component]
-pub fn Description(cx: Scope, descs: Vec<data::skill::Description>) -> Element {
+pub fn Description(cx: Scope, nodes: Vec<data::term::Node>) -> Element {
     render! {
-        for desc in descs {
-            match desc {
-                data::skill::Description::Text(text) => rsx! { "{text}" },
-                data::skill::Description::NewLine => rsx! { br {} },
-                data::skill::Description::None => rsx! { "" },
-                data::skill::Description::MissingVar(name) => rsx! {
+        for node in nodes {
+            match node {
+                data::term::Node::Text(text) => rsx! { "{text}" },
+                data::term::Node::NewLine => rsx! { br {} },
+                data::term::Node::Empty => rsx! { "" },
+                data::term::Node::Var(name) => rsx! {
                     span { class: "text-error", "[{name}]" }
                 },
-                data::skill::Description::Error(text) => rsx! {
-                    span { class: "text-error text-bold", "{text}" }
+                data::term::Node::Error(text) => rsx! {
+                    span { class: "text-error font-bold", "{text}" }
                 },
             }
         }

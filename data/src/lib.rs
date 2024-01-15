@@ -1,5 +1,6 @@
 extern crate apache_avro;
 extern crate serde;
+extern crate strum;
 
 use std::io::Read;
 

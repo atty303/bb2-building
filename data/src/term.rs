@@ -10,6 +10,8 @@ pub enum Node {
     Text(String),
     Var(String),
     NewLine,
+    Empty,
+    Error(String),
 }
 
 pub fn nodes_to_string(nodes: &Vec<Node>) -> String {
@@ -17,6 +19,8 @@ pub fn nodes_to_string(nodes: &Vec<Node>) -> String {
         Node::Text(s) => s.clone(),
         Node::Var(s) => format!("<{}>", s),
         Node::NewLine => "\n".to_string(),
+        Node::Empty => "".to_string(),
+        Node::Error(s) => format!("!{}!", s),
     }).collect::<Vec<_>>().join("")
 }
 
@@ -24,7 +28,6 @@ pub fn nodes_to_string(nodes: &Vec<Node>) -> String {
 pub struct Term {
     pub nodes: Vec<Node>,
 }
-
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
 struct TermSer {
@@ -65,6 +68,8 @@ impl<'a> TermMap {
                 Node::Text(s) => format!(" {}", s),
                 Node::Var(s) => format!("${}", s),
                 Node::NewLine => "~".to_string(),
+                Node::Empty => "".to_string(),
+                Node::Error(_) => "".to_string(),
             }).collect::<Vec<_>>();
             writer.append_ser(&TermSer { key: key.to_string(), term: terms })?;
         }
@@ -99,6 +104,13 @@ impl<'a> TermMap {
     //     self.inner.get(key).map(|v| Box::new(Arc::clone(&v.nodes)))
     //         .unwrap_or(Box::new(Arc::new(vec![])))
     // }
+
+    pub fn get(&'a self, key: &str) -> Vec<Node> {
+        match self.inner.get(key) {
+            Some(v) => v.nodes.clone(),
+            None => vec![Node::Text(key.to_string())],
+        }
+    }
 
     pub fn tr<T, F: Fn(&Vec<Node>) -> T>(&'a self, key: &str, f: F) -> T {
         match self.inner.get(key) {

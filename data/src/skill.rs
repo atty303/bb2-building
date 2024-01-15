@@ -5,10 +5,11 @@ use std::ops::{Deref, DerefMut};
 
 use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString};
 
 use ::{Database, Sprite};
 use term;
-use term::{nodes_to_string, TermMap};
+use term::{Node, nodes_to_string, TermMap};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema)]
 pub enum SkillCategory {
@@ -54,8 +55,9 @@ impl AvoidType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema, EnumString, Display)]
 pub enum ParamKey {
+    #[strum(serialize = "")]
     None,
     All,
     Random,
@@ -71,29 +73,6 @@ pub enum ParamKey {
     Buffs,
     Shadow,
     LastEnemy,
-}
-
-impl ParamKey {
-    pub fn from_str(s: &str) -> Option<Self> {
-        match s {
-            "" => Some(ParamKey::None),
-            "All" => Some(ParamKey::All),
-            "Random" => Some(ParamKey::Random),
-            "RandomD" => Some(ParamKey::RandomD),
-            "GearByPos" => Some(ParamKey::GearByPos),
-            "Act" => Some(ParamKey::Act),
-            "Combat" => Some(ParamKey::Combat),
-            "LastAutoUse" => Some(ParamKey::LastAutoUse),
-            "Current" => Some(ParamKey::Current),
-            "Master" => Some(ParamKey::Master),
-            "Push" => Some(ParamKey::Push),
-            "Debuffs" => Some(ParamKey::Debuffs),
-            "Buffs" => Some(ParamKey::Buffs),
-            "Shadow" => Some(ParamKey::Shadow),
-            "LastEnemy" => Some(ParamKey::LastEnemy),
-            _ => None
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
@@ -143,31 +122,31 @@ impl SkillMode {
         terms.tr(format!("NM-{}", self.id).as_str(), |nodes| nodes_to_string(nodes))
     }
 
-    pub fn format(&self, db: &Database) -> Vec<Description> {
-        let mut descs = vec![];
+    pub fn format(&self, db: &Database) -> Vec<Node> {
+        let mut nodes = vec![];
 
         let line1 = db.term().tr(
             if self.is_alt { "NM-SkillNodeDesc-ModeName-AltMode" } else { "NM-SkillNodeDesc-ModeName-Normal" },
-            |n| n.format_cb(|s| match s {
+            |n| n.map_var(|s| match s {
                 "0" =>
                     if self.is_brave {
-                        db.term().tr("NM-SkillNodeDesc-ModeName-ForBrave", |n| n.format_none())
+                        db.term().get("NM-SkillNodeDesc-ModeName-ForBrave")
                     } else {
-                        vec![Description::None]
+                        vec![Node::Empty]
                     }
                 _ => vec![]
             }));
-        descs.extend(line1);
-        descs.push(Description::NewLine);
+        nodes.extend(line1);
+        nodes.push(Node::NewLine);
 
         for act in &self.acts {
             for node in &act.nodes {
-                descs.extend(node.format(db));
-                descs.push(Description::NewLine);
+                nodes.extend(node.format(db));
+                nodes.push(Node::NewLine);
             }
         }
 
-        descs
+        nodes
     }
 }
 
@@ -193,80 +172,82 @@ pub struct ActNode {
 }
 
 impl ActNode {
-    pub fn format(&self, db: &Database) -> Vec<Description> {
-        let mut descs = vec![];
-
-        let line = db.term().tr(
-            format!("DC-SkillNodeDesc-{}", self.action_type).as_str(),
-            |n| n.format_cb(|s| match s {
-                "lasthit" =>
-                    match self.avoid_type {
-                        AvoidType::LastHit => db.term().tr("DC-SkillNodeDesc-LastHit", |n| n.format_none()),
-                        _ => vec![Description::None],
-                    }
-                "t" =>
-                    // -1
-                    db.term().tr(format!("DC-SkillNodeDesc-TargetName-{}", self.target).as_str(), |n| n.format_none()),
-                "tg" =>
-                    match self.param_key {
-                        ParamKey::All => db.term().tr("DC-SkillNodeDesc-TargetSkill-All", |n| n.format_none()),
-                        ParamKey::Random => db.term().tr("DC-SkillNodeDesc-TargetSkill-Random", |n| n.format_none()),
-                        ParamKey::RandomD => db.term().tr("DC-SkillNodeDesc-TargetSkill-RandomD", |n| n.format_none()),
-                        ParamKey::Current => db.term().tr("DC-SkillNodeDesc-TargetSkill-Current", |n| n.format_none()),
-                        ParamKey::Buffs => db.term().tr("DC-SkillNodeDesc-TargetSkill-Buffs", |n| n.format_none()),
-                        ParamKey::Debuffs => db.term().tr("DC-SkillNodeDesc-TargetSkill-Debuffs", |n| n.format_none()),
+    pub fn format(&self, db: &Database) -> Vec<Node> {
+        let replacer = |s: &str| match s {
+            "lasthit" =>
+                match self.avoid_type {
+                    AvoidType::LastHit => db.term().get("DC-SkillNodeDesc-LastHit"),
+                    _ => vec![Node::Empty],
+                }
+            "t" =>
+            // -1
+                db.term().get(format!("DC-SkillNodeDesc-TargetName-{}", self.target).as_str()),
+            "tg" =>
+                db.term().get(format!("DC-SkillNodeDesc-TargetSkill-{}", self.param_key).as_str()),
+            "dr" =>
+                db.term().get("WD-DamageType-Direct"),
+            "accu" =>
+                match self.avoid_type {
+                    AvoidType::None => vec![Node::Error("$accu->None".to_string())],
+                    AvoidType::A => db.term().get("DC-SkillNodeDesc-AvoidType-A"),
+                    AvoidType::C => db.term().get("DC-SkillNodeDesc-AvoidType-C"),
+                    AvoidType::LastHit => vec![Node::Error("$accu->LastHit".to_string())],
+                }
+            "hit" =>
+                vec![Node::Text(self.hit_rate.to_string())],
+            "crit" =>
+                if self.crit_rate == 0 || self.crit_rate == 100 {
+                    vec![Node::Empty]
+                } else {
+                    db.term().tr("DC-SkillNodeDesc-CritRate", |n| n.map_var(|s| match s {
+                        "0" => vec![Node::Text(self.crit_rate.to_string())],
                         _ => vec![],
-                    }
-                "dr" =>
-                    db.term().tr("WD-DamageType-Direct", |n| n.format_none()),
-                "power" =>
-                    db.term().tr("DC-SkillNodeDesc-AboutPower", |n| n.format_cb(|s| match s {
-                        "pwd" => vec![], // TODO
-                        "rd" => vec![], // TODO
-                        "inc" => vec![], // TODO
-                        "accu" =>
-                            match self.avoid_type {
-                                AvoidType::None => vec![Description::Error("$accu->None".to_string())],
-                                AvoidType::A => db.term().tr("DC-SkillNodeDesc-AvoidType-A", |n| n.format_cb(|s| match s {
-                                    "hit" => vec![Description::Text(self.hit_rate.to_string())],
-                                    _ => vec![],
-                                })),
-                                AvoidType::C => db.term().tr("DC-SkillNodeDesc-AvoidType-C", |n| n.format_cb(|s| match s {
-                                    "hit" => vec![Description::Text(self.hit_rate.to_string())],
-                                    _ => vec![],
-                                })),
-                                AvoidType::LastHit => vec![Description::Error("$accu->LastHit".to_string())],
-                            }
-                        "crit" =>
-                            if self.crit_rate == 100 {
-                                vec![Description::None]
-                            } else {
-                                db.term().tr("DC-SkillNodeDesc-CritRate", |n| n.format_cb(|s| match s {
-                                    "0" => vec![Description::Text(self.crit_rate.to_string())],
-                                    _ => vec![],
-                                }))
-                            }
-                        "last" => vec![], // TODO
-                        _ => vec![],
-                    })),
+                    }))
+                }
+            "power" =>
+                db.term().get("DC-SkillNodeDesc-AboutPower"),
+            _ => vec![],
+        };
 
-                // DC-SkillNodeDesc-Reduce-M/P/V
-                _ => vec![],
-            })
-        );
+        let mut line: Vec<Node> = db.term().get(format!("DC-SkillNodeDesc-{}", self.action_type).as_str());
+        loop {
+            let has_var = line.iter().any(|l| match l {
+                Node::Var(_) => true,
+                _ => false,
+            });
+            if !has_var {
+                break;
+            }
+
+            let mut replaced = false;
+            line = line.into_iter().flat_map(|l| match l {
+                Node::Var(s) => {
+                    let n = replacer(s.as_str());
+                    if n.is_empty() {
+                        vec![Node::Var(s.clone())]
+                    } else {
+                        replaced = true;
+                        n
+                    }
+                }
+                _ => vec![l.clone()],
+            }).collect::<Vec<_>>();
+            if !replaced {
+                break;
+            }
+        }
 
         let line = if self.act_num == 1 {
             line
         } else {
-            db.term().tr("DC-SkillNodeDesc-MultipleCase", |n| n.format_cb(|s| match s {
+            db.term().tr("DC-SkillNodeDesc-MultipleCase", |n| n.map_var(|s| match s {
                 "0" => line.clone(),
-                "1" => vec![Description::Text(self.act_num.to_string())],
+                "1" => vec![Node::Text(self.act_num.to_string())],
                 _ => vec![],
             }))
         };
 
-        descs.extend(line);
-        descs
+        line
     }
 }
 
@@ -319,46 +300,24 @@ impl DerefMut for SkillRepository {
     }
 }
 
-#[derive(Clone, PartialEq)]
-pub enum Description {
-    Text(String),
-    MissingVar(String),
-    Error(String),
-    NewLine,
-    None,
-}
-
 type Nodes = Vec<term::Node>;
-type Descs = Vec<Description>;
 
 trait ToDescs {
-    fn format_cb<F: Fn(&str) -> Vec<Description>>(&self, f: F) -> Vec<Description>;
-    fn format_none(&self) -> Descs;
+    fn map_var<F: Fn(&str) -> Vec<Node>>(&self, f: F) -> Vec<Node>;
 }
 
 impl ToDescs for Nodes {
-    fn format_cb<F: Fn(&str) -> Vec<Description>>(&self, f: F) -> Vec<Description> {
+    fn map_var<F: Fn(&str) -> Vec<Node>>(&self, f: F) -> Vec<Node> {
         self.iter().flat_map(|n| match n {
-            term::Node::Text(s) => vec![Description::Text(s.clone())],
             term::Node::Var(s) => {
                 let adds = f(s.as_str());
                 if adds.is_empty() {
-                    vec![Description::MissingVar(s.clone())]
+                    vec![n.clone()]
                 } else {
                     adds
                 }
             }
-            term::Node::NewLine => vec![Description::NewLine],
-        }).collect::<Vec<_>>()
-    }
-
-    fn format_none(&self) -> Descs {
-        self.iter().flat_map(|n| match n {
-            term::Node::Text(s) => vec![Description::Text(s.clone())],
-            term::Node::Var(s) => {
-                vec![Description::Text(format!("${}", s))]
-            }
-            term::Node::NewLine => vec![Description::NewLine],
+            n => vec![n.clone()],
         }).collect::<Vec<_>>()
     }
 }
