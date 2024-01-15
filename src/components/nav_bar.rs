@@ -13,7 +13,7 @@ use crate::pages::Route;
 pub fn NavBar(cx: Scope) -> Element {
     render! {
         div {
-            class: "navbar shadow-lg bg-neutral text-neutral-content sticky top-0 z-50 shadow-lg",
+            class: "navbar shadow-lg bg-neutral text-neutral-content",
             div {
                 class: "navbar-start",
                 Link {
