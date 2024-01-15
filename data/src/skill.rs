@@ -148,16 +148,14 @@ impl SkillMode {
 
         let line1 = db.term().tr(
             if self.is_alt { "NM-SkillNodeDesc-ModeName-AltMode" } else { "NM-SkillNodeDesc-ModeName-Normal" },
-            |n| nodes_to_description(n, |s| {
-                match s {
-                    "0" =>
-                        if self.is_brave {
-                            db.term().tr("NM-SkillNodeDesc-ModeName-ForBrave", |n| nodes_to_description(n, |_| vec![]))
-                        } else {
-                            vec![]
-                        }
-                    _ => vec![]
-                }
+            |n| n.format_cb(|s| match s {
+                "0" =>
+                    if self.is_brave {
+                        db.term().tr("NM-SkillNodeDesc-ModeName-ForBrave", |n| n.format_none())
+                    } else {
+                        vec![Description::None]
+                    }
+                _ => vec![]
             }));
         descs.extend(line1);
         descs.push(Description::NewLine);
@@ -280,19 +278,40 @@ impl DerefMut for SkillRepository {
 pub enum Description {
     Text(String),
     NewLine,
+    None,
 }
 
-fn nodes_to_description<F: Fn(&str) -> Vec<Description>>(nodes: &[term::Node], f: F) -> Vec<Description> {
-    nodes.iter().flat_map(|n| match n {
-        term::Node::Text(s) => vec![Description::Text(s.clone())],
-        term::Node::Var(s) => {
-            let adds = f(s.as_str());
-            if adds.is_empty() {
-                vec![Description::Text(format!("${}", s))]
-            } else {
-                adds
+type Nodes = Vec<term::Node>;
+type Descs = Vec<Description>;
+
+trait ToDescs {
+    fn format_cb<F: Fn(&str) -> Vec<Description>>(&self, f: F) -> Vec<Description>;
+    fn format_none(&self) -> Descs;
+}
+
+impl ToDescs for Nodes {
+    fn format_cb<F: Fn(&str) -> Vec<Description>>(&self, f: F) -> Vec<Description> {
+        self.iter().flat_map(|n| match n {
+            term::Node::Text(s) => vec![Description::Text(s.clone())],
+            term::Node::Var(s) => {
+                let adds = f(s.as_str());
+                if adds.is_empty() {
+                    vec![Description::Text(format!("${}", s))]
+                } else {
+                    adds
+                }
             }
-        }
-        term::Node::NewLine => vec![Description::NewLine],
-    }).collect::<Vec<_>>()
+            term::Node::NewLine => vec![Description::NewLine],
+        }).collect::<Vec<_>>()
+    }
+
+    fn format_none(&self) -> Descs {
+        self.iter().flat_map(|n| match n {
+            term::Node::Text(s) => vec![Description::Text(s.clone())],
+            term::Node::Var(s) => {
+                vec![Description::Text(format!("${}", s))]
+            }
+            term::Node::NewLine => vec![Description::NewLine],
+        }).collect::<Vec<_>>()
+    }
 }

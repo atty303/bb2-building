@@ -108,11 +108,12 @@ fn Rarity(cx: Scope, rarity: i8) -> Element {
 #[component]
 pub fn Description(cx: Scope, descs: Vec<data::skill::Description>) -> Element {
     render! {
-            for desc in descs {
-                match desc {
-                    data::skill::Description::Text(text) => rsx! { "{text}" },
-                    data::skill::Description::NewLine => rsx! { br {} },
-                }
+        for desc in descs {
+            match desc {
+                data::skill::Description::Text(text) => rsx! { "{text}" },
+                data::skill::Description::NewLine => rsx! { br {} },
+                data::skill::Description::None => rsx! { "" },
             }
         }
+    }
 }
