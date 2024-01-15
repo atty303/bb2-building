@@ -76,7 +76,7 @@ pub enum ParamKey {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema, EnumString, Display)]
-pub enum IncTarget {
+pub enum Target {
     SELF,
     TARGET,
 }
@@ -200,8 +200,11 @@ pub struct ActNode {
     pub param_key: ParamKey,
     pub hit_rate: u16,
     pub avoid_type: AvoidType,
+    pub relate_target: Target,
+    pub relate: String,
+    pub power: u32,
     pub reduce: Reduce,
-    pub inc_target: IncTarget,
+    pub inc_target: Target,
     pub inc_relate: String,
     pub inc_power: u16,
     pub act_num: u8,
@@ -277,8 +280,8 @@ impl ActNode {
             }
             "irt" =>
                 match self.inc_target {
-                    IncTarget::SELF => out.extend(db.term().get("DC-SkillNodeDesc-TargetName-0")),
-                    IncTarget::TARGET => out.extend(db.term().get("DC-SkillNodeDesc-TargetName-1")),
+                    Target::SELF => out.extend(db.term().get("DC-SkillNodeDesc-TargetName-0")),
+                    Target::TARGET => out.extend(db.term().get("DC-SkillNodeDesc-TargetName-1")),
                 }
             "irf" => {
                 let pair = self.inc_relate.split(':').collect::<Vec<_>>();
@@ -289,7 +292,32 @@ impl ActNode {
                 out.push(Node::Text(format!("{}", self.inc_power))),
             "power" =>
                 out.extend(db.term().get("DC-SkillNodeDesc-AboutPower")),
-            _ => ()
+            "pwd" => // rt,rf,pw
+                out.extend(db.term().get("DC-SkillNodeDesc-AboutPowerDtl")),
+            "rt" =>
+                match self.inc_target {
+                    Target::SELF => out.extend(db.term().get("DC-SkillNodeDesc-TargetName-0")),
+                    Target::TARGET => out.extend(db.term().get("DC-SkillNodeDesc-TargetName-1")),
+                }
+            "rf" => {
+                if self.relate.contains('/') {
+                    let mut it = self.relate.split('/');
+                    let or = [it.next().unwrap(), it.next().unwrap()].iter().map(|s| {
+                        let n = &s[3..4];
+                        db.term().get(format!("NM-MainParam:{}", n).as_str())
+                    }).collect::<Vec<_>>();
+                    out.extend(or[0].to_owned());
+                    out.extend(db.term().get("WD-Relate-Or"));
+                    out.extend(or[1].to_owned());
+                } else {
+                    let pair = self.relate.split(':').collect::<Vec<_>>();
+                    let key = pair[0];
+                    out.extend(db.term().get(format!("NM-{}", key).as_str()));
+                }
+            }
+            "pw" =>
+                out.push(Node::Text(format!("{}", self.power))),
+            _ => (),
         }
     }
 

@@ -6,7 +6,7 @@ use std::str::FromStr;
 use json::JsonValue;
 use yaml_rust::{Yaml, YamlLoader};
 
-use data::skill::{Act, ActNode, ActTrigger, AvoidType, IncTarget, ParamKey, Reduce, Skill, SkillCategory, SkillMode, SkillRepository};
+use data::skill::{Act, ActNode, ActTrigger, AvoidType, Target, ParamKey, Reduce, Skill, SkillCategory, SkillMode, SkillRepository};
 use data::Sprite;
 use idhash::IdHash;
 use table::Table;
@@ -316,8 +316,11 @@ pub fn process_skill(skill_table: &Table, skill_mode_table: &Table, sm_act_table
                         param_key: ParamKey::from_str(act_node_row.param_key).unwrap(),
                         hit_rate: act_node_row.hit_rate,
                         avoid_type: AvoidType::from_str(act_node_row.avoid_type).unwrap(),
+                        relate_target: Target::from_str(act_node_row.relate_target).unwrap(),
+                        relate: act_node_row.relate.to_string(),
+                        power: act_node_row.power,
                         reduce: Reduce::from_str(act_node_row.reduce).unwrap(),
-                        inc_target: IncTarget::from_str(act_node_row.inc_target).unwrap(),
+                        inc_target: Target::from_str(act_node_row.inc_target).unwrap(),
                         inc_relate: act_node_row.inc_relate.to_string(),
                         inc_power: act_node_row.inc_power,
                         act_num: act_node_row.act_num,
