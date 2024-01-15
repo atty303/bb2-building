@@ -113,6 +113,9 @@ pub fn Description(cx: Scope, descs: Vec<data::skill::Description>) -> Element {
                 data::skill::Description::Text(text) => rsx! { "{text}" },
                 data::skill::Description::NewLine => rsx! { br {} },
                 data::skill::Description::None => rsx! { "" },
+                data::skill::Description::MissingVar(name) => rsx! {
+                    span { class: "text-error", "[{name}]" }
+                }
             }
         }
     }

@@ -160,12 +160,12 @@ impl SkillMode {
         descs.extend(line1);
         descs.push(Description::NewLine);
 
-        // for act in &self.acts {
-        //     for node in &act.nodes {
-        //         desc.push_str(&node.format(db));
-        //         desc.push('\n');
-        //     }
-        // }
+        for act in &self.acts {
+            for node in &act.nodes {
+                descs.extend(node.format(db));
+                descs.push(Description::NewLine);
+            }
+        }
 
         descs
     }
@@ -191,37 +191,47 @@ pub struct ActNode {
 }
 
 impl ActNode {
-    pub fn format(&self, _db: &Database) -> Vec<Description> {
-        // let last_hit = match self.avoid_type {
-        //     AvoidType::LastHit => db.tr_str("DC-SkillNodeDesc-LastHit"),
-        //     _ => "".to_string(),
-        // };
-        // let target = db.tr_str(format!("DC-SkillNodeDesc-TargetName-{}", self.target));
-        // let tg = match (self.target, &self.param_key) {
-        //     (_, ParamKey::All) => db.tr_str("DC-SkillNodeDesc-TargetSkill-All"),
-        //     (_, ParamKey::Random) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Random"),
-        //     (_, ParamKey::RandomD) => db.tr_str("DC-SkillNodeDesc-TargetSkill-RandomD"),
-        //     (_, ParamKey::Current) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Current"),
-        //     (_, ParamKey::Buffs) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Buffs"),
-        //     (_, ParamKey::Debuffs) => db.tr_str("DC-SkillNodeDesc-TargetSkill-Debuffs"),
-        //     (t, p) => format!("<tg {},{:?}>", t, p),
-        // };
-        //
-        // let template = db.tr(format!("DC-SkillNodeDesc-{}", self.action_type).as_str());
-        // let desc = template
-        //     .replace("<lasthit>", last_hit.as_str())
-        //     .replace("<t>", target.as_str())
-        //     .replace("<tg>", tg.as_str())
-        //     .replace("<dr>", db.tr("WD-DamageType-Direct"));
-        //
-        // if self.act_num == 1 {
-        //     desc
-        // } else {
-        //     db.tr_str("DC-SkillNodeDesc-MultipleCase")
-        //         .replace("{0}", desc.as_str())
-        //         .replace("{1}", self.act_num.to_string().as_str())
-        // }
-        vec![Description::Text("".to_string())]
+    pub fn format(&self, db: &Database) -> Vec<Description> {
+        let mut descs = vec![];
+
+        let line = db.term().tr(
+            format!("DC-SkillNodeDesc-{}", self.action_type).as_str(),
+            |n| n.format_cb(|s| match s {
+                "lasthit" =>
+                    match self.avoid_type {
+                        AvoidType::LastHit => db.term().tr("DC-SkillNodeDesc-LastHit", |n| n.format_none()),
+                        _ => vec![Description::None],
+                    }
+                "t" =>
+                    db.term().tr(format!("DC-SkillNodeDesc-TargetName-{}", self.target).as_str(), |n| n.format_none()),
+                "tg" =>
+                    match self.param_key {
+                        ParamKey::All => db.term().tr("DC-SkillNodeDesc-TargetSkill-All", |n| n.format_none()),
+                        ParamKey::Random => db.term().tr("DC-SkillNodeDesc-TargetSkill-Random", |n| n.format_none()),
+                        ParamKey::RandomD => db.term().tr("DC-SkillNodeDesc-TargetSkill-RandomD", |n| n.format_none()),
+                        ParamKey::Current => db.term().tr("DC-SkillNodeDesc-TargetSkill-Current", |n| n.format_none()),
+                        ParamKey::Buffs => db.term().tr("DC-SkillNodeDesc-TargetSkill-Buffs", |n| n.format_none()),
+                        ParamKey::Debuffs => db.term().tr("DC-SkillNodeDesc-TargetSkill-Debuffs", |n| n.format_none()),
+                        _ => vec![],
+                    }
+                "dr" =>
+                    db.term().tr("WD-DamageType-Direct", |n| n.format_none()),
+                _ => vec![],
+            })
+        );
+
+        let line = if self.act_num == 1 {
+            line
+        } else {
+            db.term().tr("DC-SkillNodeDesc-MultipleCase", |n| n.format_cb(|s| match s {
+                "0" => line.clone(),
+                "1" => vec![Description::Text(self.act_num.to_string())],
+                _ => vec![],
+            }))
+        };
+
+        descs.extend(line);
+        descs
     }
 }
 
@@ -277,6 +287,7 @@ impl DerefMut for SkillRepository {
 #[derive(Clone, PartialEq)]
 pub enum Description {
     Text(String),
+    MissingVar(String),
     NewLine,
     None,
 }
@@ -296,7 +307,7 @@ impl ToDescs for Nodes {
             term::Node::Var(s) => {
                 let adds = f(s.as_str());
                 if adds.is_empty() {
-                    vec![Description::Text(format!("${}", s))]
+                    vec![Description::MissingVar(s.clone())]
                 } else {
                     adds
                 }
