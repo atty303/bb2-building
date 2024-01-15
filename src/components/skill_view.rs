@@ -52,13 +52,28 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
         .replace("\n", "<br>");
 
     render! {
-        div {
-            class: "flex flex-col gap-2 bg-base-200 text-base-content rounded-md p-2",
-            div {
-                class: "flex flex-row items-center gap-2",
+        div { class: "flex flex-col gap-2 bg-base-200 text-base-content rounded-md p-2",
+            div { class: "flex flex-row items-center gap-2",
                 Sprite { sprite: &mode.icon }
-                div {
+                div { class: "flex-grow",
                     database.tr(&mode.name())
+                }
+                div { class: "dropdown",
+                    div { class: "btn btn-ghost btn-circle btn-sm",
+                        tabindex: 0,
+                        role: "button",
+                        dangerous_inner_html: r#"<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>"#,
+                    }
+                    ul { class: "menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52",
+                        tabindex: 0,
+                        li {
+                            button {
+                                class: "btn btn-ghost btn-sm justify-start",
+                                onclick: move |_| log::info!("{:#?}", mode),
+                                "Dump"
+                            }
+                        }
+                    }
                 }
             }
             span {
