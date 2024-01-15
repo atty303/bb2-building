@@ -19,11 +19,19 @@ async fn fetch_database() -> anyhow::Result<Database> {
     let base_uri = gloo_utils::document().base_uri().map_err(|err| anyhow!(format!("{:?}", err)))?;
     let base_uri = base_uri.ok_or(anyhow!("base_uri"))?;
 
-    let res = reqwest::get(base_uri + "data/skill.avro").await?;
-    let body = res.bytes().await?;
-    let cursor = std::io::Cursor::new(body);
+    let skill_cursor = {
+        let res = reqwest::get(format!("{}{}",base_uri, "data/skill.avro")).await?;
+        let body = res.bytes().await?;
+        std::io::Cursor::new(body)
+    };
 
-    Database::read(cursor).map_err(|err| anyhow!(err))
+    let state_cursor = {
+        let res = reqwest::get(format!("{}{}", base_uri, "data/state.avro")).await?;
+        let body = res.bytes().await?;
+        std::io::Cursor::new(body)
+    };
+
+    Database::read(skill_cursor, state_cursor).map_err(|err| anyhow!(err))
 }
 
 async fn fetch_i18n(lang: &str) -> anyhow::Result<TermMap> {

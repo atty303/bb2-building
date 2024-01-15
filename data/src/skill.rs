@@ -348,7 +348,7 @@ impl ActNode {
                         _ => vec![],
                     })));
                 } else if self.state_last.f1 >= 0 {
-                    out.push(Node::Error("state_last.f1".to_string()));;
+                    out.push(Node::Error("state_last.f1".to_string()));
                 } else if self.state_last.f2 >= 0 {
                     out.push(Node::NewLine);
                     out.push(Node::Text("　".to_string()));

@@ -8,6 +8,7 @@ extern crate regex;
 use std::collections::HashMap;
 
 use skill::process_skill;
+use state::process_state;
 use table::{BGTable, Table};
 use table::skill::SkillTable;
 use table::state::StateTable;
@@ -16,6 +17,7 @@ mod terms;
 mod table;
 mod skill;
 mod idhash;
+mod state;
 
 fn main() {
     // terms::write_terms();
@@ -50,6 +52,7 @@ fn main() {
         &db["skill_mode"],
         &db["sm_act"],
         &db["act"],
-        &db["act_node"],
-        &state_table.unwrap())
+        &db["act_node"]);
+
+    process_state(&state_table.unwrap());
 }

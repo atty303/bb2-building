@@ -1,17 +1,16 @@
 use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
-use std::hash::{BuildHasher, Hash, Hasher};
+use std::hash::{Hash, Hasher};
 use std::str::FromStr;
 
 use json::JsonValue;
 use yaml_rust::{Yaml, YamlLoader};
 
-use data::skill::{Act, ActNode, ActTrigger, AvoidType, Target, ParamKey, Reduce, Skill, SkillCategory, SkillMode, SkillRepository, StateLast};
+use data::skill::{Act, ActNode, ActTrigger, AvoidType, ParamKey, Reduce, Skill, SkillCategory, SkillMode, SkillRepository, StateLast, Target};
 use data::Sprite;
 use idhash::IdHash;
 use table::{BGTable, Table};
 use table::skill::{SkillRow, SkillTable};
-use table::state::StateTable;
 
 struct SkillModeRow<'a> {
     row_id: &'a str,
@@ -204,10 +203,7 @@ impl Hash for SkillWithId {
     }
 }
 
-pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &BGTable, sm_act_table: &BGTable, act_table: &BGTable, act_node_table: &BGTable, state_table: &Table<StateTable>) {
-    for row in state_table.iter() {
-        println!("state: {:?}", row);
-    }
+pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &BGTable, sm_act_table: &BGTable, act_table: &BGTable, act_node_table: &BGTable) {
     assert_eq!(skill_mode_table.id(), "E6p/0cim2Ui4oFyQYHe+8w");
     let skill_mode_entities = skill_mode_table.entities();
     let mut skill_mode_rows = skill_mode_entities.iter().map(|e| {
@@ -254,7 +250,7 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &BGTable
                 let nodes = act_node_rows.iter().filter(|act_node_row| {
                     act_node_row.act == format!("{}_{}", act_row.name, act_row.row_id)
                 }).filter(|row| row.action_type != "Visual").map(|act_node_row| {
-                    println!("act_node: {:?}", act_node_row);
+                    // println!("act_node: {:?}", act_node_row);
 
                     let last = act_node_row.state_last.split('|').collect::<Vec<_>>();
                     assert_eq!(last.len(), 5, "invalid state_last: {}", act_node_row.state_last);
