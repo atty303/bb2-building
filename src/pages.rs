@@ -29,14 +29,12 @@ pub enum Route {
 #[component]
 fn MainLayout(cx: Scope) -> Element {
     render! {
-        div {
-            header { class: "sticky top-0 z-50 shadow-lg",
-                NavBar {}
-            }
-            main { class: "container my-4 mx-auto",
-                Outlet::<Route> {}
-            }
-            Footer {}
+        header { class: "sticky top-0 z-50 shadow-lg",
+            NavBar {}
         }
+        main { class: "container my-4 mx-auto",
+            Outlet::<Route> {}
+        }
+        Footer {}
     }
 }
