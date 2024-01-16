@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::Arguments;
 use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
 
@@ -106,10 +107,15 @@ impl<'a> TermRepository {
         }
     }
 
-    pub fn tr<T, F: Fn(&Tokens) -> T>(&'a self, key: &str, f: F) -> T {
-        match self.inner.get(key) {
-            Some(v) => f(&v.tokens),
-            None => f(&Tokens(vec![Token::Error(key.to_string())])),
+    pub fn get_fmt(&self, args: &Arguments<'_>) -> Tokens {
+        if let Some(key) = args.as_str() {
+            self.get(key)
+        } else {
+            Tokens(vec![Token::Error(format!("{:?}", args))])
         }
+    }
+
+    pub fn get_fmt_str(&self, args: &Arguments<'_>) -> String {
+        format!("{}", self.get_fmt(args))
     }
 }

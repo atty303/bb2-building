@@ -107,9 +107,7 @@ pub struct Skill {
 
 impl Skill {
     pub fn name(&self, terms: &TermRepository) -> String {
-        terms.tr(format!("NM-{}", self.modes[0].id).as_str(), |tokens| {
-            format!("{}", tokens)
-        })
+        format!("{}", terms.get(format!("NM-{}", self.modes[0].id).as_str()))
     }
 }
 
@@ -131,33 +129,29 @@ pub struct SkillMode {
 
 impl SkillMode {
     pub fn name(&self, terms: &TermRepository) -> String {
-        terms.tr(format!("NM-{}", self.id).as_str(), |tokens| {
-            format!("{}", tokens)
-        })
+        terms.get_fmt_str(&format_args!("NM-{}", self.id))
     }
 
     pub fn format(&self, db: &Database) -> Tokens {
         let mut tokens = Tokens(vec![]);
 
-        let line1 = db.term().tr(
-            if self.is_alt {
+        let line1 = db
+            .term()
+            .get(if self.is_alt {
                 "NM-SkillNodeDesc-ModeName-AltMode"
             } else {
                 "NM-SkillNodeDesc-ModeName-Normal"
-            },
-            |n| {
-                n.map_var(|out, s| match s {
-                    "0" => {
-                        if self.is_brave {
-                            out.extend(db.term().get("NM-SkillNodeDesc-ModeName-ForBrave"))
-                        } else {
-                            out.push(Token::Empty);
-                        }
+            })
+            .map_var(|out, s| match s {
+                "0" => {
+                    if self.is_brave {
+                        out.extend(db.term().get("NM-SkillNodeDesc-ModeName-ForBrave"))
+                    } else {
+                        out.push(Token::Empty);
                     }
-                    _ => (),
-                })
-            },
-        );
+                }
+                _ => (),
+            });
         tokens.extend(line1);
         tokens.push(Token::NewLine);
 
@@ -298,12 +292,12 @@ impl ActNode {
                 } else {
                     out.push(Token::NewLine);
                     out.push(Token::Text("　".to_string()));
-                    out.extend(db.term().tr("DC-SkillNodeDesc-CritRate", |n| {
-                        n.map_var(|out, s| match s {
+                    out.extend(db.term().get("DC-SkillNodeDesc-CritRate").map_var(
+                        |out, s| match s {
                             "0" => out.push(Token::Text(self.crit_rate.to_string())),
                             _ => (),
-                        })
-                    }));
+                        },
+                    ));
                 }
             }
             "rd" => match self.reduce {
@@ -375,43 +369,51 @@ impl ActNode {
                 if self.state_last.room >= 0 {
                     out.push(Token::NewLine);
                     out.push(Token::Text("　".to_string()));
-                    out.extend(db.term().tr("DC-SkillNodeDesc-LastCombine", |n| {
-                        n.map_var(|out, s| match s {
-                            "0" => {
-                                let t = db.term().tr("DC-SkillNodeDesc-LastRoom", |n| {
-                                    n.map_var(|out, s| match s {
-                                        "0" => {
-                                            out.push(Token::Text(self.state_last.room.to_string()));
-                                        }
-                                        _ => (),
-                                    })
-                                });
-                                out.extend(t);
-                            }
-                            _ => (),
-                        })
-                    }));
+                    out.extend(
+                        db.term()
+                            .get("DC-SkillNodeDesc-LastCombine")
+                            .map_var(|out, s| match s {
+                                "0" => {
+                                    let t = db.term().get("DC-SkillNodeDesc-LastRoom").map_var(
+                                        |out, s| match s {
+                                            "0" => {
+                                                out.push(Token::Text(
+                                                    self.state_last.room.to_string(),
+                                                ));
+                                            }
+                                            _ => (),
+                                        },
+                                    );
+                                    out.extend(t);
+                                }
+                                _ => (),
+                            }),
+                    );
                 } else if self.state_last.f1 >= 0 {
                     out.push(Token::Error("state_last.f1".to_string()));
                 } else if self.state_last.f2 >= 0 {
                     out.push(Token::NewLine);
                     out.push(Token::Text("　".to_string()));
-                    out.extend(db.term().tr("DC-SkillNodeDesc-LastCombine", |n| {
-                        n.map_var(|out, s| match s {
-                            "0" => {
-                                let t = db.term().tr("DC-SkillNodeDesc-LastTurn", |n| {
-                                    n.map_var(|out, s| match s {
-                                        "0" => {
-                                            out.push(Token::Text(self.state_last.f2.to_string()));
-                                        }
-                                        _ => (),
-                                    })
-                                });
-                                out.extend(t);
-                            }
-                            _ => (),
-                        })
-                    }));
+                    out.extend(
+                        db.term()
+                            .get("DC-SkillNodeDesc-LastCombine")
+                            .map_var(|out, s| match s {
+                                "0" => {
+                                    let t = db.term().get("DC-SkillNodeDesc-LastTurn").map_var(
+                                        |out, s| match s {
+                                            "0" => {
+                                                out.push(Token::Text(
+                                                    self.state_last.f2.to_string(),
+                                                ));
+                                            }
+                                            _ => (),
+                                        },
+                                    );
+                                    out.extend(t);
+                                }
+                                _ => (),
+                            }),
+                    );
                 } else if self.state_last.f3 >= 0 {
                     out.push(Token::Error("state_last.f3".to_string()));
                 } else if self.state_last.f5 >= 0 {
@@ -505,13 +507,13 @@ impl ActNode {
         let line = if self.act_num == 1 {
             line
         } else {
-            db.term().tr("DC-SkillNodeDesc-MultipleCase", |n| {
-                n.map_var(|out, s| match s {
+            db.term()
+                .get("DC-SkillNodeDesc-MultipleCase")
+                .map_var(|out, s| match s {
                     "0" => out.extend(line.clone()),
                     "1" => out.push(Token::Text(self.act_num.to_string())),
                     _ => (),
                 })
-            })
         };
 
         line
