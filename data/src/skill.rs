@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::io::{Read, Write};
-use std::ops::{Deref, DerefMut};
+use std::ops::{Deref, DerefMut, Range};
 
 use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
@@ -512,6 +512,20 @@ impl SkillRepository {
 
     pub fn iter(&self) -> impl Iterator<Item = &Skill> {
         self.order.iter().map(move |k| &self.inner[k])
+    }
+
+    pub fn rarity_range(&self) -> Range<i8> {
+        let mut min = i8::MAX;
+        let mut max = i8::MIN;
+        for skill in self.iter() {
+            if skill.rarity < min {
+                min = skill.rarity;
+            }
+            if skill.rarity > max {
+                max = skill.rarity;
+            }
+        }
+        min..max
     }
 }
 
