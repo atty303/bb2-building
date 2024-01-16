@@ -1,7 +1,6 @@
 extern crate ahash;
 extern crate data;
 extern crate json;
-extern crate prettytable;
 extern crate yaml_rust;
 extern crate regex;
 

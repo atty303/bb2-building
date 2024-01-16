@@ -1,10 +1,8 @@
 use std::collections::HashMap;
 use std::io::Write;
-use std::marker::PhantomData;
 use std::slice::Iter;
 
 use json::JsonValue;
-use prettytable::{Cell, Row};
 
 pub mod act;
 pub mod act_node;
@@ -67,11 +65,17 @@ impl EntityParser {
 
 pub struct Table<T: TableParser> {
     meta: JsonValue,
+    fields: Vec<String>,
     rows: Vec<T::Row>,
 }
 
 impl<T: TableParser> Table<T> {
     pub fn new(meta: JsonValue) -> Table<T> {
+        let mut fields = vec!["_row_id".to_string()];
+        for field in meta["Fields"].members() {
+            fields.push(field["Name"].as_str().unwrap().to_string());
+        }
+
         let rows = meta["Entities"].members().map(|e| {
             let ep = EntityParser::new(e);
             T::parse_row(&ep)
@@ -79,12 +83,31 @@ impl<T: TableParser> Table<T> {
 
         Table {
             meta,
+            fields,
             rows,
         }
     }
 
     pub fn iter(&self) -> Iter<'_, <T as TableParser>::Row> {
         self.rows.iter()
+    }
+
+    pub fn fields(&self) -> Iter<'_, String> {
+        self.fields.iter()
+    }
+
+    pub fn to_csv<W: Write>(&self, writer: W) {
+        let mut csv_writer = csv::Writer::from_writer(writer);
+
+        csv_writer.write_record(self.fields()).unwrap();
+
+        for e in self.meta["Entities"].members() {
+            let mut row = vec![e["Id"].as_str().unwrap().to_string()];
+            for field in e["Values"].members() {
+                row.push(field["Value"].as_str().unwrap().to_string());
+            }
+            csv_writer.write_record(row).unwrap();
+        }
     }
 }
 
@@ -101,22 +124,6 @@ impl BGTable<'_> {
 
     pub fn id(&self) -> &str {
         self.db["Id"].as_str().unwrap()
-    }
-
-    fn verify(&self) {
-        assert_eq!(self.db["Keys"].len(), 1, "table should have one key");
-        assert_eq!(self.db["Keys"][0]["Name"].as_str().unwrap(), "key_ID", "table should have one key named 'id'");
-        assert_eq!(self.db["Keys"][0]["Unique"].as_bool().unwrap(), true, "table should have one key named 'id' and it should be unique");
-    }
-
-    fn fields(&self) -> Vec<String> {
-        let mut out = Vec::new();
-
-        for field in self.db["Fields"].members() {
-            out.push(field["Name"].as_str().unwrap().to_string());
-        }
-
-        out
     }
 
     pub fn entities(&self) -> Vec<HashMap<String, JsonValue>> {
@@ -138,33 +145,5 @@ impl BGTable<'_> {
         }
 
         out
-    }
-
-    fn print_fields(&self) {
-        print!("fields: ");
-        for field in self.db["Fields"].members() {
-            print!("{}, ", field["Name"].as_str().unwrap());
-        }
-        println!();
-
-    }
-
-    pub fn to_csv<W: Write>(&self, writer: W) {
-        let mut table = prettytable::Table::new();
-        table.set_format(*prettytable::format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
-
-        let fs = self.fields();
-        let mut title_rows = Row::new(vec![Cell::new("row_id")]);
-        title_rows.extend(fs.clone().into_iter().map(|f| Cell::new(f.as_str())).collect::<Vec<_>>());
-        table.set_titles(title_rows);
-
-        let es = self.entities();
-        for e in es.iter() {
-            let mut row = Row::new(vec![Cell::new(format!("{}", e.get("_row_id").unwrap()).as_str())]);
-            row.extend(fs.clone().into_iter().map(|f| Cell::new(format!("{}", e.get(f.as_str()).unwrap()).as_str())).collect::<Vec<_>>());
-            table.add_row(row);
-        }
-
-        table.to_csv(writer).unwrap();
     }
 }
