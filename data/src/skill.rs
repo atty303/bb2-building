@@ -251,7 +251,11 @@ impl ActNode {
                 out.extend(db.term().get("WD-DamageType-Direct")),
             "accu" => {
                 match self.avoid_type {
-                    AvoidType::None => out.push(Node::Error("$accu->None".to_string())),
+                    AvoidType::None => {
+                        out.push(Node::NewLine);
+                        out.push(Node::Text("　".to_string()));
+                        out.extend(db.term().get("DC-SkillNodeDesc-AvoidType-"));
+                    }
                     AvoidType::A => {
                         out.push(Node::NewLine);
                         out.push(Node::Text("　".to_string()));

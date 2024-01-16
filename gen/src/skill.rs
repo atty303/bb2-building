@@ -312,17 +312,20 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &BGTable
         assert!(modes.len() > 0, "skill {} has no modes", skill_row.name);
         assert_eq!(mode_categories.len(), 1, "skill {} has multiple categories: {:?}", skill_row.name, mode_categories);
 
-        let skill = Skill {
-            hash: 0,
-            id: skill_row.id.to_string(),
-            modes,
-            category: SkillCategory::from_str(skill_row.category.as_str()).unwrap(),
-            rarity: skill_row.rarity.try_into().unwrap(),
-            in_dictionary: skill_row.in_dict,
-            is_free: skill_row.is_free,
-        };
-
-        Some(SkillWithId { skill, row : skill_row })
+        if skill_row.enable.is_empty() {
+            let skill = Skill {
+                hash: 0,
+                id: skill_row.id.to_string(),
+                modes,
+                category: SkillCategory::from_str(skill_row.category.as_str()).unwrap(),
+                rarity: skill_row.rarity.try_into().unwrap(),
+                in_dictionary: skill_row.in_dict,
+                is_free: skill_row.is_free,
+            };
+            Some(SkillWithId { skill, row : skill_row })
+        } else {
+            None
+        }
     }).collect::<Vec<_>>();
 
     // Search for a seed that will produce unique ids for all skills
