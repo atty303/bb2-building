@@ -7,6 +7,7 @@ use prettytable::{Cell, Row};
 
 pub mod state;
 pub mod skill;
+pub mod skill_mode;
 
 pub trait TableParser {
     type Row;

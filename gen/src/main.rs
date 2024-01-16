@@ -11,6 +11,7 @@ use skill::process_skill;
 use state::process_state;
 use table::{BGTable, Table};
 use table::skill::SkillTable;
+use table::skill_mode::SkillModeTable;
 use table::state::StateTable;
 
 mod terms;
@@ -37,11 +38,13 @@ fn main() {
     }
 
     let mut skill_table: Option<Table<SkillTable>> = None;
+    let mut skill_mode_table: Option<Table<SkillModeTable>> = None;
     let mut state_table: Option<Table<StateTable>> = None;
     for meta in db_json["Metas"].members() {
         let name = meta["Name"].as_str().unwrap();
         match name {
             "skill" => skill_table = Some(Table::new(meta.to_owned())),
+            "skill_mode" => skill_mode_table = Some(Table::new(meta.to_owned())),
             "state" => state_table = Some(Table::new(meta.to_owned())),
             _ => ()
         }
@@ -49,7 +52,7 @@ fn main() {
 
     process_skill(
         &skill_table.unwrap(),
-        &db["skill_mode"],
+        &skill_mode_table.unwrap(),
         &db["sm_act"],
         &db["act"],
         &db["act_node"]);

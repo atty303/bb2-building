@@ -11,49 +11,7 @@ use data::Sprite;
 use idhash::IdHash;
 use table::{BGTable, Table};
 use table::skill::{SkillRow, SkillTable};
-
-struct SkillModeRow<'a> {
-    row_id: &'a str,
-    id: &'a str,
-    inner_name: &'a str,
-    /// skill_mode(N) = skill(1) relation (format: `skill_mode.{}_{}_{}`)
-    skill: &'a str,
-    order: usize,
-    icon: &'a str,
-    category: SkillCategory,
-    alt_mode: bool,
-    is_brave: bool,
-    use_num: i8,
-    use_brave: i8,
-    cooldown: i8,
-    use_init: bool,
-    is_quick: bool,
-    sm_act: &'a str,
-    skill_tag: &'a str,
-}
-
-impl<'a> SkillModeRow<'a> {
-    fn new(e: &'a HashMap<String, JsonValue>) -> Self {
-        Self {
-            row_id: e["_row_id"].as_str().unwrap(),
-            id: e["ID"].as_str().unwrap(),
-            inner_name: e["name"].as_str().unwrap(),
-            skill: e["skill"].as_str().unwrap(),
-            order: e["Order"].as_str().unwrap().parse::<usize>().unwrap(),
-            icon: e["Icon"].as_str().unwrap(),
-            category: SkillCategory::from_str(e["Category"].as_str().unwrap()).unwrap(),
-            alt_mode: str_to_bool(e["AltMode"].as_str().unwrap()),
-            is_brave: str_to_bool(e["IsBrave"].as_str().unwrap()),
-            use_num: e["UseNum"].as_str().unwrap().parse::<i8>().unwrap(),
-            use_brave: e["UseBrave"].as_str().unwrap().parse::<i8>().unwrap(),
-            cooldown: e["Cooldown"].as_str().unwrap().parse::<i8>().unwrap(),
-            use_init: str_to_bool(e["UseInit"].as_str().unwrap()),
-            is_quick: str_to_bool(e["IsQuick"].as_str().unwrap()),
-            sm_act: e["sm_act"].as_str().unwrap(),
-            skill_tag: e["SkillTag"].as_str().unwrap(),
-        }
-    }
-}
+use table::skill_mode::SkillModeTable;
 
 struct SmActRow<'a> {
     row_id: &'a str,
@@ -203,14 +161,7 @@ impl Hash for SkillWithId {
     }
 }
 
-pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &BGTable, sm_act_table: &BGTable, act_table: &BGTable, act_node_table: &BGTable) {
-    assert_eq!(skill_mode_table.id(), "E6p/0cim2Ui4oFyQYHe+8w");
-    let skill_mode_entities = skill_mode_table.entities();
-    let mut skill_mode_rows = skill_mode_entities.iter().map(|e| {
-        SkillModeRow::new(e)
-    }).collect::<Vec<_>>();
-    skill_mode_rows.sort_by_key(|row| row.order);
-
+pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<SkillModeTable>, sm_act_table: &BGTable, act_table: &BGTable, act_node_table: &BGTable) {
     let sm_act_entities = sm_act_table.entities();
     let sm_act_rows = sm_act_entities.iter().map(|e| {
         SmActRow::new(e)
@@ -228,7 +179,7 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &BGTable
     }).collect::<Vec<_>>();
 
     let mut skills = skill_table.iter().flat_map(|skill_row| {
-        let mode_rows = skill_mode_rows.iter().filter(|row| {
+        let mode_rows = skill_mode_table.iter().filter(|row| {
             row.skill == format!("{}_{}", skill_row.name, skill_row.row_id)
         }).collect::<Vec<_>>();
 
@@ -236,9 +187,9 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &BGTable
 
         let modes = mode_rows.iter().map(|mode_row| {
             let sm_acts = sm_act_rows.iter().filter(|sm_act_row| {
-                sm_act_row.skill_mode == format!("{}_{}", mode_row.inner_name, mode_row.row_id)
+                sm_act_row.skill_mode == format!("{}_{}", mode_row.name, mode_row.row_id)
             }).collect::<Vec<_>>();
-            assert!(sm_acts.len() > 0, "skill_mode {} has no sm_acts", mode_row.inner_name);
+            assert!(sm_acts.len() > 0, "skill_mode {} has no sm_acts", mode_row.name);
 
             let acts = sm_acts.iter().map(|sm_act_row| {
                 let act_rows = act_rows.iter().filter(|act_row| {
@@ -292,16 +243,16 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &BGTable
 
             mode_categories.insert(mode_row.category.clone());
 
-            let icon = parse_icon(mode_row.icon);
+            let icon = parse_icon(&mode_row.icon);
 
             SkillMode {
                 id: mode_row.id.to_string(),
                 icon,
                 is_alt: mode_row.alt_mode,
                 is_brave: mode_row.is_brave,
-                use_num: mode_row.use_num,
-                use_brave: mode_row.use_brave,
-                cooldown: mode_row.cooldown,
+                use_num: mode_row.use_num.try_into().unwrap(),
+                use_brave: mode_row.use_brave.try_into().unwrap(),
+                cooldown: mode_row.cooldown.try_into().unwrap(),
                 use_init: mode_row.use_init,
                 is_quick: mode_row.is_quick,
                 acts,
