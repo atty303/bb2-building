@@ -96,24 +96,24 @@ fn parse(s: &str) -> Vec<Token> {
     }
     splits.push(s.len());
 
-    let mut at = 0usize;
-    let mut nodes = vec![];
+    let mut start = 0usize;
+    let mut tokens = vec![];
     for end in splits {
-        if at < end {
-            let span = &s[at..end];
-            if span.starts_with("<") {
-                nodes.push(Token::Var(s[at + 1..end - 1].to_string()));
-            } else if span.starts_with("{") {
-                nodes.push(Token::Var(s[at + 1..end - 1].to_string()));
+        if start < end {
+            let span = &s[start..end];
+            if span.starts_with('<') {
+                tokens.push(Token::Var(s[start + 1..end - 1].to_string()));
+            } else if span.starts_with('{') {
+                tokens.push(Token::Var(s[start + 1..end - 1].to_string()));
             } else if span == "__" {
-                nodes.push(Token::NewLine);
+                tokens.push(Token::NewLine);
             } else {
-                nodes.push(Token::Text(span.to_string()));
+                tokens.push(Token::Text(span.to_string()));
             }
-            at = end;
+            start = end;
         }
     }
-    nodes
+    tokens
 }
 
 #[cfg(test)]
@@ -125,38 +125,50 @@ mod test {
     #[test]
     fn test_parse() {
         assert_eq!(parse(""), vec![]);
-        assert_eq!(parse("abc"), vec![Token::Text("abc")]);
+        assert_eq!(parse("abc"), vec![Token::Text("abc".to_string())]);
         assert_eq!(parse("__"), vec![Token::NewLine]);
-        assert_eq!(parse("<abc>"), vec![Token::Var("abc")]);
+        assert_eq!(parse("<abc>"), vec![Token::Var("abc".to_string())]);
         assert_eq!(
             parse("<abc><abc>"),
-            vec![Token::Var("abc"), Token::Var("abc")]
+            vec![Token::Var("abc".to_string()), Token::Var("abc".to_string())]
         );
-        assert_eq!(parse("{abc}"), vec![Token::Var("abc")]);
+        assert_eq!(parse("{abc}"), vec![Token::Var("abc".to_string())]);
         assert_eq!(
             parse("{abc}{abc}"),
-            vec![Token::Var("abc"), Token::Var("abc")]
+            vec![Token::Var("abc".to_string()), Token::Var("abc".to_string())]
         );
         assert_eq!(
             parse("abc__def"),
-            vec![Token::Text("abc"), Token::NewLine, Token::Text("def")]
+            vec![
+                Token::Text("abc".to_string()),
+                Token::NewLine,
+                Token::Text("def".to_string())
+            ]
         );
         assert_eq!(
             parse("abc<def>ghi"),
-            vec![Token::Text("abc"), Token::Var("def"), Token::Text("ghi")]
+            vec![
+                Token::Text("abc".to_string()),
+                Token::Var("def".to_string()),
+                Token::Text("ghi".to_string())
+            ]
         );
         assert_eq!(
             parse("abc{def}ghi"),
-            vec![Token::Text("abc"), Token::Var("def"), Token::Text("ghi")]
+            vec![
+                Token::Text("abc".to_string()),
+                Token::Var("def".to_string()),
+                Token::Text("ghi".to_string())
+            ]
         );
         assert_eq!(
             parse("abc__def<ghi>{jkl}"),
             vec![
-                Token::Text("abc"),
+                Token::Text("abc".to_string()),
                 Token::NewLine,
-                Token::Text("def"),
-                Token::Var("ghi"),
-                Token::Var("jkl")
+                Token::Text("def".to_string()),
+                Token::Var("ghi".to_string()),
+                Token::Var("jkl".to_string())
             ]
         );
     }
