@@ -19,7 +19,14 @@ pub fn SkillListPage(cx: Scope) -> Element {
                 li { "Skill" }
             }
         }
+
+        Link {
+            to: Route::SkillSearchPage {},
+            "Search"
+        }
+
         div { class: "grid grid-cols-5 w-fit gap-2",
+
             for skill in db.skill.iter().filter(|s| s.in_dictionary) {
                 Link { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1",
                     to: Route::SkillPage { skill_id: skill.id.clone() },
