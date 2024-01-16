@@ -22,6 +22,7 @@ mod table;
 mod skill;
 mod idhash;
 mod state;
+mod sprite;
 
 fn main() {
     // terms::write_terms();

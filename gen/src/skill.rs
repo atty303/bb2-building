@@ -1,28 +1,17 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::convert::TryInto;
 use std::hash::{Hash, Hasher};
 use std::str::FromStr;
 
-use json::JsonValue;
-use yaml_rust::{Yaml, YamlLoader};
-
 use data::skill::{Act, ActNode, ActTrigger, AvoidType, ParamKey, Reduce, Skill, SkillCategory, SkillMode, SkillRepository, StateLast, Target};
-use data::Sprite;
 use idhash::IdHash;
-use table::{BGTable, Table};
+use sprite::parse_icon;
 use table::act::ActTable;
 use table::act_node::ActNodeTable;
-use table::skill::{SkillRow, SkillTable};
+use table::skill::SkillTable;
 use table::skill_mode::SkillModeTable;
 use table::sm_act::SmActTable;
-
-fn str_to_bool(v: &str) -> bool {
-    match v {
-        "0" => false,
-        "1" => true,
-        _ => panic!("invalid bool value: {}", v),
-    }
-}
+use table::Table;
 
 struct SkillWithId {
     skill: Skill,
@@ -152,33 +141,3 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<S
     SkillRepository::write(file_writer, skills.iter().map(|s| &s.skill)).unwrap();
 }
 
-fn parse_icon(name: &str) -> Sprite {
-    let path = format!("dump/asset/ExportedProject/Assets/Sprite/{}.asset", name);
-    let s = std::fs::read_to_string(path).unwrap();
-    let docs = YamlLoader::load_from_str(s.as_str()).unwrap();
-    let doc = &docs[0];
-    let texture = &doc["Sprite"]["m_RD"]["texture"];
-    assert_eq!(texture["guid"].as_str().unwrap(), "a50549b8827f09843841d13f031f165f");
-    let texture_height = 4096;
-    let rect = &doc["Sprite"]["m_Rect"];
-    let x: Result<u16, _> = parse_number(&rect["x"]).try_into();
-    let y: Result<u16, _> = parse_number(&rect["y"]).try_into();
-    let width: Result<u8, _> = parse_number(&rect["width"]).try_into();
-    let height: Result<u8, _> = parse_number(&rect["height"]).try_into();
-    Sprite {
-        x: x.unwrap(),
-        y: texture_height - y.unwrap() - height.unwrap() as u16,
-        width: width.unwrap(),
-        height: height.unwrap(),
-    }
-}
-
-fn parse_number(v: &Yaml) -> u64 {
-    if let Some(i) = v.as_i64() {
-        i as u64
-    } else if let Some(f) = v.as_f64() {
-        f.round() as u64
-    } else {
-        panic!("invalid number: {:?}", v);
-    }
-}
