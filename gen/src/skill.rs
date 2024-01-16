@@ -25,7 +25,7 @@ impl Hash for SkillWithId {
     }
 }
 
-pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<SkillModeTable>, sm_act_table: &Table<SmActTable>, act_table: &Table<ActTable>, act_node_table: &Table<ActNodeTable>) {
+pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<SkillModeTable>, sm_act_table: &Table<SmActTable>, act_table: &Table<ActTable>, act_node_table: &Table<ActNodeTable>, write: bool) {
     let mut skills = skill_table.iter().flat_map(|skill_row| {
         let mode_rows = skill_mode_table.iter().filter(|row| {
             row.skill == format!("{}_{}", skill_row.name, skill_row.row_id)
@@ -137,7 +137,9 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<S
 
     skills.sort_by_key(|s| (!s.skill.is_free, s.order));
 
-    let file_writer = std::io::BufWriter::new(std::fs::File::create(format!("public/data/skill.avro")).unwrap());
-    SkillRepository::write(file_writer, skills.iter().map(|s| &s.skill)).unwrap();
+    if write {
+        let file_writer = std::io::BufWriter::new(std::fs::File::create(format!("public/data/skill.avro")).unwrap());
+        SkillRepository::write(file_writer, skills.iter().map(|s| &s.skill)).unwrap();
+    }
 }
 

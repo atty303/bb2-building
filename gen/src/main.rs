@@ -36,7 +36,10 @@ struct Cli {
 enum Commands {
     Term,
     Table,
-    Skill,
+    Skill {
+        #[arg(long, default_value_t = false)]
+        write: bool,
+    },
     State,
 }
 
@@ -54,7 +57,7 @@ fn main() {
                 table.to_csv(std::io::BufWriter::new(std::fs::File::create(format!("dump/table/{}.csv", table.name())).unwrap()));
             }
         }
-        Commands::Skill => {
+        Commands::Skill { write } => {
             let mut act_table: Option<Table<ActTable>> = None;
             let mut act_node_table: Option<Table<ActNodeTable>> = None;
             let mut skill_table: Option<Table<SkillTable>> = None;
@@ -81,7 +84,8 @@ fn main() {
                 &skill_mode_table.unwrap(),
                 &sm_act_table.unwrap(),
                 &act_table.unwrap(),
-                &act_node_table.unwrap());
+                &act_node_table.unwrap(),
+                write);
         }
         Commands::State => {
             let mut state_table: Option<Table<StateTable>> = None;
