@@ -2,10 +2,10 @@
 
 use dioxus::prelude::*;
 use dioxus_router::prelude::Link;
+use fermi::use_set;
 
 use data::LANGUAGES;
 
-use crate::components::app::Language;
 use crate::hooks::persistent::use_persistent;
 use crate::pages::Route;
 
@@ -123,16 +123,7 @@ fn ThemeSelect(cx: Scope) -> Element {
 
 #[component]
 fn LanguageSelect(cx: Scope) -> Element {
-    let language_state = use_shared_state::<Language>(cx).unwrap();
-    let language_persistent = use_persistent(cx, "language", || "en".to_string());
-    use_effect(cx, &language_persistent.get(), move |language| {
-        to_owned![language_state];
-        async move {
-            if let Some(lang) = LANGUAGES.iter().find(|lang| *lang == &language.as_str()) {
-                *language_state.write() = Language { code: lang };
-            }
-        }
-    });
+    let set_language = use_set(cx, &crate::atoms::LANGUAGE);
 
     render! {
         div {
@@ -162,7 +153,7 @@ fn LanguageSelect(cx: Scope) -> Element {
                     for t in LANGUAGES.iter() {
                         button {
                             class: "btn btn-ghost btn-sm justify-start px-4 py-2",
-                            onclick: move |_| language_persistent.set(t.to_string()),
+                            onclick: move |_| set_language(t.to_string()),
                             "{t}"
                         }
                     }

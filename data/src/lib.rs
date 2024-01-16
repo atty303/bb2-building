@@ -22,19 +22,13 @@ pub struct Database {
 }
 
 impl Database {
-    pub fn read<R: Read>(skill_read: R) -> Result<Self, rmp_serde::decode::Error> {
+    pub fn read<R: Read>(term_read: R, skill_read: R) -> Result<Self, rmp_serde::decode::Error> {
+        let term = term::TermRepository::read(term_read)?;
         let skill = skill::SkillRepository::read(skill_read)?;
-        Ok(Self {
-            term: term::TermRepository::default(),
-            skill,
-        })
+        Ok(Self { term, skill })
     }
 
     pub fn term(&self) -> &term::TermRepository {
         &self.term
-    }
-
-    pub fn set_term(&mut self, term: term::TermRepository) {
-        self.term = term;
     }
 }
