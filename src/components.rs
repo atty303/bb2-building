@@ -1,7 +1,15 @@
-pub mod app;
-pub mod footer;
+pub use app::*;
+pub use footer::*;
+pub use icon::*;
+pub use nav_bar::*;
+pub use rarity::*;
+pub use skill_view::*;
+pub use sprite::*;
+
+mod app;
+mod footer;
 mod icon;
-pub mod nav_bar;
-pub mod rarity;
-pub mod skill_view;
-pub mod sprite;
+mod nav_bar;
+mod rarity;
+mod skill_view;
+mod sprite;

@@ -80,7 +80,7 @@ fn ThemeSelect(cx: Scope) -> Element {
     let theme = use_persistent(cx, "theme", || "dark".to_string());
     use_effect(cx, &theme.get(), move |theme| async move {
         let root = gloo_utils::document_element();
-        root.set_attribute("data-theme", theme.as_str()).unwrap();
+        root.set_attribute("data-theme", &theme).unwrap();
     });
 
     render! {

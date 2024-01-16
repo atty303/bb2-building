@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 use fermi::use_read;
 
 use crate::atoms::DATABASE;
-use crate::components::icon::Icon;
+use crate::components::Icon;
 
 #[component]
 pub fn Rarity(cx: Scope, rarity: i8) -> Element {

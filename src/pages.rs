@@ -6,8 +6,8 @@ use dioxus_router::prelude::*;
 mod home;
 mod skill;
 
-use crate::components::footer::Footer;
-use crate::components::nav_bar::NavBar;
+use crate::components::Footer;
+use crate::components::NavBar;
 use home::Home;
 use skill::{SkillListPage, SkillPage, SkillSearchPage};
 
@@ -33,7 +33,7 @@ fn MainLayout(cx: Scope) -> Element {
             header { class: "sticky top-0 z-50 shadow-lg",
                 NavBar {}
             }
-            main {class: "container my-4 mx-auto",
+            main { class: "container my-4 mx-auto",
                 Outlet::<Route> {}
             }
             Footer {}

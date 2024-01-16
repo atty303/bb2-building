@@ -16,6 +16,10 @@ pub enum Token {
 pub struct Tokens(pub Vec<Token>);
 
 impl Tokens {
+    pub fn new() -> Self {
+        Self(vec![])
+    }
+
     pub fn push(&mut self, token: Token) {
         self.0.push(token);
     }

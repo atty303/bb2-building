@@ -7,11 +7,25 @@ use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
 use sprite::Sprite;
-use term::TermRepository;
 use token::{Token, Tokens};
-use Database;
 
 type SkillHash = u16;
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct StateLast {
+    pub f1: i8,
+    pub f2: i8, // TODO: turn
+    pub f3: i8,
+    pub room: i8,
+    pub f5: i8,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumString, Display)]
+pub enum ActTrigger {
+    OnUse,
+    TurnStart,
+    Passive,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString, Display)]
 pub enum SkillCategory {
@@ -93,12 +107,8 @@ pub struct Skill {
     // pub drop: bool,
     // pub tag: String,
     pub is_free: bool,
-}
-
-impl Skill {
-    pub fn name(&self, terms: &TermRepository) -> String {
-        format!("{}", terms.get(format!("NM-{}", self.modes[0].id).as_str()))
-    }
+    // extra fields
+    pub name: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -113,63 +123,23 @@ pub struct SkillMode {
     pub use_init: bool,
     pub is_quick: bool,
     pub acts: Vec<Act>,
-
+    // extra fields
+    pub name: String,
+    pub description_head: Tokens,
+    pub description_tail: Tokens,
     pub poss_num: i8, // copy from Skill
 }
 
 impl SkillMode {
-    pub fn name(&self, terms: &TermRepository) -> String {
-        terms.get_str(&format!("NM-{}", self.id))
-    }
-
-    pub fn format(&self, db: &Database) -> Tokens {
-        let mut tokens = Tokens(vec![]);
-
-        let line1 = db
-            .term()
-            .get(if self.is_alt {
-                "NM-SkillNodeDesc-ModeName-AltMode"
-            } else {
-                "NM-SkillNodeDesc-ModeName-Normal"
-            })
-            .map_var(|out, s| match s {
-                "0" => {
-                    if self.is_brave {
-                        out.extend(db.term().get("NM-SkillNodeDesc-ModeName-ForBrave"))
-                    } else {
-                        out.push(Token::Empty);
-                    }
-                }
-                _ => (),
-            });
-        tokens.extend(line1);
-        tokens.push(Token::NewLine);
-
+    pub fn format(&self) -> Tokens {
+        let mut tokens = self.description_head.clone();
         for act in &self.acts {
-            tokens.extend(act.format(db));
+            tokens.extend(act.format());
             tokens.push(Token::NewLine);
         }
-
-        tokens.extend(db.term().get("WD-Cooldown"));
-        tokens.push(Token::Text(format!(": {}", self.cooldown)));
-        tokens.push(Token::NewLine);
-
-        tokens.extend(db.term().get("WD-SkillPossRemain"));
-        tokens.push(Token::Text(format!(
-            ": -{}/{}",
-            self.use_num, self.poss_num
-        )));
-        tokens.push(Token::NewLine);
-
+        tokens.extend(self.description_tail.clone());
         tokens
     }
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumString, Display)]
-pub enum ActTrigger {
-    OnUse,
-    TurnStart,
-    Passive,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -177,20 +147,17 @@ pub struct Act {
     pub id: String,
     pub act_trigger: ActTrigger,
     pub nodes: Vec<ActNode>,
+    // extra
+    pub description: Tokens,
 }
 
 impl Act {
-    pub fn format(&self, db: &Database) -> Tokens {
-        let mut tokens = Tokens(vec![]);
-
-        tokens.extend(
-            db.term
-                .get(format!("NM-SkillNodeDesc-ActTrigger-{}", self.act_trigger).as_str()),
-        );
+    pub fn format(&self) -> Tokens {
+        let mut tokens = Tokens::new();
+        tokens.extend(self.description.clone());
         tokens.push(Token::NewLine);
-
         for node in &self.nodes {
-            tokens.extend(node.description.clone());
+            tokens.extend(node.format());
             tokens.push(Token::NewLine);
         }
         tokens
@@ -216,17 +183,14 @@ pub struct ActNode {
     pub state_last: StateLast,
     pub act_num: u8,
     pub crit_rate: u16,
-
+    // extra
     pub description: Tokens,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct StateLast {
-    pub f1: i8,
-    pub f2: i8, // TODO: turn
-    pub f3: i8,
-    pub room: i8,
-    pub f5: i8,
+impl ActNode {
+    pub fn format(&self) -> Tokens {
+        self.description.clone()
+    }
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]

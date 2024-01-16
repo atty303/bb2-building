@@ -4,9 +4,7 @@ use dioxus_router::prelude::{use_navigator, Link};
 use fermi::use_read_rc;
 
 use crate::atoms::DATABASE;
-use crate::components::rarity::Rarity;
-use crate::components::skill_view::SkillView;
-use crate::components::sprite::SpriteIcon;
+use crate::components::{Rarity, SkillView, SpriteIcon};
 use crate::pages::Route;
 
 #[component]
@@ -83,10 +81,9 @@ pub fn SkillListPage(cx: Scope, tab: String) -> Element {
 
 #[component]
 fn SkillLink<'a>(cx: Scope, skill: &'a Skill) -> Element<'a> {
-    let db = use_read_rc(cx, &DATABASE);
     render! {
         span { class: "inline-block",
-            title: "{skill.name(db.term())}",
+            title: "{skill.name}",
             Link { class: "inline-block hover:bg-primary border-primary border-solid border-2 rounded-md p-1",
                 to: Route::SkillPage { skill_id: skill.id.clone() },
                 SpriteIcon { class: "rounded-md", sprite: &skill.modes[0].icon, size: 96 }
@@ -121,7 +118,7 @@ pub fn SkillPage(cx: Scope, skill_id: String) -> Element {
                     ul {
                         li { "Home" }
                         li { "Skill" }
-                        li { skill.name(db.term()) }
+                        li { "{skill.name}" }
                     }
                 }
 

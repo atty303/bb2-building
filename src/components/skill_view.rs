@@ -1,16 +1,14 @@
-use data::token::{Token, Tokens};
 use dioxus::prelude::*;
 use dioxus_router::prelude::Link;
-use fermi::use_read;
 
-use crate::atoms::DATABASE;
-use crate::components::rarity::Rarity;
-use crate::components::sprite::Sprite;
+use data::token::{Token, Tokens};
+
+use crate::components::Rarity;
+use crate::components::Sprite;
 use crate::pages::Route;
 
 #[component]
 pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
-    let database = use_read(cx, &DATABASE);
     render! {
        div {
            class: "flex flex-col border-solid border border-base-300 rounded-md my-2",
@@ -22,7 +20,7 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
                    Link {
                        class: "text-primary hover:underline cursor-pointer",
                        to: Route::SkillPage { skill_id: skill.id.clone() },
-                       skill.name(database.term())
+                       "{skill.name}"
                    }
                }
                span {
@@ -43,16 +41,12 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
 
 #[component]
 pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element {
-    let database = use_read(cx, &DATABASE);
-
-    let nodes = mode.format(database);
-
     render! {
         div { class: "flex flex-col gap-2 bg-base-200 text-base-content rounded-md p-2",
             div { class: "flex flex-row items-center gap-2",
                 Sprite { sprite: &mode.icon, scale: 0.5 }
                 div { class: "flex-grow",
-                    mode.name(database.term())
+                    "{mode.name}"
                 }
                 div { class: "dropdown",
                     div { class: "btn btn-ghost btn-circle btn-sm",
@@ -73,7 +67,7 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
                 }
             }
             div {
-                Description { nodes: nodes.clone() }
+                Description { nodes: mode.format() }
             }
         }
     }

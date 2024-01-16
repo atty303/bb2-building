@@ -1,4 +1,4 @@
-use crate::components::app::App;
+use crate::components::App;
 
 mod atoms;
 mod components;

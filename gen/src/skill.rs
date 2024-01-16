@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::convert::TryInto;
 use std::hash::{Hash, Hasher};
 use std::str::FromStr;
@@ -14,18 +13,18 @@ use idhash::IdHash;
 use sprite::parse_icon;
 use table::act::ActTable;
 use table::act_node::{ActNodeRow, ActNodeTable};
-use table::skill::SkillTable;
-use table::skill_mode::SkillModeTable;
-use table::sm_act::SmActTable;
+use table::skill::{SkillRow, SkillTable};
+use table::skill_mode::{SkillModeRow, SkillModeTable};
+use table::sm_act::{SmActRow, SmActTable};
 use table::Table;
 
-struct SkillWithId {
+struct SkillIdOrder {
     skill: Skill,
     id: String,
     order: usize,
 }
 
-impl Hash for SkillWithId {
+impl Hash for SkillIdOrder {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.id.hash(state);
     }
@@ -48,88 +47,24 @@ pub fn process_skill(
                 .filter(|row| row.skill == format!("{}_{}", skill_row.name, skill_row.row_id))
                 .collect::<Vec<_>>();
 
-            let mut mode_categories = HashSet::new();
-
             let modes = mode_rows
                 .iter()
                 .map(|mode_row| {
-                    let sm_acts = sm_act_table
-                        .iter()
-                        .filter(|sm_act_row| {
-                            sm_act_row.skill_mode
-                                == format!("{}_{}", mode_row.name, mode_row.row_id)
-                        })
-                        .collect::<Vec<_>>();
-                    assert!(
-                        sm_acts.len() > 0,
-                        "skill_mode {} has no sm_acts",
-                        mode_row.name
-                    );
-
-                    let acts = sm_acts
-                        .iter()
-                        .map(|sm_act_row| {
-                            let act_rows = act_table
-                                .iter()
-                                .filter(|act_row| {
-                                    sm_act_row.act == format!("{}_{}", act_row.name, act_row.row_id)
-                                })
-                                .collect::<Vec<_>>();
-                            assert_eq!(
-                                act_rows.len(),
-                                1,
-                                "sm_act {} has multiple acts",
-                                sm_act_row.name
-                            );
-
-                            let act_row = &act_rows[0];
-                            let nodes = act_node_table
-                                .iter()
-                                .filter(|act_node_row| {
-                                    act_node_row.act
-                                        == format!("{}_{}", act_row.name, act_row.row_id)
-                                })
-                                .filter(|row| row.action_type != "Visual")
-                                .map(|act_node_row| process_act_node(act_node_row, terms, states))
-                                .collect::<Vec<_>>();
-
-                            Act {
-                                id: act_row.id.to_string(),
-                                act_trigger: ActTrigger::from_str(&sm_act_row.act_trigger)
-                                    .expect("act_trigger"),
-                                nodes,
-                            }
-                        })
-                        .collect::<Vec<_>>();
-
-                    mode_categories.insert(mode_row.category.clone());
-
-                    let icon = parse_icon(&mode_row.icon);
-
-                    SkillMode {
-                        id: mode_row.id.to_string(),
-                        icon,
-                        is_alt: mode_row.alt_mode,
-                        is_brave: mode_row.is_brave,
-                        use_num: mode_row.use_num.try_into().unwrap(),
-                        use_brave: mode_row.use_brave.try_into().unwrap(),
-                        cooldown: mode_row.cooldown.try_into().unwrap(),
-                        use_init: mode_row.use_init,
-                        is_quick: mode_row.is_quick,
-                        acts,
-                        poss_num: skill_row.poss_num.try_into().unwrap(),
-                    }
+                    process_skill_mode(
+                        mode_row,
+                        skill_row,
+                        sm_act_table,
+                        act_table,
+                        act_node_table,
+                        terms,
+                        states,
+                    )
                 })
                 .collect::<Vec<_>>();
 
             assert!(modes.len() > 0, "skill {} has no modes", skill_row.name);
-            assert_eq!(
-                mode_categories.len(),
-                1,
-                "skill {} has multiple categories: {:?}",
-                skill_row.name,
-                mode_categories
-            );
+
+            let name_id = modes[0].id.clone();
 
             if skill_row.enable.is_empty() && skill_row.in_dict {
                 let skill = Skill {
@@ -140,8 +75,9 @@ pub fn process_skill(
                     rarity: skill_row.rarity.try_into().unwrap(),
                     in_dictionary: skill_row.in_dict,
                     is_free: skill_row.is_free,
+                    name: terms.get_str(&format!("NM-{}", name_id)),
                 };
-                Some(SkillWithId {
+                Some(SkillIdOrder {
                     skill,
                     id: skill_row.id.clone(),
                     order: skill_row.order,
@@ -165,7 +101,116 @@ pub fn process_skill(
     SkillRepository::from_vec(skills.iter().map(|s| s.skill.clone()).collect::<Vec<_>>())
 }
 
-fn act_node_replacer(
+fn process_skill_mode(
+    mode_row: &SkillModeRow,
+    skill_row: &SkillRow,
+    sm_act_table: &Table<SmActTable>,
+    act_table: &Table<ActTable>,
+    act_node_table: &Table<ActNodeTable>,
+    terms: &TermRepository,
+    states: &StateRepository,
+) -> SkillMode {
+    let sm_act_rows = sm_act_table
+        .iter()
+        .filter(|r| r.skill_mode == format!("{}_{}", mode_row.name, mode_row.row_id))
+        .collect::<Vec<_>>();
+    assert!(
+        sm_act_rows.len() > 0,
+        "skill_mode {} has no sm_acts",
+        mode_row.name
+    );
+
+    let acts = sm_act_rows
+        .iter()
+        .map(|sm_act_row| process_sm_act(sm_act_row, act_table, act_node_table, terms, states))
+        .collect::<Vec<_>>();
+
+    // format
+    let head = terms
+        .get(if mode_row.alt_mode {
+            "NM-SkillNodeDesc-ModeName-AltMode"
+        } else {
+            "NM-SkillNodeDesc-ModeName-Normal"
+        })
+        .map_var(|out, s| match s {
+            "0" => {
+                if mode_row.is_brave {
+                    out.extend(terms.get("NM-SkillNodeDesc-ModeName-ForBrave"))
+                } else {
+                    out.push(Token::Empty);
+                }
+            }
+            _ => (),
+        });
+
+    let mut tail = terms.get("WD-Cooldown");
+    tail.push(Token::Text(format!(": {}", mode_row.cooldown)));
+    tail.push(Token::NewLine);
+
+    tail.extend(terms.get("WD-SkillPossRemain"));
+    tail.push(Token::Text(format!(
+        ": -{}/{}",
+        mode_row.use_num, skill_row.poss_num
+    )));
+
+    SkillMode {
+        id: mode_row.id.to_string(),
+        icon: parse_icon(&mode_row.icon),
+        is_alt: mode_row.alt_mode,
+        is_brave: mode_row.is_brave,
+        use_num: mode_row.use_num.try_into().unwrap(),
+        use_brave: mode_row.use_brave.try_into().unwrap(),
+        cooldown: mode_row.cooldown.try_into().unwrap(),
+        use_init: mode_row.use_init,
+        is_quick: mode_row.is_quick,
+        acts,
+        name: terms.get_str(&format!("NM-{}", mode_row.id)),
+        description_head: head,
+        description_tail: tail,
+        poss_num: skill_row.poss_num.try_into().unwrap(),
+    }
+}
+
+fn process_sm_act(
+    sm_act_row: &SmActRow,
+    act_table: &Table<ActTable>,
+    act_node_table: &Table<ActNodeTable>,
+    terms: &TermRepository,
+    states: &StateRepository,
+) -> Act {
+    let act_rows = act_table
+        .iter()
+        .filter(|r| sm_act_row.act == format!("{}_{}", r.name, r.row_id))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        act_rows.len(),
+        1,
+        "sm_act {} has multiple acts",
+        sm_act_row.name
+    );
+
+    let act_row = &act_rows[0];
+    let nodes = act_node_table
+        .iter()
+        .filter(|r| r.act == format!("{}_{}", act_row.name, act_row.row_id))
+        .filter(|row| row.action_type != "Visual")
+        .map(|act_node_row| process_act_node(act_node_row, terms, states))
+        .collect::<Vec<_>>();
+
+    let tokens = terms.get(&format!(
+        "NM-SkillNodeDesc-ActTrigger-{}",
+        sm_act_row.act_trigger
+    ));
+
+    Act {
+        id: act_row.id.to_string(),
+        act_trigger: ActTrigger::from_str(&sm_act_row.act_trigger).expect("act_trigger"),
+        nodes,
+        description: tokens,
+    }
+}
+
+fn act_node_formatter(
     name: &str,
     out: &mut Tokens,
     row: &ActNodeRow,
@@ -405,18 +450,18 @@ fn process_act_node(
     // let description = Tokens(vec![]);
     let description = terms
         .get(&format!("DC-SkillNodeDesc-{}", act_node_row.action_type))
-        .format(|out, s| act_node_replacer(s, out, &act_node_row, terms, states));
-    // let description = if act_node_row.act_num == 1 {
-    //     description
-    // } else {
-    //     terms
-    //         .get("DC-SkillNodeDesc-MultipleCase")
-    //         .map_var(|out, s| match s {
-    //             "0" => out.extend(description.clone()),
-    //             "1" => out.push(Token::Text(act_node_row.act_num.to_string())),
-    //             _ => (),
-    //         })
-    // };
+        .format(|out, s| act_node_formatter(s, out, &act_node_row, terms, states));
+    let description = if act_node_row.act_num == 1 {
+        description
+    } else {
+        terms
+            .get("DC-SkillNodeDesc-MultipleCase")
+            .map_var(|out, s| match s {
+                "0" => out.extend(description.clone()),
+                "1" => out.push(Token::Text(act_node_row.act_num.to_string())),
+                _ => (),
+            })
+    };
 
     ActNode {
         id: act_node_row.id.to_string(),
