@@ -111,7 +111,7 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<S
         assert!(modes.len() > 0, "skill {} has no modes", skill_row.name);
         assert_eq!(mode_categories.len(), 1, "skill {} has multiple categories: {:?}", skill_row.name, mode_categories);
 
-        if skill_row.enable.is_empty() {
+        if skill_row.enable.is_empty() && skill_row.in_dict {
             let skill = Skill {
                 hash: 0,
                 id: skill_row.id.to_string(),

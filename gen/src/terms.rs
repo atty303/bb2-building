@@ -6,7 +6,7 @@ use yaml_rust::YamlLoader;
 use data::LANGUAGES;
 use data::term::{Term, TermMap};
 
-use crate::data::term::Node;
+use crate::data::token::Token;
 
 pub fn write_terms() {
     let s = std::fs::read_to_string("dump/asset/ExportedProject/Assets/Resources/I2Languages.asset").unwrap();
@@ -76,7 +76,7 @@ pub fn write_terms() {
 
 static RE: OnceLock<Regex> = OnceLock::new();
 
-fn parse(s: &str) -> Vec<Node> {
+fn parse(s: &str) -> Vec<Token> {
     let re = RE.get_or_init(|| Regex::new(r"(__)|(<[^>]+>)|(\{[^}]+})").expect("regex"));
 
     let mut splits = vec![0];
@@ -93,13 +93,13 @@ fn parse(s: &str) -> Vec<Node> {
         if at < end {
             let span = &s[at..end];
             if span.starts_with("<") {
-                nodes.push(Node::Var(s[at + 1..end - 1].to_string()));
+                nodes.push(Token::Var(s[at + 1..end - 1].to_string()));
             } else if span.starts_with("{") {
-                nodes.push(Node::Var(s[at + 1..end - 1].to_string()));
+                nodes.push(Token::Var(s[at + 1..end - 1].to_string()));
             } else if span == "__" {
-                nodes.push(Node::NewLine);
+                nodes.push(Token::NewLine);
             } else {
-                nodes.push(Node::Text(span.to_string()));
+                nodes.push(Token::Text(span.to_string()));
             }
             at = end;
         }
@@ -111,20 +111,20 @@ fn parse(s: &str) -> Vec<Node> {
 mod test {
     use terms::parse;
 
-    use super::Node;
+    use super::Token;
 
     #[test]
     fn test_parse() {
         assert_eq!(parse(""), vec![]);
-        assert_eq!(parse("abc"), vec![Node::Text("abc")]);
-        assert_eq!(parse("__"), vec![Node::NewLine]);
-        assert_eq!(parse("<abc>"), vec![Node::Var("abc")]);
-        assert_eq!(parse("<abc><abc>"), vec![Node::Var("abc"), Node::Var("abc")]);
-        assert_eq!(parse("{abc}"), vec![Node::Var("abc")]);
-        assert_eq!(parse("{abc}{abc}"), vec![Node::Var("abc"), Node::Var("abc")]);
-        assert_eq!(parse("abc__def"), vec![Node::Text("abc"), Node::NewLine, Node::Text("def")]);
-        assert_eq!(parse("abc<def>ghi"), vec![Node::Text("abc"), Node::Var("def"), Node::Text("ghi")]);
-        assert_eq!(parse("abc{def}ghi"), vec![Node::Text("abc"), Node::Var("def"), Node::Text("ghi")]);
-        assert_eq!(parse("abc__def<ghi>{jkl}"), vec![Node::Text("abc"), Node::NewLine, Node::Text("def"), Node::Var("ghi"), Node::Var("jkl")]);
+        assert_eq!(parse("abc"), vec![Token::Text("abc")]);
+        assert_eq!(parse("__"), vec![Token::NewLine]);
+        assert_eq!(parse("<abc>"), vec![Token::Var("abc")]);
+        assert_eq!(parse("<abc><abc>"), vec![Token::Var("abc"), Token::Var("abc")]);
+        assert_eq!(parse("{abc}"), vec![Token::Var("abc")]);
+        assert_eq!(parse("{abc}{abc}"), vec![Token::Var("abc"), Token::Var("abc")]);
+        assert_eq!(parse("abc__def"), vec![Token::Text("abc"), Token::NewLine, Token::Text("def")]);
+        assert_eq!(parse("abc<def>ghi"), vec![Token::Text("abc"), Token::Var("def"), Token::Text("ghi")]);
+        assert_eq!(parse("abc{def}ghi"), vec![Token::Text("abc"), Token::Var("def"), Token::Text("ghi")]);
+        assert_eq!(parse("abc__def<ghi>{jkl}"), vec![Token::Text("abc"), Token::NewLine, Token::Text("def"), Token::Var("ghi"), Token::Var("jkl")]);
     }
 }

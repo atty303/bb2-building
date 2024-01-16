@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 pub mod term;
 pub mod skill;
 pub mod state;
+pub mod token;
 
 pub const LANGUAGES: [&str; 12] =
     ["ja", "en", "fr", "ko", "zh-CN", "zh-TW", "de", "es", "it", "ru", "pt", "pt-BR"];

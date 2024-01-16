@@ -81,17 +81,17 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
 
 
 #[component]
-pub fn Description(cx: Scope, nodes: Vec<data::term::Node>) -> Element {
+pub fn Description(cx: Scope, nodes: Vec<data::token::Token>) -> Element {
     render! {
         for node in nodes {
             match node {
-                data::term::Node::Text(text) => rsx! { "{text}" },
-                data::term::Node::NewLine => rsx! { br {} },
-                data::term::Node::Empty => rsx! { "" },
-                data::term::Node::Var(name) => rsx! {
+                data::token::Token::Text(text) => rsx! { "{text}" },
+                data::token::Token::NewLine => rsx! { br {} },
+                data::token::Token::Empty => rsx! { "" },
+                data::token::Token::Var(name) => rsx! {
                     span { class: "text-error", "[{name}]" }
                 },
-                data::term::Node::Error(text) => rsx! {
+                data::token::Token::Error(text) => rsx! {
                     span { class: "text-error font-bold", "{text}" }
                 },
             }

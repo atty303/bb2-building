@@ -24,8 +24,8 @@ impl StateRepository {
         let schema = State::get_schema();
         let reader = apache_avro::Reader::with_schema(&schema, avro_read)?;
         for result in reader {
-            let value = result.expect("Error reading value from avro reader");
-            let r = apache_avro::from_value::<State>(&value).expect("Error deserializing value");
+            let value = result?;
+            let r = apache_avro::from_value::<State>(&value)?;
             out.insert(r.row_id.clone(), r);
         }
         Ok(StateRepository { inner: out })

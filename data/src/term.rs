@@ -4,29 +4,22 @@ use std::ops::{Deref, DerefMut};
 
 use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
+use token::Token;
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Node {
-    Text(String),
-    Var(String),
-    NewLine,
-    Empty,
-    Error(String),
-}
 
-pub fn nodes_to_string(nodes: &Vec<Node>) -> String {
+pub fn nodes_to_string(nodes: &Vec<Token>) -> String {
     nodes.iter().map(|n| match n {
-        Node::Text(s) => s.clone(),
-        Node::Var(s) => format!("<{}>", s),
-        Node::NewLine => "\n".to_string(),
-        Node::Empty => "".to_string(),
-        Node::Error(s) => format!("!{}!", s),
+        Token::Text(s) => s.clone(),
+        Token::Var(s) => format!("<{}>", s),
+        Token::NewLine => "\n".to_string(),
+        Token::Empty => "".to_string(),
+        Token::Error(s) => format!("!{}!", s),
     }).collect::<Vec<_>>().join("")
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Term {
-    pub nodes: Vec<Node>,
+    pub nodes: Vec<Token>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
@@ -65,11 +58,11 @@ impl<'a> TermMap {
         let mut writer = apache_avro::Writer::with_codec(&schema, avro_write, apache_avro::Codec::Deflate);
         for (key, term) in terms {
             let terms = term.nodes.iter().map(|n| match n {
-                Node::Text(s) => format!(" {}", s),
-                Node::Var(s) => format!("${}", s),
-                Node::NewLine => "~".to_string(),
-                Node::Empty => "".to_string(),
-                Node::Error(_) => "".to_string(),
+                Token::Text(s) => format!(" {}", s),
+                Token::Var(s) => format!("${}", s),
+                Token::NewLine => "~".to_string(),
+                Token::Empty => "".to_string(),
+                Token::Error(_) => "".to_string(),
             }).collect::<Vec<_>>();
             writer.append_ser(&TermSer { key: key.to_string(), term: terms })?;
         }
@@ -85,11 +78,11 @@ impl<'a> TermMap {
 
             let nodes = r.term.iter().map(|s| {
                 if s.starts_with(" ") {
-                    Node::Text(s[1..].to_string())
+                    Token::Text(s[1..].to_string())
                 } else if s.starts_with("$") {
-                    Node::Var(s[1..].to_string())
+                    Token::Var(s[1..].to_string())
                 } else if s == "~" {
-                    Node::NewLine
+                    Token::NewLine
                 } else {
                     panic!("invalid term: {}", s);
                 }
@@ -100,22 +93,17 @@ impl<'a> TermMap {
         Ok(TermMap { inner: map })
     }
 
-    // pub fn tr(&'a self, key: &str) -> Box<Arc<Vec<Node>>> {
-    //     self.inner.get(key).map(|v| Box::new(Arc::clone(&v.nodes)))
-    //         .unwrap_or(Box::new(Arc::new(vec![])))
-    // }
-
-    pub fn get(&'a self, key: &str) -> Vec<Node> {
+    pub fn get(&'a self, key: &str) -> Vec<Token> {
         match self.inner.get(key) {
             Some(v) => v.nodes.clone(),
-            None => vec![Node::Error(key.to_string())],
+            None => vec![Token::Error(key.to_string())],
         }
     }
 
-    pub fn tr<T, F: Fn(&Vec<Node>) -> T>(&'a self, key: &str, f: F) -> T {
+    pub fn tr<T, F: Fn(&Vec<Token>) -> T>(&'a self, key: &str, f: F) -> T {
         match self.inner.get(key) {
             Some(v) => f(&v.nodes),
-            None => f(&vec![Node::Error(key.to_string())]),
+            None => f(&vec![Token::Error(key.to_string())]),
         }
     }
 }
