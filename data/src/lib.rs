@@ -29,7 +29,7 @@ impl Database {
         let skill = skill::SkillRepository::read(skill_read)?;
         let state = state::StateRepository::read(state_read)?;
         Ok(Self {
-            term: term::TermRepository::new(),
+            term: term::TermRepository::default(),
             skill,
             state,
         })

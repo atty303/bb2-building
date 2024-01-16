@@ -6,20 +6,6 @@ use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
 use token::{Token, Tokens};
 
-pub fn nodes_to_string(nodes: &Vec<Token>) -> String {
-    nodes
-        .iter()
-        .map(|n| match n {
-            Token::Text(s) => s.clone(),
-            Token::Var(s) => format!("<{}>", s),
-            Token::NewLine => "\n".to_string(),
-            Token::Empty => "".to_string(),
-            Token::Error(s) => format!("!{}!", s),
-        })
-        .collect::<Vec<_>>()
-        .join("")
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct Term {
     pub tokens: Tokens,
@@ -28,7 +14,7 @@ pub struct Term {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
 struct TermSer {
     key: String,
-    term: Vec<String>,
+    tokens: Vec<String>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -51,11 +37,6 @@ impl DerefMut for TermRepository {
 }
 
 impl<'a> TermRepository {
-    pub fn new() -> Self {
-        let map = HashMap::new();
-        Self { inner: map }
-    }
-
     pub fn write<'i, W: Write, I: Iterator<Item = &'i (String, Term)>>(
         avro_write: W,
         terms: I,
@@ -76,21 +57,22 @@ impl<'a> TermRepository {
             }
             writer.append_ser(&TermSer {
                 key: key.to_string(),
-                term: out,
+                tokens: out,
             })?;
         }
         Ok(())
     }
 
     pub fn read<R: Read>(avro_read: R) -> Result<Self, apache_avro::Error> {
-        let reader = apache_avro::Reader::new(avro_read)?;
+        let schema = TermSer::get_schema();
+        let reader = apache_avro::Reader::with_schema(&schema, avro_read)?;
         let mut map = HashMap::new();
         for result in reader {
-            let value = &result.expect("Error reading value from avro reader");
-            let r = apache_avro::from_value::<TermSer>(&value).expect("Error deserializing value");
+            let value = &result?;
+            let r = apache_avro::from_value::<TermSer>(&value)?;
 
             let nodes = r
-                .term
+                .tokens
                 .iter()
                 .map(|s| {
                     if s.starts_with(" ") {

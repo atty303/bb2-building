@@ -31,6 +31,8 @@ pub fn write_terms() {
                 langs[2].as_str().unwrap()
             } else if value == "$en" {
                 langs[3].as_str().unwrap()
+            } else if value.starts_with('$') {
+                panic!("unknown language: {}", value)
             } else {
                 value
             };
@@ -71,8 +73,12 @@ pub fn write_terms() {
         let nodes = new_out
             .iter()
             .map(|(key, value)| {
-                let nodes = Tokens(parse(value));
-                (key.clone(), Term { tokens: nodes })
+                (
+                    key.clone(),
+                    Term {
+                        tokens: Tokens(parse(value)),
+                    },
+                )
             })
             .collect::<Vec<_>>();
 
