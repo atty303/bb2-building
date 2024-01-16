@@ -1,2 +1,3 @@
+pub use persistent::*;
 mod config;
-pub mod persistent;
+mod persistent;

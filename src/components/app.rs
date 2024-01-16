@@ -6,7 +6,7 @@ use fermi::{use_atom_state, use_init_atom_root, use_set};
 use data::{Database, LANGUAGES};
 
 use crate::atoms::DATABASE;
-use crate::hooks::persistent::use_persistent;
+use crate::hooks::use_persistent;
 use crate::pages::Route;
 
 async fn fetch_database(lang: &str) -> anyhow::Result<Database> {

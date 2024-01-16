@@ -6,7 +6,7 @@ use fermi::use_set;
 
 use data::LANGUAGES;
 
-use crate::hooks::persistent::use_persistent;
+use crate::hooks::use_persistent;
 use crate::pages::Route;
 
 #[component]
