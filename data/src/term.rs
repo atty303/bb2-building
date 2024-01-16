@@ -4,7 +4,7 @@ use std::ops::{Deref, DerefMut};
 
 use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
-use token::Token;
+use token::{Token, Tokens};
 
 pub fn nodes_to_string(nodes: &Vec<Token>) -> String {
     nodes
@@ -22,7 +22,7 @@ pub fn nodes_to_string(nodes: &Vec<Token>) -> String {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Term {
-    pub nodes: Vec<Token>,
+    pub tokens: Tokens,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
@@ -64,20 +64,19 @@ impl<'a> TermRepository {
         let mut writer =
             apache_avro::Writer::with_codec(&schema, avro_write, apache_avro::Codec::Deflate);
         for (key, term) in terms {
-            let terms = term
-                .nodes
-                .iter()
-                .map(|n| match n {
-                    Token::Text(s) => format!(" {}", s),
-                    Token::Var(s) => format!("${}", s),
-                    Token::NewLine => "~".to_string(),
-                    Token::Empty => "".to_string(),
-                    Token::Error(_) => "".to_string(),
-                })
-                .collect::<Vec<_>>();
+            let mut out = vec![];
+            for n in &term.tokens.0 {
+                match n {
+                    Token::Text(s) => out.push(format!(" {}", s)),
+                    Token::Var(s) => out.push(format!("${}", s)),
+                    Token::NewLine => out.push("~".to_string()),
+                    Token::Empty => (),
+                    Token::Error(s) => out.push(format!("!{}", s)),
+                }
+            }
             writer.append_ser(&TermSer {
                 key: key.to_string(),
-                term: terms,
+                term: out,
             })?;
         }
         Ok(())
@@ -98,6 +97,8 @@ impl<'a> TermRepository {
                         Token::Text(s[1..].to_string())
                     } else if s.starts_with("$") {
                         Token::Var(s[1..].to_string())
+                    } else if s.starts_with("!") {
+                        Token::Error(s[1..].to_string())
                     } else if s == "~" {
                         Token::NewLine
                     } else {
@@ -106,22 +107,27 @@ impl<'a> TermRepository {
                 })
                 .collect::<Vec<_>>();
 
-            map.insert(r.key, Term { nodes });
+            map.insert(
+                r.key,
+                Term {
+                    tokens: Tokens(nodes),
+                },
+            );
         }
         Ok(TermRepository { inner: map })
     }
 
-    pub fn get(&'a self, key: &str) -> Vec<Token> {
+    pub fn get(&'a self, key: &str) -> Tokens {
         match self.inner.get(key) {
-            Some(v) => v.nodes.clone(),
-            None => vec![Token::Error(key.to_string())],
+            Some(v) => v.tokens.clone(),
+            None => Tokens(vec![Token::Error(key.to_string())]),
         }
     }
 
-    pub fn tr<T, F: Fn(&Vec<Token>) -> T>(&'a self, key: &str, f: F) -> T {
+    pub fn tr<T, F: Fn(&Tokens) -> T>(&'a self, key: &str, f: F) -> T {
         match self.inner.get(key) {
-            Some(v) => f(&v.nodes),
-            None => f(&vec![Token::Error(key.to_string())]),
+            Some(v) => f(&v.tokens),
+            None => f(&Tokens(vec![Token::Error(key.to_string())])),
         }
     }
 }

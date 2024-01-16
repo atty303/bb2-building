@@ -79,9 +79,9 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
 }
 
 #[component]
-pub fn Description(cx: Scope, nodes: Vec<data::token::Token>) -> Element {
+pub fn Description(cx: Scope, nodes: data::token::Tokens) -> Element {
     render! {
-        for node in nodes {
+        for node in &nodes.0 {
             match node {
                 data::token::Token::Text(text) => rsx! { "{text}" },
                 data::token::Token::NewLine => rsx! { br {} },

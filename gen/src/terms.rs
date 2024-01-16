@@ -4,6 +4,7 @@ use regex::Regex;
 use yaml_rust::YamlLoader;
 
 use data::term::{Term, TermRepository};
+use data::token::Tokens;
 use data::LANGUAGES;
 
 use crate::data::token::Token;
@@ -70,8 +71,8 @@ pub fn write_terms() {
         let nodes = new_out
             .iter()
             .map(|(key, value)| {
-                let nodes = parse(value);
-                (key.clone(), Term { nodes })
+                let nodes = Tokens(parse(value));
+                (key.clone(), Term { tokens: nodes })
             })
             .collect::<Vec<_>>();
 

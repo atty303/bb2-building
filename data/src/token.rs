@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     Text(String),
@@ -7,30 +9,63 @@ pub enum Token {
     Error(String),
 }
 
-pub type Tokens = Vec<Token>;
+#[derive(Debug, Clone, PartialEq)]
+pub struct Tokens(pub Vec<Token>);
 
-pub trait TokensExt {
-    fn map_var<F: Fn(&str) -> Vec<Token>>(&self, f: F) -> Vec<Token>;
-}
+impl Tokens {
+    pub fn push(&mut self, token: Token) {
+        self.0.push(token);
+    }
 
-impl TokensExt for Tokens {
-    fn map_var<F: Fn(&str) -> Vec<Token>>(&self, f: F) -> Vec<Token> {
-        self.iter()
-            .flat_map(|n| match n {
+    pub fn extend(&mut self, other: Tokens) {
+        self.0.extend(other.0);
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn has_var(&self) -> bool {
+        for token in &self.0 {
+            match token {
+                Token::Var(_) => return true,
+                _ => (),
+            }
+        }
+        false
+    }
+
+    pub fn map_var<F: Fn(&mut Tokens, &str) -> ()>(&self, f: F) -> Tokens {
+        let mut out = Tokens(vec![]);
+        for token in &self.0 {
+            match token {
                 Token::Var(s) => {
-                    let adds = f(s.as_str());
-                    if adds.is_empty() {
-                        vec![n.clone()]
+                    let mut subs = Tokens(vec![]);
+                    f(&mut subs, &s);
+                    if subs.is_empty() {
+                        out.push(token.clone());
                     } else {
-                        let mut out = vec![];
-                        // out.push(Node::Text(format!("<{}:", s)));
-                        out.extend(adds);
-                        // out.push(Node::Text(">".to_string()));
-                        out
+                        out.extend(subs);
                     }
                 }
-                n => vec![n.clone()],
-            })
-            .collect::<Vec<_>>()
+                _ => out.push(token.clone()),
+            }
+        }
+        out
+    }
+}
+
+impl Display for Tokens {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        for token in &self.0 {
+            match token {
+                Token::Text(s) => write!(f, "{}", s)?,
+                Token::Var(s) => write!(f, "<{}>", s)?,
+                Token::NewLine => write!(f, "\n")?,
+                Token::Empty => (),
+                Token::Error(s) => write!(f, "!{}!", s)?,
+            }
+        }
+        Ok(())
     }
 }

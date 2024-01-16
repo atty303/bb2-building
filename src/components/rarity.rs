@@ -1,8 +1,8 @@
-use crate::atoms::DATABASE;
-use crate::components::icon::Icon;
-use data::term::nodes_to_string;
 use dioxus::prelude::*;
 use fermi::use_read;
+
+use crate::atoms::DATABASE;
+use crate::components::icon::Icon;
 
 #[component]
 pub fn Rarity(cx: Scope, rarity: i8) -> Element {
@@ -10,7 +10,7 @@ pub fn Rarity(cx: Scope, rarity: i8) -> Element {
     let color = db
         .term()
         .tr(format!("CLR-Star-Rarity-{}", rarity).as_str(), |n| {
-            nodes_to_string(n)
+            format!("{}", n)
         });
     render! {
         span {

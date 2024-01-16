@@ -7,9 +7,8 @@ use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-use term::{nodes_to_string, TermRepository};
-use token::Token;
-use token::TokensExt;
+use term::TermRepository;
+use token::{Token, Tokens};
 use {Database, Sprite};
 
 type SkillHash = u16;
@@ -108,8 +107,8 @@ pub struct Skill {
 
 impl Skill {
     pub fn name(&self, terms: &TermRepository) -> String {
-        terms.tr(format!("NM-{}", self.modes[0].id).as_str(), |nodes| {
-            nodes_to_string(nodes)
+        terms.tr(format!("NM-{}", self.modes[0].id).as_str(), |tokens| {
+            format!("{}", tokens)
         })
     }
 }
@@ -132,13 +131,13 @@ pub struct SkillMode {
 
 impl SkillMode {
     pub fn name(&self, terms: &TermRepository) -> String {
-        terms.tr(format!("NM-{}", self.id).as_str(), |nodes| {
-            nodes_to_string(nodes)
+        terms.tr(format!("NM-{}", self.id).as_str(), |tokens| {
+            format!("{}", tokens)
         })
     }
 
-    pub fn format(&self, db: &Database) -> Vec<Token> {
-        let mut nodes = vec![];
+    pub fn format(&self, db: &Database) -> Tokens {
+        let mut tokens = Tokens(vec![]);
 
         let line1 = db.term().tr(
             if self.is_alt {
@@ -147,38 +146,38 @@ impl SkillMode {
                 "NM-SkillNodeDesc-ModeName-Normal"
             },
             |n| {
-                n.map_var(|s| match s {
+                n.map_var(|out, s| match s {
                     "0" => {
                         if self.is_brave {
-                            db.term().get("NM-SkillNodeDesc-ModeName-ForBrave")
+                            out.extend(db.term().get("NM-SkillNodeDesc-ModeName-ForBrave"))
                         } else {
-                            vec![Token::Empty]
+                            out.push(Token::Empty);
                         }
                     }
-                    _ => vec![],
+                    _ => (),
                 })
             },
         );
-        nodes.extend(line1);
-        nodes.push(Token::NewLine);
+        tokens.extend(line1);
+        tokens.push(Token::NewLine);
 
         for act in &self.acts {
-            nodes.extend(act.format(db));
-            nodes.push(Token::NewLine);
+            tokens.extend(act.format(db));
+            tokens.push(Token::NewLine);
         }
 
-        nodes.extend(db.term().get("WD-Cooldown"));
-        nodes.push(Token::Text(format!(": {}", self.cooldown)));
-        nodes.push(Token::NewLine);
+        tokens.extend(db.term().get("WD-Cooldown"));
+        tokens.push(Token::Text(format!(": {}", self.cooldown)));
+        tokens.push(Token::NewLine);
 
-        nodes.extend(db.term().get("WD-SkillPossRemain"));
-        nodes.push(Token::Text(format!(
+        tokens.extend(db.term().get("WD-SkillPossRemain"));
+        tokens.push(Token::Text(format!(
             ": -{}/{}",
             self.use_num, self.poss_num
         )));
-        nodes.push(Token::NewLine);
+        tokens.push(Token::NewLine);
 
-        nodes
+        tokens
     }
 }
 
@@ -197,20 +196,20 @@ pub struct Act {
 }
 
 impl Act {
-    pub fn format(&self, db: &Database) -> Vec<Token> {
-        let mut nodes = vec![];
+    pub fn format(&self, db: &Database) -> Tokens {
+        let mut tokens = Tokens(vec![]);
 
-        nodes.extend(
+        tokens.extend(
             db.term
                 .get(format!("NM-SkillNodeDesc-ActTrigger-{}", self.act_trigger).as_str()),
         );
-        nodes.push(Token::NewLine);
+        tokens.push(Token::NewLine);
 
         for node in &self.nodes {
-            nodes.extend(node.format(db));
-            nodes.push(Token::NewLine);
+            tokens.extend(node.format(db));
+            tokens.push(Token::NewLine);
         }
-        nodes
+        tokens
     }
 }
 
@@ -245,7 +244,7 @@ pub struct StateLast {
 }
 
 impl ActNode {
-    fn replacer(&self, name: &str, db: &Database, out: &mut Vec<Token>) {
+    fn replacer(&self, name: &str, db: &Database, out: &mut Tokens) {
         match name {
             "lasthit" => match self.avoid_type {
                 AvoidType::LastHit => out.extend(db.term().get("DC-SkillNodeDesc-LastHit")),
@@ -300,9 +299,9 @@ impl ActNode {
                     out.push(Token::NewLine);
                     out.push(Token::Text("　".to_string()));
                     out.extend(db.term().tr("DC-SkillNodeDesc-CritRate", |n| {
-                        n.map_var(|s| match s {
-                            "0" => vec![Token::Text(self.crit_rate.to_string())],
-                            _ => vec![],
+                        n.map_var(|out, s| match s {
+                            "0" => out.push(Token::Text(self.crit_rate.to_string())),
+                            _ => (),
                         })
                     }));
                 }
@@ -362,9 +361,9 @@ impl ActNode {
                             db.term().get(format!("NM-MainParam:{}", n).as_str())
                         })
                         .collect::<Vec<_>>();
-                    out.extend(or[0].to_owned());
+                    out.extend(or[0].clone());
                     out.extend(db.term().get("WD-Relate-Or"));
-                    out.extend(or[1].to_owned());
+                    out.extend(or[1].clone());
                 } else {
                     let pair = self.relate.split(':').collect::<Vec<_>>();
                     let key = pair[0];
@@ -377,16 +376,19 @@ impl ActNode {
                     out.push(Token::NewLine);
                     out.push(Token::Text("　".to_string()));
                     out.extend(db.term().tr("DC-SkillNodeDesc-LastCombine", |n| {
-                        n.map_var(|s| match s {
-                            "0" => db.term().tr("DC-SkillNodeDesc-LastRoom", |n| {
-                                n.map_var(|s| match s {
-                                    "0" => {
-                                        vec![Token::Text(self.state_last.room.to_string())]
-                                    }
-                                    _ => vec![],
-                                })
-                            }),
-                            _ => vec![],
+                        n.map_var(|out, s| match s {
+                            "0" => {
+                                let t = db.term().tr("DC-SkillNodeDesc-LastRoom", |n| {
+                                    n.map_var(|out, s| match s {
+                                        "0" => {
+                                            out.push(Token::Text(self.state_last.room.to_string()));
+                                        }
+                                        _ => (),
+                                    })
+                                });
+                                out.extend(t);
+                            }
+                            _ => (),
                         })
                     }));
                 } else if self.state_last.f1 >= 0 {
@@ -395,16 +397,19 @@ impl ActNode {
                     out.push(Token::NewLine);
                     out.push(Token::Text("　".to_string()));
                     out.extend(db.term().tr("DC-SkillNodeDesc-LastCombine", |n| {
-                        n.map_var(|s| match s {
-                            "0" => db.term().tr("DC-SkillNodeDesc-LastTurn", |n| {
-                                n.map_var(|s| match s {
-                                    "0" => {
-                                        vec![Token::Text(self.state_last.f2.to_string())]
-                                    }
-                                    _ => vec![],
-                                })
-                            }),
-                            _ => vec![],
+                        n.map_var(|out, s| match s {
+                            "0" => {
+                                let t = db.term().tr("DC-SkillNodeDesc-LastTurn", |n| {
+                                    n.map_var(|out, s| match s {
+                                        "0" => {
+                                            out.push(Token::Text(self.state_last.f2.to_string()));
+                                        }
+                                        _ => (),
+                                    })
+                                });
+                                out.extend(t);
+                            }
+                            _ => (),
                         })
                     }));
                 } else if self.state_last.f3 >= 0 {
@@ -456,46 +461,42 @@ impl ActNode {
         }
     }
 
-    pub fn format(&self, db: &Database) -> Vec<Token> {
+    pub fn format(&self, db: &Database) -> Tokens {
         let replacer = |s: &str| {
-            let mut out = vec![];
+            let mut out = Tokens(vec![]);
             self.replacer(s, db, &mut out);
             out
         };
 
-        let mut line: Vec<Token> = db
+        let mut line: Tokens = db
             .term()
             .get(format!("DC-SkillNodeDesc-{}", self.action_type).as_str());
         loop {
-            let has_var = line.iter().any(|l| match l {
-                Token::Var(_) => true,
-                _ => false,
-            });
-            if !has_var {
+            if !line.has_var() {
                 break;
             }
 
             let mut replaced = false;
-            line = line
-                .into_iter()
-                .flat_map(|l| match l {
-                    Token::Var(s) => {
-                        let n = replacer(s.as_str());
-                        if n.is_empty() {
-                            vec![Token::Var(s.clone())]
-                        } else {
-                            replaced = true;
+            line = Tokens(
+                line.0
+                    .into_iter()
+                    .flat_map(|l| match l {
+                        Token::Var(s) => {
+                            let n = replacer(s.as_str());
+                            if n.is_empty() {
+                                vec![Token::Var(s.clone())]
+                            } else {
+                                replaced = true;
 
-                            let mut out = vec![];
-                            // out.push(Node::Text(format!("<{}:", s)));
-                            out.extend(n);
-                            // out.push(Node::Text(">".to_string()));
-                            out
+                                let mut out = vec![];
+                                out.extend(n.0);
+                                out
+                            }
                         }
-                    }
-                    _ => vec![l.clone()],
-                })
-                .collect::<Vec<_>>();
+                        _ => vec![l.clone()],
+                    })
+                    .collect::<Vec<_>>(),
+            );
             if !replaced {
                 break;
             }
@@ -505,10 +506,10 @@ impl ActNode {
             line
         } else {
             db.term().tr("DC-SkillNodeDesc-MultipleCase", |n| {
-                n.map_var(|s| match s {
-                    "0" => line.clone(),
-                    "1" => vec![Token::Text(self.act_num.to_string())],
-                    _ => vec![],
+                n.map_var(|out, s| match s {
+                    "0" => out.extend(line.clone()),
+                    "1" => out.push(Token::Text(self.act_num.to_string())),
+                    _ => (),
                 })
             })
         };
