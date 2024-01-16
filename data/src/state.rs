@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::io::{Read, Write};
 use std::ops::Deref;
 
 use serde::{Deserialize, Serialize};
@@ -24,14 +23,6 @@ impl StateRepository {
             inner.insert(state.id.clone(), state);
         }
         Self { inner }
-    }
-
-    pub fn read<R: Read>(read: R) -> Result<Self, rmp_serde::decode::Error> {
-        rmp_serde::decode::from_read(read)
-    }
-
-    pub fn write<W: Write>(&self, write: &mut W) -> Result<(), rmp_serde::encode::Error> {
-        rmp_serde::encode::write(write, self)
     }
 }
 

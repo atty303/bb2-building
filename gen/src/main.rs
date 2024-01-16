@@ -6,10 +6,9 @@ extern crate regex;
 extern crate yaml_rust;
 
 use clap::{Parser, Subcommand};
-use data::LANGUAGES;
 use json::JsonValue;
 
-use skill::process_skill;
+use data::LANGUAGES;
 use state::state_repository_from_dump;
 use table::act::ActTable;
 use table::act_node::ActNodeTable;
@@ -36,45 +35,21 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
-    Global,
     Table,
-    Skill {
+    Database {
+        #[arg(long, default_value = "all")]
+        lang: String,
         #[arg(long, default_value_t = false)]
         write: bool,
     },
-    State,
 }
 
 fn main() {
     let args = Cli::parse();
 
     match args.command {
-        Commands::Global => run_global(),
-
-        Commands::Table => {
-            let db = read_db();
-            for meta in db["Metas"].members() {
-                let table: Table<UnknownTable> = Table::new(meta.to_owned());
-                table.to_csv(std::io::BufWriter::new(
-                    std::fs::File::create(format!("dump/table/{}.csv", table.name())).unwrap(),
-                ));
-            }
-        }
-        Commands::Skill { write } => run_skill(write),
-        Commands::State => {
-            let mut state_table: Option<Table<StateTable>> = None;
-
-            let db = read_db();
-            for meta in db["Metas"].members() {
-                let name = meta["Name"].as_str().unwrap();
-                match name {
-                    "state" => state_table = Some(Table::new(meta.to_owned())),
-                    _ => (),
-                }
-            }
-
-            state_repository_from_dump(&state_table.unwrap());
-        }
+        Commands::Table => run_table(),
+        Commands::Database { lang, write } => run_database(lang, write),
     }
 }
 
@@ -83,19 +58,17 @@ fn read_db() -> JsonValue {
     json::parse(s.as_str()).unwrap()
 }
 
-fn run_global() {
-    let terms_i18n = terms::term_repository_from_dump();
-    for lang in LANGUAGES {
-        let mut writer = std::io::BufWriter::new(
-            std::fs::File::create(format!("public/i18n/{}/global.msgpack", lang)).unwrap(),
-        );
-        let terms = terms_i18n.get(lang).unwrap();
-        let repo = global::process_global(&terms);
-        repo.write(&mut writer).unwrap();
+fn run_table() {
+    let db = read_db();
+    for meta in db["Metas"].members() {
+        let table: Table<UnknownTable> = Table::new(meta.to_owned());
+        table.to_csv(std::io::BufWriter::new(
+            std::fs::File::create(format!("dump/table/{}.csv", table.name())).unwrap(),
+        ));
     }
 }
 
-fn run_skill(write: bool) {
+fn run_database(lang: String, write: bool) {
     let mut act_table: Option<Table<ActTable>> = None;
     let mut act_node_table: Option<Table<ActNodeTable>> = None;
     let mut skill_table: Option<Table<SkillTable>> = None;
@@ -126,9 +99,16 @@ fn run_skill(write: bool) {
     let states = state_repository_from_dump(&state_table.unwrap());
     let terms_i18n = terms::term_repository_from_dump();
 
-    for lang in LANGUAGES {
+    let langs = if lang == "all" {
+        LANGUAGES.to_vec()
+    } else {
+        vec![lang.as_str()]
+    };
+    for lang in langs {
         let terms = terms_i18n.get(lang).unwrap();
-        let repo = process_skill(
+
+        let global = global::process_global(&terms);
+        let skill = skill::process_skill(
             &skill_table,
             &skill_mode_table,
             &sm_act_table,
@@ -137,11 +117,13 @@ fn run_skill(write: bool) {
             terms,
             &states,
         );
+        let database = data::Database { global, skill };
+
         if write {
             let mut writer = std::io::BufWriter::new(
-                std::fs::File::create(format!("public/i18n/{}/skill.msgpack", lang)).unwrap(),
+                std::fs::File::create(format!("public/i18n/{}/database.msgpack", lang)).unwrap(),
             );
-            repo.write(&mut writer).unwrap();
+            database.write(&mut writer).unwrap();
         }
     }
 }

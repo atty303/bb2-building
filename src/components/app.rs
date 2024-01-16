@@ -16,20 +16,14 @@ async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
             .map_err(|err| anyhow!(format!("{:?}", err)))?;
         let base_uri = base_uri.ok_or(anyhow!("base_uri"))?;
 
-        let global = {
-            let res = reqwest::get(format!("{}i18n/{}/global.msgpack", base_uri, lang)).await?;
+        let database = {
+            let res = reqwest::get(format!("{}i18n/{}/database.msgpack", base_uri, lang)).await?;
             let body = res.bytes().await?;
             let cursor = std::io::Cursor::new(body);
-            data::GlobalRepository::read(cursor)?
-        };
-        let skill = {
-            let res = reqwest::get(format!("{}i18n/{}/skill.msgpack", base_uri, lang)).await?;
-            let body = res.bytes().await?;
-            let cursor = std::io::Cursor::new(body);
-            data::skill::SkillRepository::read(cursor)?
+            Database::read(cursor)?
         };
 
-        Ok(Database { global, skill })
+        Ok(database)
     } else {
         Err(anyhow!("unknown language: {}", lang))
     }

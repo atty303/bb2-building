@@ -1,6 +1,5 @@
 // TODO: move to gen
 use std::collections::HashMap;
-use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
 
 use serde::{Deserialize, Serialize};
@@ -24,14 +23,6 @@ impl<'a> TermRepository {
             inner.insert(term.0, term.1);
         }
         Self { inner }
-    }
-
-    pub fn read<R: Read>(read: R) -> Result<Self, rmp_serde::decode::Error> {
-        rmp_serde::decode::from_read(read)
-    }
-
-    pub fn write<W: Write>(&self, write: &mut W) -> Result<(), rmp_serde::encode::Error> {
-        rmp_serde::encode::write(write, self)
     }
 
     pub fn get(&'a self, key: &str) -> Tokens {

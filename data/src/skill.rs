@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut, Range};
 
 use serde::{Deserialize, Serialize};
@@ -209,14 +208,6 @@ impl SkillRepository {
             order.push(hash);
         }
         Self { inner, order }
-    }
-
-    pub fn read<R: Read>(read: R) -> Result<Self, rmp_serde::decode::Error> {
-        rmp_serde::decode::from_read(read)
-    }
-
-    pub fn write<W: Write>(&self, write: &mut W) -> Result<(), rmp_serde::encode::Error> {
-        rmp_serde::encode::write(write, self)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &Skill> {
