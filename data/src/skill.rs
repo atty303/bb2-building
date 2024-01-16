@@ -525,7 +525,7 @@ impl SkillRepository {
                 max = skill.rarity;
             }
         }
-        min..max
+        min..max+1
     }
 }
 

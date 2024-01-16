@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
-use dioxus_router::prelude::Link;
+use dioxus_router::prelude::{Link, use_navigator};
 use fermi::use_read_rc;
+use data::skill::Skill;
 
 use crate::atoms::DATABASE;
 use crate::components::rarity::Rarity;
@@ -9,7 +10,8 @@ use crate::components::sprite::SpriteIcon;
 use crate::pages::Route;
 
 #[component]
-pub fn SkillListPage(cx: Scope) -> Element {
+pub fn SkillListPage(cx: Scope, tab: String) -> Element {
+    let nav = use_navigator(cx);
     let db = use_read_rc(cx, &DATABASE);
     let rarities = db.skill.rarity_range();
 
@@ -22,7 +24,7 @@ pub fn SkillListPage(cx: Scope) -> Element {
             }
         }
 
-        Link { class: "btn btn-primary my-2",
+        Link { class: "btn btn-primary btn-sm my-2",
             to: Route::SkillSearchPage {},
             "Search"
         }
@@ -30,31 +32,34 @@ pub fn SkillListPage(cx: Scope) -> Element {
         div { class: "tabs tabs-bordered",
             role: "tablist",
 
-            input { class: "tab",
+            input { class: "tab text-primary",
                 r#type: "radio",
                 name: "tabs",
                 role: "tab",
                 aria_label: "All",
-                checked: true,
+                checked: tab != "rarity",
+                onclick: move |_| {
+                    nav.replace(Route::SkillListPage { tab: "all".to_string() });
+                },
             }
             div { class: "tab-content p-2",
                 role: "tabpanel",
                 div { class: "grid grid-cols-5 w-fit gap-2",
                     for skill in db.skill.iter().filter(|s| s.in_dictionary) {
-                        Link { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1",
-                            to: Route::SkillPage { skill_id: skill.id.clone() },
-                            SpriteIcon { class: "rounded-md", sprite: &skill.modes[0].icon, size: 96 }
-                        }
-
+                        SkillLink { skill: &skill }
                     }
                 }
             }
 
-            input { class: "tab",
+            input { class: "tab text-primary",
                 r#type: "radio",
                 name: "tabs",
                 role: "tab",
                 aria_label: "Rarity",
+                checked: tab == "rarity",
+                onclick: move |_| {
+                    nav.replace(Route::SkillListPage { tab: "rarity".to_string() });
+                },
             }
             div { class: "tab-content p-2 divide-y",
                 role: "tabpanel",
@@ -65,10 +70,7 @@ pub fn SkillListPage(cx: Scope) -> Element {
                         }
                         div { class: "flex flex-wrap gap-2",
                             for skill in db.skill.iter().filter(|s| s.in_dictionary && s.rarity == rarity) {
-                                Link { class: "inline-block hover:bg-primary border-primary border-solid border-2 rounded-md p-1",
-                                    to: Route::SkillPage { skill_id: skill.id.clone() },
-                                    SpriteIcon { class: "rounded-md", sprite: &skill.modes[0].icon, size: 96 }
-                                }
+                                SkillLink { skill: &skill }
                             }
                         }
                     }
@@ -76,6 +78,16 @@ pub fn SkillListPage(cx: Scope) -> Element {
             }
         }
 
+    }
+}
+
+#[component]
+fn SkillLink<'a>(cx: Scope, skill: &'a Skill) -> Element<'a> {
+    render! {
+        Link { class: "inline-block hover:bg-primary border-primary border-solid border-2 rounded-md p-1",
+            to: Route::SkillPage { skill_id: skill.id.clone() },
+            SpriteIcon { class: "rounded-md", sprite: &skill.modes[0].icon, size: 96 }
+        }
     }
 }
 
