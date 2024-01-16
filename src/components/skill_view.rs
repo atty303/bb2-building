@@ -17,7 +17,7 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
             class: "flex flex-col border-solid border border-base-300 rounded-md my-2",
             div {
                 class: "flex flex-row items-center gap-2 bg-base-300 text-base-content p-2",
-                Sprite { sprite: &skill.modes[0].icon }
+                Sprite { sprite: &skill.modes[0].icon, scale: 0.5 }
                 span {
                     class: "flex-grow",
                     Link {
@@ -51,7 +51,7 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
     render! {
         div { class: "flex flex-col gap-2 bg-base-200 text-base-content rounded-md p-2",
             div { class: "flex flex-row items-center gap-2",
-                Sprite { sprite: &mode.icon }
+                Sprite { sprite: &mode.icon, scale: 0.5 }
                 div { class: "flex-grow",
                     mode.name(database.term())
                 }
