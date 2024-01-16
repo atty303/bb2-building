@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::io::Write;
 use std::marker::PhantomData;
+use std::slice::Iter;
 
 use json::JsonValue;
 use prettytable::{Cell, Row};
@@ -64,24 +65,26 @@ impl EntityParser {
     }
 }
 
-pub struct Table<T> {
+pub struct Table<T: TableParser> {
     meta: JsonValue,
-    phantom_data: PhantomData<T>,
+    rows: Vec<T::Row>,
 }
 
 impl<T: TableParser> Table<T> {
     pub fn new(meta: JsonValue) -> Table<T> {
+        let rows = meta["Entities"].members().map(|e| {
+            let ep = EntityParser::new(e);
+            T::parse_row(&ep)
+        }).collect::<Vec<_>>();
+
         Table {
             meta,
-            phantom_data: PhantomData,
+            rows,
         }
     }
 
-    pub fn iter(&self) -> Box<dyn Iterator<Item = T::Row> + '_> {
-        Box::new(self.meta["Entities"].members().map(|e| {
-            let ep = EntityParser::new(e);
-            T::parse_row(&ep)
-        }))
+    pub fn iter(&self) -> Iter<'_, <T as TableParser>::Row> {
+        self.rows.iter()
     }
 }
 

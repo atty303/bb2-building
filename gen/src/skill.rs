@@ -26,12 +26,13 @@ fn str_to_bool(v: &str) -> bool {
 
 struct SkillWithId {
     skill: Skill,
-    row: SkillRow,
+    id: String,
+    order: usize,
 }
 
 impl Hash for SkillWithId {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.row.id.hash(state);
+        self.id.hash(state);
     }
 }
 
@@ -131,7 +132,7 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<S
                 in_dictionary: skill_row.in_dict,
                 is_free: skill_row.is_free,
             };
-            Some(SkillWithId { skill, row : skill_row })
+            Some(SkillWithId { skill, id: skill_row.id.clone(), order: skill_row.order })
         } else {
             None
         }
@@ -145,7 +146,7 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<S
         skill.skill.hash = id_hasher.id_hash(&skill) as u16;
     }
 
-    skills.sort_by_key(|s| (!s.skill.is_free, s.row.order));
+    skills.sort_by_key(|s| (!s.skill.is_free, s.order));
 
     let file_writer = std::io::BufWriter::new(std::fs::File::create(format!("public/data/skill.avro")).unwrap());
     SkillRepository::write(file_writer, skills.iter().map(|s| &s.skill)).unwrap();
