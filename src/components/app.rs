@@ -5,7 +5,7 @@ use dioxus::prelude::*;
 use dioxus_router::prelude::{Router, RouterConfig, RouterConfigFactory, WebHistory};
 use fermi::{use_init_atom_root, use_set};
 
-use data::term::TermMap;
+use data::term::TermRepository;
 use data::Database;
 
 use crate::atoms::DATABASE;
@@ -36,7 +36,7 @@ async fn fetch_database() -> anyhow::Result<Database> {
     Database::read(skill_cursor, state_cursor).map_err(|err| anyhow!(err))
 }
 
-async fn fetch_i18n(lang: &str) -> anyhow::Result<TermMap> {
+async fn fetch_i18n(lang: &str) -> anyhow::Result<TermRepository> {
     let base_uri = gloo_utils::document()
         .base_uri()
         .map_err(|err| anyhow!(format!("{:?}", err)))?;
@@ -46,7 +46,7 @@ async fn fetch_i18n(lang: &str) -> anyhow::Result<TermMap> {
     let body = res.bytes().await?;
     let cursor = std::io::Cursor::new(body);
 
-    TermMap::read(cursor).map_err(|err| anyhow!(err))
+    TermRepository::read(cursor).map_err(|err| anyhow!(err))
 }
 
 pub fn App(cx: Scope) -> Element {

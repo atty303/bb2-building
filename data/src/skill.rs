@@ -7,10 +7,12 @@ use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-use term::{nodes_to_string, TermMap};
+use term::{nodes_to_string, TermRepository};
 use token::Token;
 use token::TokensExt;
 use {Database, Sprite};
+
+type SkillHash = u16;
 
 #[derive(
     Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema, EnumString, Display,
@@ -84,7 +86,7 @@ pub enum Reduce {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AvroSchema)]
 pub struct Skill {
-    pub hash: u16,
+    pub hash: SkillHash,
     pub id: String,
     pub modes: Vec<SkillMode>,
     // pub icon: String,
@@ -105,7 +107,7 @@ pub struct Skill {
 }
 
 impl Skill {
-    pub fn name(&self, terms: &TermMap) -> String {
+    pub fn name(&self, terms: &TermRepository) -> String {
         terms.tr(format!("NM-{}", self.modes[0].id).as_str(), |nodes| {
             nodes_to_string(nodes)
         })
@@ -129,7 +131,7 @@ pub struct SkillMode {
 }
 
 impl SkillMode {
-    pub fn name(&self, terms: &TermMap) -> String {
+    pub fn name(&self, terms: &TermRepository) -> String {
         terms.tr(format!("NM-{}", self.id).as_str(), |nodes| {
             nodes_to_string(nodes)
         })
@@ -517,8 +519,8 @@ impl ActNode {
 
 #[derive(Clone, Default)]
 pub struct SkillRepository {
-    inner: HashMap<u16, Skill>,
-    order: Vec<u16>,
+    inner: HashMap<SkillHash, Skill>,
+    order: Vec<SkillHash>,
 }
 
 impl SkillRepository {
@@ -569,7 +571,7 @@ impl SkillRepository {
 }
 
 impl Deref for SkillRepository {
-    type Target = HashMap<u16, Skill>;
+    type Target = HashMap<SkillHash, Skill>;
 
     fn deref(&self) -> &Self::Target {
         &self.inner

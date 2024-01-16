@@ -32,11 +32,11 @@ struct TermSer {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct TermMap {
+pub struct TermRepository {
     inner: HashMap<String, Term>,
 }
 
-impl Deref for TermMap {
+impl Deref for TermRepository {
     type Target = HashMap<String, Term>;
 
     fn deref(&self) -> &Self::Target {
@@ -44,13 +44,13 @@ impl Deref for TermMap {
     }
 }
 
-impl DerefMut for TermMap {
+impl DerefMut for TermRepository {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
     }
 }
 
-impl<'a> TermMap {
+impl<'a> TermRepository {
     pub fn new() -> Self {
         let map = HashMap::new();
         Self { inner: map }
@@ -108,7 +108,7 @@ impl<'a> TermMap {
 
             map.insert(r.key, Term { nodes });
         }
-        Ok(TermMap { inner: map })
+        Ok(TermRepository { inner: map })
     }
 
     pub fn get(&'a self, key: &str) -> Vec<Token> {

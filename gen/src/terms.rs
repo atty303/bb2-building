@@ -3,7 +3,7 @@ use std::sync::OnceLock;
 use regex::Regex;
 use yaml_rust::YamlLoader;
 
-use data::term::{Term, TermMap};
+use data::term::{Term, TermRepository};
 use data::LANGUAGES;
 
 use crate::data::token::Token;
@@ -78,7 +78,7 @@ pub fn write_terms() {
         let file_writer = std::io::BufWriter::new(
             std::fs::File::create(format!("public/i18n/{}/term.avro", lang)).unwrap(),
         );
-        TermMap::write(file_writer, nodes.iter()).unwrap();
+        TermRepository::write(file_writer, nodes.iter()).unwrap();
     }
 }
 

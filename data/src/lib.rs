@@ -18,7 +18,7 @@ pub const LANGUAGES: [&str; 12] = [
 
 #[derive(Clone, Default)]
 pub struct Database {
-    term: term::TermMap,
+    term: term::TermRepository,
 
     pub skill: skill::SkillRepository,
     pub state: state::StateRepository,
@@ -29,17 +29,17 @@ impl Database {
         let skill = skill::SkillRepository::read(skill_read)?;
         let state = state::StateRepository::read(state_read)?;
         Ok(Self {
-            term: term::TermMap::new(),
+            term: term::TermRepository::new(),
             skill,
             state,
         })
     }
 
-    pub fn term(&self) -> &term::TermMap {
+    pub fn term(&self) -> &term::TermRepository {
         &self.term
     }
 
-    pub fn set_term(&mut self, term: term::TermMap) {
+    pub fn set_term(&mut self, term: term::TermRepository) {
         self.term = term;
     }
 }
