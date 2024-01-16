@@ -6,6 +6,7 @@ use json::JsonValue;
 use prettytable::{Cell, Row};
 
 pub mod act;
+pub mod act_node;
 pub mod state;
 pub mod skill;
 pub mod skill_mode;

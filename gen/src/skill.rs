@@ -11,86 +11,10 @@ use data::Sprite;
 use idhash::IdHash;
 use table::{BGTable, Table};
 use table::act::ActTable;
+use table::act_node::ActNodeTable;
 use table::skill::{SkillRow, SkillTable};
 use table::skill_mode::SkillModeTable;
 use table::sm_act::SmActTable;
-
-#[derive(Debug)]
-struct ActNodeRow<'a> {
-    row_id: &'a str,
-    id: &'a str,
-    inner_name: &'a str,
-    order: usize,
-    act: &'a str,
-    p_order: usize,
-    action_type: &'a str,
-    target: i8,
-    param_key: &'a str,
-    any: &'a str,
-    hit_rate: u16,
-    avoid_type: &'a str,
-    relate_target: &'a str,
-    relate: &'a str,
-    power: u32,
-    reduce: &'a str,
-    can_crit: bool,
-    speed: u8,
-    delay: u8,
-    skill_tag: &'a str,
-    cond: &'a str,
-    free_val: &'a str,
-    tag: &'a str,
-    freq: u8,
-    inc_target: &'a str,
-    inc_relate: &'a str,
-    inc_power: u16,
-    state_last: &'a str,
-    act_num: u8,
-    crit_rate: u16,
-    is_skill: bool,
-    check_target: bool,
-}
-
-impl<'a> ActNodeRow<'a> {
-    fn new(e: &'a HashMap<String, JsonValue>) -> Self {
-        Self {
-            row_id: e["_row_id"].as_str().unwrap(),
-            id: e["ID"].as_str().unwrap(),
-            inner_name: e["name"].as_str().unwrap(),
-            order: e["Order"].as_str().unwrap().parse::<usize>().unwrap(),
-            act: e["act"].as_str().unwrap(),
-            p_order: e["POrder"].as_str().unwrap().parse::<usize>().unwrap(),
-            action_type: e["ActionType"].as_str().unwrap(),
-            target: e["Target"].as_str().unwrap().parse::<i8>().unwrap(),
-            param_key: e["ParamKey"].as_str().unwrap(),
-            any: e["any"].as_str().unwrap(),
-            hit_rate: e["HitRate"].as_str().unwrap().parse::<u16>().unwrap(),
-            avoid_type: e["AvoidType"].as_str().unwrap(),
-            relate_target: e["RelateTarget"].as_str().unwrap(),
-            relate: e["Relate"].as_str().unwrap(),
-            power: e["Power"].as_str().unwrap().parse::<u32>().unwrap(),
-            reduce: e["Reduce"].as_str().unwrap(),
-            can_crit: str_to_bool(e["CanCrit"].as_str().unwrap()),
-            speed: e["Speed"].as_str().unwrap().parse::<u8>().unwrap(),
-            delay: e["Delay"].as_str().unwrap().parse::<u8>().unwrap(),
-            skill_tag: e["SkillTag"].as_str().unwrap(),
-            cond: e["Cond"].as_str().unwrap(),
-            free_val: e["FreeVal"].as_str().unwrap(),
-            tag: e["Tag"].as_str().unwrap(),
-            freq: e["Freq"].as_str().unwrap().parse::<u8>().unwrap(),
-            inc_target: e["IncTarget"].as_str().unwrap(),
-            inc_relate: e["IncRelate"].as_str().unwrap(),
-            inc_power: e["IncPower"].as_str().unwrap().parse::<u16>().unwrap(),
-            state_last: e["StateLast"].as_str().unwrap(),
-            act_num: e["ActNum"].as_str().unwrap().parse::<u8>().unwrap(),
-            crit_rate: e["CritRate"].as_str().unwrap().parse::<u16>().unwrap(),
-            is_skill: str_to_bool(e["IsSkill"].as_str().unwrap()),
-            check_target: str_to_bool(e["CheckTarget"].as_str().unwrap()),
-        }
-    }
-}
-
-
 
 fn str_to_bool(v: &str) -> bool {
     match v {
@@ -111,13 +35,7 @@ impl Hash for SkillWithId {
     }
 }
 
-pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<SkillModeTable>, sm_act_table: &Table<SmActTable>, act_table: &Table<ActTable>, act_node_table: &BGTable) {
-    let act_node_entities = act_node_table.entities();
-    let mut act_node_rows = act_node_entities.iter().map(|e| {
-        ActNodeRow::new(e)
-    }).collect::<Vec<_>>();
-    act_node_rows.sort_by_key(|row| row.order);
-
+pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<SkillModeTable>, sm_act_table: &Table<SmActTable>, act_table: &Table<ActTable>, act_node_table: &Table<ActNodeTable>) {
     let mut skills = skill_table.iter().flat_map(|skill_row| {
         let mode_rows = skill_mode_table.iter().filter(|row| {
             row.skill == format!("{}_{}", skill_row.name, skill_row.row_id)
@@ -138,7 +56,7 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<S
                 assert_eq!(act_rows.len(), 1, "sm_act {} has multiple acts", sm_act_row.name);
 
                 let act_row = &act_rows[0];
-                let nodes = act_node_rows.iter().filter(|act_node_row| {
+                let nodes = act_node_table.iter().filter(|act_node_row| {
                     act_node_row.act == format!("{}_{}", act_row.name, act_row.row_id)
                 }).filter(|row| row.action_type != "Visual").map(|act_node_row| {
                     // println!("act_node: {:?}", act_node_row);
@@ -156,21 +74,21 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<S
                     ActNode {
                         id: act_node_row.id.to_string(),
                         action_type: act_node_row.action_type.to_string(),
-                        target: act_node_row.target,
-                        param_key: ParamKey::from_str(act_node_row.param_key).unwrap(),
+                        target: act_node_row.target.try_into().unwrap(),
+                        param_key: ParamKey::from_str(&act_node_row.param_key).unwrap(),
                         state_row_id,
-                        hit_rate: act_node_row.hit_rate,
-                        avoid_type: AvoidType::from_str(act_node_row.avoid_type).unwrap(),
-                        relate_target: Target::from_str(act_node_row.relate_target).unwrap(),
+                        hit_rate: act_node_row.hit_rate.try_into().unwrap(),
+                        avoid_type: AvoidType::from_str(&act_node_row.avoid_type).unwrap(),
+                        relate_target: Target::from_str(&act_node_row.relate_target).unwrap(),
                         relate: act_node_row.relate.to_string(),
-                        power: act_node_row.power,
-                        reduce: Reduce::from_str(act_node_row.reduce).unwrap(),
-                        inc_target: Target::from_str(act_node_row.inc_target).unwrap(),
+                        power: act_node_row.power.try_into().unwrap(),
+                        reduce: Reduce::from_str(&act_node_row.reduce).unwrap(),
+                        inc_target: Target::from_str(&act_node_row.inc_target).unwrap(),
                         inc_relate: act_node_row.inc_relate.to_string(),
-                        inc_power: act_node_row.inc_power,
+                        inc_power: act_node_row.inc_power.try_into().unwrap(),
                         state_last: StateLast { f1: last[0], f2: last[1], f3: last[2], room: last[3], f5: last[4] },
-                        act_num: act_node_row.act_num,
-                        crit_rate: act_node_row.crit_rate,
+                        act_num: act_node_row.act_num.try_into().unwrap(),
+                        crit_rate: act_node_row.crit_rate.try_into().unwrap(),
                     }
                 }).collect::<Vec<_>>();
 

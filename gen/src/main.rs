@@ -11,6 +11,7 @@ use skill::process_skill;
 use state::process_state;
 use table::{BGTable, Table};
 use table::act::ActTable;
+use table::act_node::ActNodeTable;
 use table::skill::SkillTable;
 use table::skill_mode::SkillModeTable;
 use table::sm_act::SmActTable;
@@ -40,6 +41,7 @@ fn main() {
     }
 
     let mut act_table: Option<Table<ActTable>> = None;
+    let mut act_node_table: Option<Table<ActNodeTable>> = None;
     let mut skill_table: Option<Table<SkillTable>> = None;
     let mut skill_mode_table: Option<Table<SkillModeTable>> = None;
     let mut sm_act_table: Option<Table<SmActTable>> = None;
@@ -48,6 +50,7 @@ fn main() {
         let name = meta["Name"].as_str().unwrap();
         match name {
             "act" => act_table = Some(Table::new(meta.to_owned())),
+            "act_node" => act_node_table = Some(Table::new(meta.to_owned())),
             "skill" => skill_table = Some(Table::new(meta.to_owned())),
             "skill_mode" => skill_mode_table = Some(Table::new(meta.to_owned())),
             "sm_act" => sm_act_table = Some(Table::new(meta.to_owned())),
@@ -61,7 +64,7 @@ fn main() {
         &skill_mode_table.unwrap(),
         &sm_act_table.unwrap(),
         &act_table.unwrap(),
-        &db["act_node"]);
+        &act_node_table.unwrap());
 
     process_state(&state_table.unwrap());
 }
