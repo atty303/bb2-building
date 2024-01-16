@@ -9,6 +9,7 @@ use strum::{Display, EnumString};
 
 use ::{Database, Sprite};
 use term::{nodes_to_string, TermMap};
+use token::TokensExt;
 use token::Token;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema)]
@@ -540,31 +541,5 @@ impl Deref for SkillRepository {
 impl DerefMut for SkillRepository {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
-    }
-}
-
-type Nodes = Vec<Token>;
-
-trait ToDescs {
-    fn map_var<F: Fn(&str) -> Vec<Token>>(&self, f: F) -> Vec<Token>;
-}
-
-impl ToDescs for Nodes {
-    fn map_var<F: Fn(&str) -> Vec<Token>>(&self, f: F) -> Vec<Token> {
-        self.iter().flat_map(|n| match n {
-            Token::Var(s) => {
-                let adds = f(s.as_str());
-                if adds.is_empty() {
-                    vec![n.clone()]
-                } else {
-                    let mut out = vec![];
-                    // out.push(Node::Text(format!("<{}:", s)));
-                    out.extend(adds);
-                    // out.push(Node::Text(">".to_string()));
-                    out
-                }
-            }
-            n => vec![n.clone()],
-        }).collect::<Vec<_>>()
     }
 }
