@@ -48,7 +48,9 @@ pub fn App(cx: Scope) -> Element {
         to_owned![language_persistent];
         async move {
             if let Some(inner) = lang {
-                language_persistent.set(inner);
+                language_persistent.set(inner.clone());
+                let html = gloo_utils::document_element();
+                html.set_attribute("lang", &inner).unwrap();
             }
         }
     });
