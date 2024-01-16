@@ -12,48 +12,29 @@ use term::{nodes_to_string, TermMap};
 use token::TokensExt;
 use token::Token;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema, EnumString, Display)]
 pub enum SkillCategory {
+    #[strum(serialize = "0.Attack")]
     Attack,
+    #[strum(serialize = "1.Summon")]
     Summon,
+    #[strum(serialize = "2.Support")]
     Support,
+    #[strum(serialize = "3.Survive")]
     Survive,
+    #[strum(serialize = "4.Special")]
     Special,
+    #[strum(serialize = "9.Enemy")]
     Enemy,
 }
 
-impl SkillCategory {
-    pub fn from_str(s: &str) -> Option<Self> {
-        match s {
-            "0.Attack" => Some(SkillCategory::Attack),
-            "1.Summon" => Some(SkillCategory::Summon),
-            "2.Support" => Some(SkillCategory::Support),
-            "3.Survive" => Some(SkillCategory::Survive),
-            "4.Special" => Some(SkillCategory::Special),
-            "9.Enemy" => Some(SkillCategory::Enemy),
-            _ => None
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema, EnumString, Display)]
 pub enum AvoidType {
+    #[strum(serialize = "")]
     None,
     A,
     C,
     LastHit,
-}
-
-impl AvoidType {
-    pub fn from_str(s: &str) -> Option<Self> {
-        match s {
-            "" => Some(AvoidType::None),
-            "A" => Some(AvoidType::A),
-            "C" => Some(AvoidType::C),
-            "LastHit" => Some(AvoidType::LastHit),
-            _ => None
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, AvroSchema, EnumString, Display)]
