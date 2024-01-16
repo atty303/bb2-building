@@ -2,8 +2,6 @@ extern crate rmp_serde;
 extern crate serde;
 extern crate strum;
 
-use std::io::Read;
-
 pub use global::*;
 pub use sprite::*;
 
@@ -22,12 +20,4 @@ pub const LANGUAGES: [&str; 12] = [
 pub struct Database {
     pub global: GlobalRepository,
     pub skill: skill::SkillRepository,
-}
-
-impl Database {
-    pub fn read<R: Read>(global_read: R, skill_read: R) -> Result<Self, rmp_serde::decode::Error> {
-        let global = GlobalRepository::read(global_read)?;
-        let skill = skill::SkillRepository::read(skill_read)?;
-        Ok(Self { global, skill })
-    }
 }
