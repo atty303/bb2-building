@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use anyhow::anyhow;
 use dioxus::prelude::*;
 use dioxus_router::prelude::{Router, RouterConfig, RouterConfigFactory, WebHistory};
@@ -35,6 +33,7 @@ async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
     }
 }
 
+#[component]
 pub fn App(cx: Scope) -> Element {
     use_init_atom_root(cx);
 
