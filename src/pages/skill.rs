@@ -29,7 +29,7 @@ pub fn SkillListPage(cx: Scope, tab: String) -> Element {
             "Search"
         }
 
-        div { class: "tabs tabs-bordered",
+        div { class: "tabs tabs-bordered tabs-lg",
             role: "tablist",
 
             input { class: "tab text-primary",
@@ -83,10 +83,15 @@ pub fn SkillListPage(cx: Scope, tab: String) -> Element {
 
 #[component]
 fn SkillLink<'a>(cx: Scope, skill: &'a Skill) -> Element<'a> {
+    let db = use_read_rc(cx, &DATABASE);
     render! {
-        Link { class: "inline-block hover:bg-primary border-primary border-solid border-2 rounded-md p-1",
-            to: Route::SkillPage { skill_id: skill.id.clone() },
-            SpriteIcon { class: "rounded-md", sprite: &skill.modes[0].icon, size: 96 }
+        span { class: "inline-block",
+            title: "{skill.name(db.term())}",
+            Link { class: "inline-block hover:bg-primary border-primary border-solid border-2 rounded-md p-1",
+                to: Route::SkillPage { skill_id: skill.id.clone() },
+                SpriteIcon { class: "rounded-md", sprite: &skill.modes[0].icon, size: 96 }
+            }
+
         }
     }
 }
