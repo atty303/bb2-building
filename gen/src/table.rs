@@ -63,6 +63,14 @@ impl EntityParser {
     }
 }
 
+pub struct UnknownTable;
+impl TableParser for UnknownTable {
+    type Row = ();
+    fn parse_row(_: &EntityParser) -> Self::Row {
+        ()
+    }
+}
+
 pub struct Table<T: TableParser> {
     meta: JsonValue,
     fields: Vec<String>,
@@ -88,6 +96,10 @@ impl<T: TableParser> Table<T> {
         }
     }
 
+    pub fn name(&self) -> &str {
+        self.meta["Name"].as_str().unwrap()
+    }
+
     pub fn iter(&self) -> Iter<'_, <T as TableParser>::Row> {
         self.rows.iter()
     }
@@ -108,42 +120,5 @@ impl<T: TableParser> Table<T> {
             }
             csv_writer.write_record(row).unwrap();
         }
-    }
-}
-
-pub struct BGTable<'a> {
-    db: &'a JsonValue,
-}
-
-impl BGTable<'_> {
-    pub fn new(db: &JsonValue) -> BGTable {
-        BGTable {
-            db,
-        }
-    }
-
-    pub fn id(&self) -> &str {
-        self.db["Id"].as_str().unwrap()
-    }
-
-    pub fn entities(&self) -> Vec<HashMap<String, JsonValue>> {
-        let mut out = Vec::new();
-
-        for entity in self.db["Entities"].members() {
-            let mut entity_map = HashMap::new();
-
-            entity_map.insert("_row_id".to_string(), entity["Id"].clone());
-
-            for field in entity["Values"].members() {
-                let field_name = field["Name"].as_str().unwrap();
-                let field_value = field["Value"].clone();
-
-                entity_map.insert(field_name.to_string(), field_value);
-            }
-
-            out.push(entity_map);
-        }
-
-        out
     }
 }
