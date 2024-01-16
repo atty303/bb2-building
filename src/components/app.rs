@@ -38,8 +38,8 @@ async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
 pub fn App(cx: Scope) -> Element {
     use_init_atom_root(cx);
 
+    // TODO: use_config
     let language = use_atom_state(cx, &crate::atoms::LANGUAGE);
-
     let language_persistent = use_persistent(cx, "language", || "en".to_string());
     use_effect(cx, &language_persistent.get(), move |lang| {
         to_owned![language];
@@ -49,7 +49,6 @@ pub fn App(cx: Scope) -> Element {
             }
         }
     });
-
     use_effect(cx, language.get(), move |lang| {
         to_owned![language_persistent];
         async move {
@@ -91,13 +90,8 @@ pub fn App(cx: Scope) -> Element {
                 "An error occurred while fetching database: {err}"
             }
         }
-        Some(None) => {
-            render! {
-                ""
-            }
-        }
-        None => {
-            // Loading
+        Some(None) | None => {
+            // While loading database
             render! {
                 ""
             }
