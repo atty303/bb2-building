@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
 #[component]
-pub fn Sprite<'a>(cx: Scope<'a>, sprite: &'a data::sprite::Sprite, scale: f64) -> Element {
+pub fn Sprite<'a>(cx: Scope<'a>, sprite: &'a data::Sprite, scale: f64) -> Element {
     render! {
         span {
             class: "inline-block sprite",
@@ -13,7 +13,7 @@ pub fn Sprite<'a>(cx: Scope<'a>, sprite: &'a data::sprite::Sprite, scale: f64) -
 #[component]
 pub fn SpriteIcon<'a>(
     cx: Scope<'a>,
-    sprite: &'a data::sprite::Sprite,
+    sprite: &'a data::Sprite,
     size: i32,
     class: &'a str,
 ) -> Element {

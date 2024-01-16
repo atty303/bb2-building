@@ -19,6 +19,7 @@ use table::sm_act::SmActTable;
 use table::state::StateTable;
 use table::{Table, UnknownTable};
 
+mod global;
 mod idhash;
 mod skill;
 mod sprite;
@@ -35,7 +36,7 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
-    Term,
+    Global,
     Table,
     Skill {
         #[arg(long, default_value_t = false)]
@@ -48,7 +49,7 @@ fn main() {
     let args = Cli::parse();
 
     match args.command {
-        Commands::Term => run_term(),
+        Commands::Global => run_global(),
 
         Commands::Table => {
             let db = read_db();
@@ -82,14 +83,15 @@ fn read_db() -> JsonValue {
     json::parse(s.as_str()).unwrap()
 }
 
-fn run_term() {
+fn run_global() {
     let terms_i18n = terms::term_repository_from_dump();
     for lang in LANGUAGES {
         let mut writer = std::io::BufWriter::new(
-            std::fs::File::create(format!("public/i18n/{}/term.msgpack", lang)).unwrap(),
+            std::fs::File::create(format!("public/i18n/{}/global.msgpack", lang)).unwrap(),
         );
         let terms = terms_i18n.get(lang).unwrap();
-        terms.write(&mut writer).unwrap();
+        let repo = global::process_global(&terms);
+        repo.write(&mut writer).unwrap();
     }
 }
 

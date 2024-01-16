@@ -4,8 +4,12 @@ extern crate strum;
 
 use std::io::Read;
 
+pub use global::*;
+pub use sprite::*;
+
+mod global;
 pub mod skill;
-pub mod sprite;
+mod sprite;
 pub mod state;
 pub mod term;
 pub mod token;
@@ -16,19 +20,14 @@ pub const LANGUAGES: [&str; 12] = [
 
 #[derive(Clone, Default)]
 pub struct Database {
-    term: term::TermRepository,
-
+    pub global: GlobalRepository,
     pub skill: skill::SkillRepository,
 }
 
 impl Database {
-    pub fn read<R: Read>(term_read: R, skill_read: R) -> Result<Self, rmp_serde::decode::Error> {
-        let term = term::TermRepository::read(term_read)?;
+    pub fn read<R: Read>(global_read: R, skill_read: R) -> Result<Self, rmp_serde::decode::Error> {
+        let global = GlobalRepository::read(global_read)?;
         let skill = skill::SkillRepository::read(skill_read)?;
-        Ok(Self { term, skill })
-    }
-
-    pub fn term(&self) -> &term::TermRepository {
-        &self.term
+        Ok(Self { global, skill })
     }
 }
