@@ -6,9 +6,10 @@ use std::ops::{Deref, DerefMut, Range};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
+use sprite::Sprite;
 use term::TermRepository;
 use token::{Token, Tokens};
-use {Database, Sprite};
+use Database;
 
 type SkillHash = u16;
 
@@ -118,7 +119,7 @@ pub struct SkillMode {
 
 impl SkillMode {
     pub fn name(&self, terms: &TermRepository) -> String {
-        terms.get_fmt_str(&format_args!("NM-{}", self.id))
+        terms.get_str(&format!("NM-{}", self.id))
     }
 
     pub fn format(&self, db: &Database) -> Tokens {

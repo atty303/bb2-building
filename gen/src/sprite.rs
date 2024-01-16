@@ -1,4 +1,4 @@
-use data::Sprite;
+use data::sprite::Sprite;
 use std::convert::TryInto;
 use yaml_rust::{Yaml, YamlLoader};
 

@@ -4,9 +4,8 @@ extern crate strum;
 
 use std::io::Read;
 
-use serde::{Deserialize, Serialize};
-
 pub mod skill;
+pub mod sprite;
 pub mod state;
 pub mod term;
 pub mod token;
@@ -38,12 +37,4 @@ impl Database {
     pub fn set_term(&mut self, term: term::TermRepository) {
         self.term = term;
     }
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Sprite {
-    pub x: u16,
-    pub y: u16,
-    pub width: u8,
-    pub height: u8,
 }

@@ -1,9 +1,9 @@
 use std::collections::HashMap;
-use std::fmt::Arguments;
 use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
 
 use serde::{Deserialize, Serialize};
+
 use token::{Token, Tokens};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -40,16 +40,8 @@ impl<'a> TermRepository {
         }
     }
 
-    pub fn get_fmt(&self, args: &Arguments<'_>) -> Tokens {
-        if let Some(key) = args.as_str() {
-            self.get(key)
-        } else {
-            Tokens(vec![Token::Error(format!("{:?}", args))])
-        }
-    }
-
-    pub fn get_fmt_str(&self, args: &Arguments<'_>) -> String {
-        format!("{}", self.get_fmt(args))
+    pub fn get_str(&self, key: &str) -> String {
+        format!("{}", self.get(key))
     }
 }
 

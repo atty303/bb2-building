@@ -179,10 +179,10 @@ fn act_node_replacer(
         },
         "t" => {
             let target = if row.target < 0 { 0 } else { row.target };
-            out.extend(terms.get_fmt(&format_args!("DC-SkillNodeDesc-TargetName-{}", target)));
+            out.extend(terms.get(&format!("DC-SkillNodeDesc-TargetName-{}", target)));
         }
         "tg" => {
-            out.extend(terms.get_fmt(&format_args!(
+            out.extend(terms.get(&format!(
                 "DC-SkillNodeDesc-TargetSkill-{}",
                 // TODO: param_key じゃないっぽい(-1がある)
                 row.param_key
@@ -230,7 +230,7 @@ fn act_node_replacer(
             "" => out.push(Token::Empty),
             "P" | "M" | "V" => {
                 out.push(Token::Indent);
-                out.extend(terms.get_fmt(&format_args!("DC-SkillNodeDesc-Reduce-{}", row.reduce)));
+                out.extend(terms.get(&format!("DC-SkillNodeDesc-Reduce-{}", row.reduce)));
             }
             _ => out.push(Token::Error(format!("invalid reduce: {}", row.reduce))),
         },
@@ -258,7 +258,7 @@ fn act_node_replacer(
         "irf" => {
             let pair = row.inc_relate.split(':').collect::<Vec<_>>();
             let key = pair[0];
-            out.extend(terms.get_fmt(&format_args!("NM-{}", key)));
+            out.extend(terms.get(&format!("NM-{}", key)));
         }
         "ipw" => out.push(Token::Text(row.inc_power.to_string())),
         "power" => out.extend(terms.get("DC-SkillNodeDesc-AboutPower")),
@@ -281,7 +281,7 @@ fn act_node_replacer(
                     .iter()
                     .map(|s| {
                         let n = &s[3..4];
-                        terms.get_fmt(&format_args!("NM-MainParam:{}", n))
+                        terms.get(&format!("NM-MainParam:{}", n))
                     })
                     .collect::<Vec<_>>();
                 out.extend(or[0].clone());
@@ -290,7 +290,7 @@ fn act_node_replacer(
             } else {
                 let pair = row.relate.split(':').collect::<Vec<_>>();
                 let key = pair[0];
-                out.extend(terms.get_fmt(&format_args!("NM-{}", key)));
+                out.extend(terms.get(&format!("NM-{}", key)));
             }
         }
         "pw" => out.push(Token::Text(row.power.to_string())),
