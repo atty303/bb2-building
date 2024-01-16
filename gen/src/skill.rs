@@ -12,30 +12,7 @@ use idhash::IdHash;
 use table::{BGTable, Table};
 use table::skill::{SkillRow, SkillTable};
 use table::skill_mode::SkillModeTable;
-
-struct SmActRow<'a> {
-    row_id: &'a str,
-    id: &'a str,
-    name: &'a str,
-    skill_mode: &'a str,
-    act: &'a str,
-    act_trigger: &'a str,
-    freq: u8,
-}
-
-impl<'a> SmActRow<'a> {
-    fn new(e: &'a HashMap<String, JsonValue>) -> Self {
-        Self {
-            row_id: e["_row_id"].as_str().unwrap(),
-            id: e["ID"].as_str().unwrap(),
-            name: e["name"].as_str().unwrap(),
-            skill_mode: e["skill_mode"].as_str().unwrap(),
-            act: e["act"].as_str().unwrap(),
-            act_trigger: e["ActTrigger"].as_str().unwrap(),
-            freq: e["Freq"].as_str().unwrap().parse::<u8>().unwrap(),
-        }
-    }
-}
+use table::sm_act::SmActTable;
 
 struct ActRow<'a> {
     row_id: &'a str,
@@ -161,12 +138,7 @@ impl Hash for SkillWithId {
     }
 }
 
-pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<SkillModeTable>, sm_act_table: &BGTable, act_table: &BGTable, act_node_table: &BGTable) {
-    let sm_act_entities = sm_act_table.entities();
-    let sm_act_rows = sm_act_entities.iter().map(|e| {
-        SmActRow::new(e)
-    }).collect::<Vec<_>>();
-
+pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<SkillModeTable>, sm_act_table: &Table<SmActTable>, act_table: &BGTable, act_node_table: &BGTable) {
     let act_node_entities = act_node_table.entities();
     let mut act_node_rows = act_node_entities.iter().map(|e| {
         ActNodeRow::new(e)
@@ -186,7 +158,7 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<S
         let mut mode_categories = HashSet::new();
 
         let modes = mode_rows.iter().map(|mode_row| {
-            let sm_acts = sm_act_rows.iter().filter(|sm_act_row| {
+            let sm_acts = sm_act_table.iter().filter(|sm_act_row| {
                 sm_act_row.skill_mode == format!("{}_{}", mode_row.name, mode_row.row_id)
             }).collect::<Vec<_>>();
             assert!(sm_acts.len() > 0, "skill_mode {} has no sm_acts", mode_row.name);
@@ -236,7 +208,7 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<S
 
                 Act {
                     id: act_row.id.to_string(),
-                    act_trigger: ActTrigger::from_str(sm_act_row.act_trigger).expect("act_trigger"),
+                    act_trigger: ActTrigger::from_str(&sm_act_row.act_trigger).expect("act_trigger"),
                     nodes
                 }
             }).collect::<Vec<_>>();

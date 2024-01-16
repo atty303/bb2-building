@@ -26,7 +26,7 @@ impl IdHash {
         let max = 10000;
         'seed: for s in 0..max {
             self.seed = s;
-            let mut used = BTreeSet::<u64>::new();;
+            let mut used = BTreeSet::<u64>::new();
             for v in values {
                 if !used.insert(self.id_hash(&v)) {
                     continue 'seed;

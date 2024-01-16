@@ -8,6 +8,7 @@ use prettytable::{Cell, Row};
 pub mod state;
 pub mod skill;
 pub mod skill_mode;
+pub mod sm_act;
 
 pub trait TableParser {
     type Row;
@@ -74,7 +75,7 @@ impl<T: TableParser> Table<T> {
         }
     }
 
-    pub fn iter(&self) -> Box<Iterator<Item = T::Row> + '_> {
+    pub fn iter(&self) -> Box<dyn Iterator<Item = T::Row> + '_> {
         Box::new(self.meta["Entities"].members().map(|e| {
             let ep = EntityParser::new(e);
             T::parse_row(&ep)
