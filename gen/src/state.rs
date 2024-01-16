@@ -1,8 +1,8 @@
-use data::state::State;
+use data::state::{State, StateRepository};
 use table::state::StateTable;
 use table::Table;
 
-pub fn process_state(state_table: &Table<StateTable>) {
+pub fn state_repository_from_dump(state_table: &Table<StateTable>) -> StateRepository {
     let rows = state_table
         .iter()
         .map(|state_row| State {
@@ -13,7 +13,5 @@ pub fn process_state(state_table: &Table<StateTable>) {
         })
         .collect::<Vec<_>>();
 
-    let file_writer =
-        std::io::BufWriter::new(std::fs::File::create(format!("public/data/state.avro")).unwrap());
-    data::write_avro(file_writer, rows.iter()).unwrap();
+    StateRepository::from_vec(rows)
 }

@@ -4,5 +4,5 @@ version = "0.1.0"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-apache-avro = { version = "0.16", features = ["derive"] }
+rmp-serde = "1.1"
 strum = { version = "0.25", features = ["derive"] }

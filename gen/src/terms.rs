@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::OnceLock;
 
 use regex::Regex;
@@ -9,7 +10,7 @@ use data::LANGUAGES;
 
 use crate::data::token::Token;
 
-pub fn write_terms() {
+pub fn term_repository_from_dump() -> HashMap<&'static str, TermRepository> {
     let s =
         std::fs::read_to_string("dump/asset/ExportedProject/Assets/Resources/I2Languages.asset")
             .unwrap();
@@ -40,6 +41,8 @@ pub fn write_terms() {
         }
     }
 
+    let mut repos = HashMap::new();
+
     let re = Regex::new(r"\{\[(.+?)]}").unwrap();
     for (i, lang) in LANGUAGES.iter().enumerate() {
         let out = &outs[i];
@@ -60,15 +63,15 @@ pub fn write_terms() {
             }
         }
 
-        {
-            let file_writer = std::io::BufWriter::new(
-                std::fs::File::create(format!("dump/{}.csv", lang)).unwrap(),
-            );
-            let mut csv_writer = csv::Writer::from_writer(file_writer);
-            for (key, value) in new_out.iter() {
-                csv_writer.write_record(&[key, &value]).unwrap();
-            }
-        }
+        // {
+        //     let file_writer = std::io::BufWriter::new(
+        //         std::fs::File::create(format!("dump/{}.csv", lang)).unwrap(),
+        //     );
+        //     let mut csv_writer = csv::Writer::from_writer(file_writer);
+        //     for (key, value) in new_out.iter() {
+        //         csv_writer.write_record(&[key, &value]).unwrap();
+        //     }
+        // }
 
         let nodes = new_out
             .iter()
@@ -82,11 +85,10 @@ pub fn write_terms() {
             })
             .collect::<Vec<_>>();
 
-        let file_writer = std::io::BufWriter::new(
-            std::fs::File::create(format!("public/i18n/{}/term.avro", lang)).unwrap(),
-        );
-        TermRepository::write(file_writer, nodes.iter()).unwrap();
+        repos.insert(*lang, TermRepository::from_vec(nodes.clone()));
     }
+
+    repos
 }
 
 static RE: OnceLock<Regex> = OnceLock::new();

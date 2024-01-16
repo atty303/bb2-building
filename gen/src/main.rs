@@ -6,10 +6,11 @@ extern crate regex;
 extern crate yaml_rust;
 
 use clap::{Parser, Subcommand};
+use data::LANGUAGES;
 use json::JsonValue;
 
 use skill::process_skill;
-use state::process_state;
+use state::state_repository_from_dump;
 use table::act::ActTable;
 use table::act_node::ActNodeTable;
 use table::skill::SkillTable;
@@ -47,9 +48,8 @@ fn main() {
     let args = Cli::parse();
 
     match args.command {
-        Commands::Term => {
-            terms::write_terms();
-        }
+        Commands::Term => run_term(),
+
         Commands::Table => {
             let db = read_db();
             for meta in db["Metas"].members() {
@@ -59,37 +59,7 @@ fn main() {
                 ));
             }
         }
-        Commands::Skill { write } => {
-            let mut act_table: Option<Table<ActTable>> = None;
-            let mut act_node_table: Option<Table<ActNodeTable>> = None;
-            let mut skill_table: Option<Table<SkillTable>> = None;
-            let mut skill_mode_table: Option<Table<SkillModeTable>> = None;
-            let mut sm_act_table: Option<Table<SmActTable>> = None;
-            // let mut state_table: Option<Table<StateTable>> = None;
-
-            let db = read_db();
-            for meta in db["Metas"].members() {
-                let name = meta["Name"].as_str().unwrap();
-                match name {
-                    "act" => act_table = Some(Table::new(meta.to_owned())),
-                    "act_node" => act_node_table = Some(Table::new(meta.to_owned())),
-                    "skill" => skill_table = Some(Table::new(meta.to_owned())),
-                    "skill_mode" => skill_mode_table = Some(Table::new(meta.to_owned())),
-                    "sm_act" => sm_act_table = Some(Table::new(meta.to_owned())),
-                    // "state" => state_table = Some(Table::new(meta.to_owned())),
-                    _ => (),
-                }
-            }
-
-            process_skill(
-                &skill_table.unwrap(),
-                &skill_mode_table.unwrap(),
-                &sm_act_table.unwrap(),
-                &act_table.unwrap(),
-                &act_node_table.unwrap(),
-                write,
-            );
-        }
+        Commands::Skill { write } => run_skill(write),
         Commands::State => {
             let mut state_table: Option<Table<StateTable>> = None;
 
@@ -102,7 +72,7 @@ fn main() {
                 }
             }
 
-            process_state(&state_table.unwrap());
+            state_repository_from_dump(&state_table.unwrap());
         }
     }
 }
@@ -110,4 +80,66 @@ fn main() {
 fn read_db() -> JsonValue {
     let s = std::fs::read_to_string("dump/db.json").unwrap();
     json::parse(s.as_str()).unwrap()
+}
+
+fn run_term() {
+    let terms_i18n = terms::term_repository_from_dump();
+    for lang in LANGUAGES {
+        let mut writer = std::io::BufWriter::new(
+            std::fs::File::create(format!("public/i18n/{}/term.msgpack", lang)).unwrap(),
+        );
+        let terms = terms_i18n.get(lang).unwrap();
+        terms.write(&mut writer).unwrap();
+    }
+}
+
+fn run_skill(write: bool) {
+    let mut act_table: Option<Table<ActTable>> = None;
+    let mut act_node_table: Option<Table<ActNodeTable>> = None;
+    let mut skill_table: Option<Table<SkillTable>> = None;
+    let mut skill_mode_table: Option<Table<SkillModeTable>> = None;
+    let mut sm_act_table: Option<Table<SmActTable>> = None;
+    let mut state_table: Option<Table<StateTable>> = None;
+
+    let db = read_db();
+    for meta in db["Metas"].members() {
+        let name = meta["Name"].as_str().unwrap();
+        match name {
+            "act" => act_table = Some(Table::new(meta.to_owned())),
+            "act_node" => act_node_table = Some(Table::new(meta.to_owned())),
+            "skill" => skill_table = Some(Table::new(meta.to_owned())),
+            "skill_mode" => skill_mode_table = Some(Table::new(meta.to_owned())),
+            "sm_act" => sm_act_table = Some(Table::new(meta.to_owned())),
+            "state" => state_table = Some(Table::new(meta.to_owned())),
+            _ => (),
+        }
+    }
+
+    let skill_table = skill_table.unwrap();
+    let skill_mode_table = skill_mode_table.unwrap();
+    let sm_act_table = sm_act_table.unwrap();
+    let act_table = act_table.unwrap();
+    let act_node_table = act_node_table.unwrap();
+
+    let states = state_repository_from_dump(&state_table.unwrap());
+    let terms_i18n = terms::term_repository_from_dump();
+
+    for lang in LANGUAGES {
+        let terms = terms_i18n.get(lang).unwrap();
+        let repo = process_skill(
+            &skill_table,
+            &skill_mode_table,
+            &sm_act_table,
+            &act_table,
+            &act_node_table,
+            terms,
+            &states,
+        );
+        if write {
+            let mut writer = std::io::BufWriter::new(
+                std::fs::File::create(format!("public/i18n/{}/skill.msgpack", lang)).unwrap(),
+            );
+            repo.write(&mut writer).unwrap();
+        }
+    }
 }

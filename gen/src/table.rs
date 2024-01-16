@@ -78,6 +78,7 @@ impl TableParser for UnknownTable {
     }
 }
 
+#[derive(Clone)]
 pub struct Table<T: TableParser> {
     meta: JsonValue,
     fields: Vec<String>,

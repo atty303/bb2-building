@@ -7,10 +7,13 @@ use data::skill::{
     Act, ActNode, ActTrigger, AvoidType, ParamKey, Reduce, Skill, SkillCategory, SkillMode,
     SkillRepository, StateLast, Target,
 };
+use data::state::StateRepository;
+use data::term::TermRepository;
+use data::token::{Token, Tokens};
 use idhash::IdHash;
 use sprite::parse_icon;
 use table::act::ActTable;
-use table::act_node::ActNodeTable;
+use table::act_node::{ActNodeRow, ActNodeTable};
 use table::skill::SkillTable;
 use table::skill_mode::SkillModeTable;
 use table::sm_act::SmActTable;
@@ -34,8 +37,9 @@ pub fn process_skill(
     sm_act_table: &Table<SmActTable>,
     act_table: &Table<ActTable>,
     act_node_table: &Table<ActNodeTable>,
-    write: bool,
-) {
+    terms: &TermRepository,
+    states: &StateRepository,
+) -> SkillRepository {
     let mut skills = skill_table
         .iter()
         .flat_map(|skill_row| {
@@ -86,68 +90,7 @@ pub fn process_skill(
                                         == format!("{}_{}", act_row.name, act_row.row_id)
                                 })
                                 .filter(|row| row.action_type != "Visual")
-                                .map(|act_node_row| {
-                                    // println!("act_node: {:?}", act_node_row);
-
-                                    let last =
-                                        act_node_row.state_last.split('|').collect::<Vec<_>>();
-                                    assert_eq!(
-                                        last.len(),
-                                        5,
-                                        "invalid state_last: {}",
-                                        act_node_row.state_last
-                                    );
-                                    let last = last
-                                        .iter()
-                                        .map(|v| v.parse::<i8>().unwrap())
-                                        .collect::<Vec<_>>();
-
-                                    let state_row_id = if act_node_row.any.starts_with("state.") {
-                                        Some(
-                                            act_node_row
-                                                .any
-                                                .splitn(3, '_')
-                                                .skip(2)
-                                                .next()
-                                                .unwrap()
-                                                .to_string(),
-                                        )
-                                    } else {
-                                        None
-                                    };
-
-                                    ActNode {
-                                        id: act_node_row.id.to_string(),
-                                        action_type: act_node_row.action_type.to_string(),
-                                        target: act_node_row.target.try_into().unwrap(),
-                                        param_key: ParamKey::from_str(&act_node_row.param_key)
-                                            .unwrap(),
-                                        state_row_id,
-                                        hit_rate: act_node_row.hit_rate.try_into().unwrap(),
-                                        avoid_type: AvoidType::from_str(&act_node_row.avoid_type)
-                                            .unwrap(),
-                                        relate_target: Target::from_str(
-                                            &act_node_row.relate_target,
-                                        )
-                                        .unwrap(),
-                                        relate: act_node_row.relate.to_string(),
-                                        power: act_node_row.power.try_into().unwrap(),
-                                        reduce: Reduce::from_str(&act_node_row.reduce).unwrap(),
-                                        inc_target: Target::from_str(&act_node_row.inc_target)
-                                            .unwrap(),
-                                        inc_relate: act_node_row.inc_relate.to_string(),
-                                        inc_power: act_node_row.inc_power.try_into().unwrap(),
-                                        state_last: StateLast {
-                                            f1: last[0],
-                                            f2: last[1],
-                                            f3: last[2],
-                                            room: last[3],
-                                            f5: last[4],
-                                        },
-                                        act_num: act_node_row.act_num.try_into().unwrap(),
-                                        crit_rate: act_node_row.crit_rate.try_into().unwrap(),
-                                    }
-                                })
+                                .map(|act_node_row| process_act_node(act_node_row, terms, states))
                                 .collect::<Vec<_>>();
 
                             Act {
@@ -219,10 +162,287 @@ pub fn process_skill(
 
     skills.sort_by_key(|s| (!s.skill.is_free, s.order));
 
-    if write {
-        let file_writer = std::io::BufWriter::new(
-            std::fs::File::create(format!("public/data/skill.avro")).unwrap(),
-        );
-        SkillRepository::write(file_writer, skills.iter().map(|s| &s.skill)).unwrap();
+    SkillRepository::from_vec(skills.iter().map(|s| s.skill.clone()).collect::<Vec<_>>())
+}
+
+fn act_node_replacer(
+    name: &str,
+    out: &mut Tokens,
+    row: &ActNodeRow,
+    terms: &TermRepository,
+    states: &StateRepository,
+) {
+    match name {
+        "lasthit" => match row.avoid_type.as_str() {
+            "LastHit" => out.extend(terms.get("DC-SkillNodeDesc-LastHit")),
+            _ => out.push(Token::Empty), // TODO: error handling?
+        },
+        "t" => {
+            let target = if row.target < 0 { 0 } else { row.target };
+            out.extend(terms.get_fmt(&format_args!("DC-SkillNodeDesc-TargetName-{}", target)));
+        }
+        "tg" => {
+            out.extend(terms.get_fmt(&format_args!(
+                "DC-SkillNodeDesc-TargetSkill-{}",
+                // TODO: param_key じゃないっぽい(-1がある)
+                row.param_key
+            )))
+        }
+        "dr" => out.extend(terms.get("WD-DamageType-Direct")),
+        "accu" => match row.avoid_type.as_str() {
+            "" | "LastHit" => {
+                out.push(Token::Indent);
+                out.extend(terms.get("DC-SkillNodeDesc-AvoidType-"));
+            }
+            "A" => {
+                out.push(Token::Indent);
+                out.extend(terms.get("DC-SkillNodeDesc-AvoidType-A"));
+            }
+            "C" => {
+                out.push(Token::Indent);
+                out.extend(terms.get("DC-SkillNodeDesc-AvoidType-C"));
+            }
+            _ => {
+                out.push(Token::Error(format!(
+                    "invalid avoid_type: {}",
+                    row.avoid_type
+                )));
+            }
+        },
+        "hit" => out.push(Token::Text(row.hit_rate.to_string())),
+        "crit" => {
+            if row.crit_rate == 0 || row.crit_rate == 100 {
+                out.push(Token::Empty)
+            } else {
+                out.push(Token::Indent);
+                out.extend(
+                    terms
+                        .get("DC-SkillNodeDesc-CritRate")
+                        .map_var(|out, s| match s {
+                            "0" => out.push(Token::Text(row.crit_rate.to_string())),
+                            _ => (),
+                        }),
+                );
+            }
+        }
+        // reduce
+        "rd" => match row.reduce.as_str() {
+            "" => out.push(Token::Empty),
+            "P" | "M" | "V" => {
+                out.push(Token::Indent);
+                out.extend(terms.get_fmt(&format_args!("DC-SkillNodeDesc-Reduce-{}", row.reduce)));
+            }
+            _ => out.push(Token::Error(format!("invalid reduce: {}", row.reduce))),
+        },
+        "inc" => {
+            if row.inc_relate.is_empty() {
+                out.push(Token::Empty)
+            } else {
+                out.push(Token::Indent);
+                let pair = row.inc_relate.split(':').collect::<Vec<_>>();
+                let key = pair[0];
+                match key {
+                    "CritRate" => out.extend(terms.get("DC-SkillNodeDesc-AboutIncPower")),
+                    _ => (), // TODO: verify
+                }
+            }
+        }
+        "irt" => match row.inc_target.as_str() {
+            "SELF" => out.extend(terms.get("DC-SkillNodeDesc-TargetName-0")),
+            "TARGET" => out.extend(terms.get("DC-SkillNodeDesc-TargetName-1")),
+            _ => out.push(Token::Error(format!(
+                "invalid inc_target: {}",
+                row.inc_target
+            ))),
+        },
+        "irf" => {
+            let pair = row.inc_relate.split(':').collect::<Vec<_>>();
+            let key = pair[0];
+            out.extend(terms.get_fmt(&format_args!("NM-{}", key)));
+        }
+        "ipw" => out.push(Token::Text(row.inc_power.to_string())),
+        "power" => out.extend(terms.get("DC-SkillNodeDesc-AboutPower")),
+        "pwd" => {
+            // rt,rf,pw
+            out.extend(terms.get("DC-SkillNodeDesc-AboutPowerDtl"))
+        }
+        "rt" => match row.inc_target.as_str() {
+            "SELF" => out.extend(terms.get("DC-SkillNodeDesc-TargetName-0")),
+            "TARGET" => out.extend(terms.get("DC-SkillNodeDesc-TargetName-1")),
+            _ => out.push(Token::Error(format!(
+                "invalid inc_target: {}",
+                row.inc_target
+            ))),
+        },
+        "rf" => {
+            if row.relate.contains('/') {
+                let mut it = row.relate.split('/');
+                let or = [it.next().unwrap(), it.next().unwrap()]
+                    .iter()
+                    .map(|s| {
+                        let n = &s[3..4];
+                        terms.get_fmt(&format_args!("NM-MainParam:{}", n))
+                    })
+                    .collect::<Vec<_>>();
+                out.extend(or[0].clone());
+                out.extend(terms.get("WD-Relate-Or"));
+                out.extend(or[1].clone());
+            } else {
+                let pair = row.relate.split(':').collect::<Vec<_>>();
+                let key = pair[0];
+                out.extend(terms.get_fmt(&format_args!("NM-{}", key)));
+            }
+        }
+        "pw" => out.push(Token::Text(row.power.to_string())),
+        "last" => {
+            // if self.state_last.room >= 0 {
+            //     out.push(Token::NewLine);
+            //     out.push(Token::Text("　".to_string()));
+            //     out.extend(db.term().get("DC-SkillNodeDesc-LastCombine").map_var(
+            //         |out, s| match s {
+            //             "0" => {
+            //                 let t = db
+            //                     .term()
+            //                     .get("DC-SkillNodeDesc-LastRoom")
+            //                     .map_var(|out, s| match s {
+            //                         "0" => {
+            //                             out.push(Token::Text(self.state_last.room.to_string()));
+            //                         }
+            //                         _ => (),
+            //                     });
+            //                 out.extend(t);
+            //             }
+            //             _ => (),
+            //         },
+            //     ));
+            // } else if self.state_last.f1 >= 0 {
+            //     out.push(Token::Error("state_last.f1".to_string()));
+            // } else if self.state_last.f2 >= 0 {
+            //     out.push(Token::NewLine);
+            //     out.push(Token::Text("　".to_string()));
+            //     out.extend(db.term().get("DC-SkillNodeDesc-LastCombine").map_var(
+            //         |out, s| match s {
+            //             "0" => {
+            //                 let t = db
+            //                     .term()
+            //                     .get("DC-SkillNodeDesc-LastTurn")
+            //                     .map_var(|out, s| match s {
+            //                         "0" => {
+            //                             out.push(Token::Text(self.state_last.f2.to_string()));
+            //                         }
+            //                         _ => (),
+            //                     });
+            //                 out.extend(t);
+            //             }
+            //             _ => (),
+            //         },
+            //     ));
+            // } else if self.state_last.f3 >= 0 {
+            //     out.push(Token::Error("state_last.f3".to_string()));
+            // } else if self.state_last.f5 >= 0 {
+            //     out.push(Token::Error("state_last.f5".to_string()));
+            // } else {
+            //     out.push(Token::Empty);
+            // }
+        }
+        "st" => {
+            if let Some(state_row_id) = &row.state_row_id {
+                if let Some(state) = states.get(state_row_id) {
+                    out.extend(terms.get(&format!("NM-{}", &state.id)))
+                } else {
+                    out.push(Token::Error(format!("state not found: {}", state_row_id)));
+                }
+            }
+        }
+        "srpw" => {
+            if let Some(state_row_id) = &row.state_row_id {
+                if let Some(state) = states.get(state_row_id) {
+                    let text = state.format.replace("{v}", &format!("{}", row.power));
+                    out.push(Token::Text(text));
+                } else {
+                    out.push(Token::Error(format!("state not found: {}", state_row_id)));
+                }
+            }
+        }
+        "stpw" => out.push(Token::Empty), // TODO:
+        "md" => {
+            if row.action_type == "AltMode" {
+                if row.power == 0 {
+                    out.extend(terms.get("WD-SkillAltModeName-0"));
+                } else if row.power == 1 {
+                    out.extend(terms.get("WD-SkillAltModeName-1"));
+                } else {
+                    out.push(Token::Error(format!("invalid power {}", row.power)));
+                }
+            } else {
+                out.push(Token::Error(format!(
+                    "invalid action_type {}",
+                    row.action_type
+                )));
+            }
+        }
+        _ => (),
+    }
+}
+
+fn process_act_node(
+    act_node_row: &ActNodeRow,
+    terms: &TermRepository,
+    states: &StateRepository,
+) -> ActNode {
+    let last = act_node_row.state_last.split('|').collect::<Vec<_>>();
+    assert_eq!(
+        last.len(),
+        5,
+        "invalid state_last: {}",
+        act_node_row.state_last
+    );
+    let last = last
+        .iter()
+        .map(|v| v.parse::<i8>().unwrap())
+        .collect::<Vec<_>>();
+
+    // let description = Tokens(vec![]);
+    let description = terms
+        .get(&format!("DC-SkillNodeDesc-{}", act_node_row.action_type))
+        .format(|out, s| act_node_replacer(s, out, &act_node_row, terms, states));
+    // let description = if act_node_row.act_num == 1 {
+    //     description
+    // } else {
+    //     terms
+    //         .get("DC-SkillNodeDesc-MultipleCase")
+    //         .map_var(|out, s| match s {
+    //             "0" => out.extend(description.clone()),
+    //             "1" => out.push(Token::Text(act_node_row.act_num.to_string())),
+    //             _ => (),
+    //         })
+    // };
+
+    ActNode {
+        id: act_node_row.id.to_string(),
+        action_type: act_node_row.action_type.to_string(),
+        target: act_node_row.target.try_into().unwrap(),
+        param_key: ParamKey::from_str(&act_node_row.param_key).unwrap(),
+        state_row_id: act_node_row.state_row_id.clone(),
+        hit_rate: act_node_row.hit_rate.try_into().unwrap(),
+        avoid_type: AvoidType::from_str(&act_node_row.avoid_type).unwrap(),
+        relate_target: Target::from_str(&act_node_row.relate_target).unwrap(),
+        relate: act_node_row.relate.to_string(),
+        power: act_node_row.power.try_into().unwrap(),
+        reduce: Reduce::from_str(&act_node_row.reduce).unwrap(),
+        inc_target: Target::from_str(&act_node_row.inc_target).unwrap(),
+        inc_relate: act_node_row.inc_relate.to_string(),
+        inc_power: act_node_row.inc_power.try_into().unwrap(),
+        state_last: StateLast {
+            f1: last[0],
+            f2: last[1],
+            f3: last[2],
+            room: last[3],
+            f5: last[4],
+        },
+        act_num: act_node_row.act_num.try_into().unwrap(),
+        crit_rate: act_node_row.crit_rate.try_into().unwrap(),
+
+        description,
     }
 }

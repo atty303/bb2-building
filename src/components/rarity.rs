@@ -7,11 +7,7 @@ use crate::components::icon::Icon;
 #[component]
 pub fn Rarity(cx: Scope, rarity: i8) -> Element {
     let db = use_read(cx, &DATABASE);
-    let color = db
-        .term()
-        .tr(format!("CLR-Star-Rarity-{}", rarity).as_str(), |n| {
-            format!("{}", n)
-        });
+    let color = format!("{}", db.term().get(&format!("CLR-Star-Rarity-{}", rarity)));
     render! {
         span {
             class: "bg-neutral m-2 px-2 rounded",

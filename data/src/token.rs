@@ -1,15 +1,18 @@
+use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Token {
     Text(String),
     Var(String),
     NewLine,
+    /// New line and indent
+    Indent,
     Empty,
     Error(String),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Tokens(pub Vec<Token>);
 
 impl Tokens {
@@ -53,6 +56,39 @@ impl Tokens {
         }
         out
     }
+
+    pub fn format<F: Fn(&mut Tokens, &str) -> ()>(&self, formatter: F) -> Tokens {
+        let mut out: Tokens;
+        let mut tokens = self.clone();
+        loop {
+            if !tokens.has_var() {
+                break;
+            }
+
+            let mut replaced = false;
+            out = Tokens(vec![]);
+            for token in &tokens.0 {
+                match token {
+                    Token::Var(name) => {
+                        let mut subs = Tokens(vec![]);
+                        formatter(&mut subs, &name);
+                        if subs.is_empty() {
+                            out.push(token.clone());
+                        } else {
+                            replaced = true;
+                            out.extend(subs);
+                        }
+                    }
+                    _ => out.push(token.clone()),
+                }
+            }
+            if !replaced {
+                break;
+            }
+            tokens = out;
+        }
+        tokens.clone()
+    }
 }
 
 impl Display for Tokens {
@@ -64,6 +100,7 @@ impl Display for Tokens {
                 Token::NewLine => write!(f, "\n")?,
                 Token::Empty => (),
                 Token::Error(s) => write!(f, "!{}!", s)?,
+                Token::Indent => write!(f, "\n  ")?,
             }
         }
         Ok(())

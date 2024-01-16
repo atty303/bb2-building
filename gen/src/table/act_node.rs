@@ -36,11 +36,26 @@ pub struct ActNodeRow {
     pub crit_rate: i32,
     pub is_skill: bool,
     pub check_target: bool,
+    // extra
+    pub state_row_id: Option<String>,
 }
 
 impl TableParser for ActNodeTable {
     type Row = ActNodeRow;
     fn parse_row(p: &EntityParser) -> Self::Row {
+        let state_row_id = if p.get_str("any").starts_with("state.") {
+            Some(
+                p.get_str("any")
+                    .splitn(3, '_')
+                    .skip(2)
+                    .next()
+                    .unwrap()
+                    .to_string(),
+            )
+        } else {
+            None
+        };
+
         ActNodeRow {
             row_id: p.row_id(),
             id: p.get_str("ID"),
@@ -74,6 +89,7 @@ impl TableParser for ActNodeTable {
             crit_rate: p.get_i32("CritRate"),
             is_skill: p.get_bool("IsSkill"),
             check_target: p.get_bool("CheckTarget"),
+            state_row_id,
         }
     }
 }

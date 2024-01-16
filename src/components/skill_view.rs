@@ -1,3 +1,4 @@
+use data::token::{Token, Tokens};
 use dioxus::prelude::*;
 use dioxus_router::prelude::Link;
 use fermi::use_read;
@@ -79,20 +80,22 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
 }
 
 #[component]
-pub fn Description(cx: Scope, nodes: data::token::Tokens) -> Element {
+pub fn Description(cx: Scope, nodes: Tokens) -> Element {
     render! {
         for node in &nodes.0 {
             match node {
-                data::token::Token::Text(text) => rsx! { "{text}" },
-                data::token::Token::NewLine => rsx! { br {} },
-                data::token::Token::Empty => rsx! { "" },
-                data::token::Token::Var(name) => rsx! {
+                Token::Text(text) => rsx! { "{text}" },
+                Token::NewLine => rsx! { br {} },
+                Token::Empty => rsx! { "" },
+                Token::Var(name) => rsx! {
                     span { class: "text-error", "[{name}]" }
                 },
-                data::token::Token::Error(text) => rsx! {
+                Token::Error(text) => rsx! {
                     span { class: "text-error font-bold", "{text}" }
                 },
-            }
+                Token::Indent => rsx! {
+                    br {}
+                }}
         }
     }
 }

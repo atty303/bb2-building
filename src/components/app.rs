@@ -22,18 +22,18 @@ async fn fetch_database() -> anyhow::Result<Database> {
     let base_uri = base_uri.ok_or(anyhow!("base_uri"))?;
 
     let skill_cursor = {
-        let res = reqwest::get(format!("{}{}", base_uri, "data/skill.avro")).await?;
+        let res = reqwest::get(format!("{}{}", base_uri, "i18n/ja/skill.msgpack")).await?;
         let body = res.bytes().await?;
         std::io::Cursor::new(body)
     };
 
-    let state_cursor = {
-        let res = reqwest::get(format!("{}{}", base_uri, "data/state.avro")).await?;
-        let body = res.bytes().await?;
-        std::io::Cursor::new(body)
-    };
+    // let state_cursor = {
+    //     let res = reqwest::get(format!("{}{}", base_uri, "data/state.avro")).await?;
+    //     let body = res.bytes().await?;
+    //     std::io::Cursor::new(body)
+    // };
 
-    Database::read(skill_cursor, state_cursor).map_err(|err| anyhow!(err))
+    Database::read(skill_cursor).map_err(|err| anyhow!(err))
 }
 
 async fn fetch_i18n(lang: &str) -> anyhow::Result<TermRepository> {
@@ -42,7 +42,7 @@ async fn fetch_i18n(lang: &str) -> anyhow::Result<TermRepository> {
         .map_err(|err| anyhow!(format!("{:?}", err)))?;
     let base_uri = base_uri.ok_or(anyhow!("base_uri"))?;
 
-    let res = reqwest::get(format!("{}i18n/{}/term.avro", base_uri, lang)).await?;
+    let res = reqwest::get(format!("{}i18n/{}/term.msgpack", base_uri, lang)).await?;
     let body = res.bytes().await?;
     let cursor = std::io::Cursor::new(body);
 
