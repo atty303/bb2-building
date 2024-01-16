@@ -7,7 +7,7 @@ mod skill;
 mod home;
 
 use home::Home;
-use skill::{SkillListPage, SkillPage};
+use skill::{SkillListPage, SkillSearchPage, SkillPage};
 use crate::components::footer::Footer;
 use crate::components::nav_bar::NavBar;
 
@@ -19,6 +19,8 @@ pub enum Route {
     Home {},
     #[route("/skill")]
     SkillListPage {},
+    #[route("/skill/search")]
+    SkillSearchPage {},
     #[route("/skill/:skill_id")]
     SkillPage { skill_id: String },
     //#[end_layout]
