@@ -153,7 +153,7 @@ fn LanguageSelect(cx: Scope) -> Element {
                     for t in LANGUAGES.iter() {
                         button {
                             class: "btn btn-ghost btn-sm justify-start px-4 py-2",
-                            onclick: move |_| set_language(t.to_string()),
+                            onclick: move |_| set_language(Some(t.to_string())),
                             "{t}"
                         }
                     }

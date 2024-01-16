@@ -45,7 +45,7 @@ pub fn App(cx: Scope) -> Element {
         to_owned![language];
         async move {
             if lang != "" {
-                language.set(lang);
+                language.set(Some(lang));
             }
         }
     });
@@ -53,9 +53,9 @@ pub fn App(cx: Scope) -> Element {
     use_effect(cx, language.get(), move |lang| {
         to_owned![language_persistent];
         async move {
-            // if language_persistent.get() != lang {
-            language_persistent.set(lang.to_string());
-            // }
+            if let Some(inner) = lang {
+                language_persistent.set(inner);
+            }
         }
     });
 
@@ -63,8 +63,8 @@ pub fn App(cx: Scope) -> Element {
     let database_future = use_future(cx, language, |_| {
         to_owned![language, set_database];
         async move {
-            if language.get() != "" {
-                let mut db = fetch_database(&language).await;
+            if let Some(lang) = language.get() {
+                let mut db = fetch_database(lang).await;
                 match db {
                     Ok(ref mut v) => {
                         set_database(v.clone());
