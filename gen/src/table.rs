@@ -5,6 +5,7 @@ use std::marker::PhantomData;
 use json::JsonValue;
 use prettytable::{Cell, Row};
 
+pub mod act;
 pub mod state;
 pub mod skill;
 pub mod skill_mode;

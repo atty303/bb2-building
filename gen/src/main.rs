@@ -10,6 +10,7 @@ use std::collections::HashMap;
 use skill::process_skill;
 use state::process_state;
 use table::{BGTable, Table};
+use table::act::ActTable;
 use table::skill::SkillTable;
 use table::skill_mode::SkillModeTable;
 use table::sm_act::SmActTable;
@@ -38,6 +39,7 @@ fn main() {
         db.insert(meta_name.to_string(), table);
     }
 
+    let mut act_table: Option<Table<ActTable>> = None;
     let mut skill_table: Option<Table<SkillTable>> = None;
     let mut skill_mode_table: Option<Table<SkillModeTable>> = None;
     let mut sm_act_table: Option<Table<SmActTable>> = None;
@@ -45,6 +47,7 @@ fn main() {
     for meta in db_json["Metas"].members() {
         let name = meta["Name"].as_str().unwrap();
         match name {
+            "act" => act_table = Some(Table::new(meta.to_owned())),
             "skill" => skill_table = Some(Table::new(meta.to_owned())),
             "skill_mode" => skill_mode_table = Some(Table::new(meta.to_owned())),
             "sm_act" => sm_act_table = Some(Table::new(meta.to_owned())),
@@ -57,7 +60,7 @@ fn main() {
         &skill_table.unwrap(),
         &skill_mode_table.unwrap(),
         &sm_act_table.unwrap(),
-        &db["act"],
+        &act_table.unwrap(),
         &db["act_node"]);
 
     process_state(&state_table.unwrap());

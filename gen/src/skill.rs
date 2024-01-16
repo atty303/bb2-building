@@ -10,37 +10,10 @@ use data::skill::{Act, ActNode, ActTrigger, AvoidType, ParamKey, Reduce, Skill, 
 use data::Sprite;
 use idhash::IdHash;
 use table::{BGTable, Table};
+use table::act::ActTable;
 use table::skill::{SkillRow, SkillTable};
 use table::skill_mode::SkillModeTable;
 use table::sm_act::SmActTable;
-
-struct ActRow<'a> {
-    row_id: &'a str,
-    name: &'a str,
-    id: &'a str,
-    order: usize,
-    act_node: &'a str,
-    tag: &'a str,
-    link_key: &'a str,
-    is_rune: bool,
-    namer: &'a str,
-}
-
-impl<'a> ActRow<'a> {
-    fn new(e: &'a HashMap<String, JsonValue>) -> Self {
-        Self {
-            row_id: e.get("_row_id").unwrap().as_str().unwrap(),
-            name: e.get("name").unwrap().as_str().unwrap(),
-            id: e.get("ID").unwrap().as_str().unwrap(),
-            order: e.get("Order").unwrap().as_str().unwrap().parse::<usize>().unwrap(),
-            act_node: e.get("act_node").unwrap().as_str().unwrap(),
-            tag: e.get("Tag").unwrap().as_str().unwrap(),
-            link_key: e.get("LinkKey").unwrap().as_str().unwrap(),
-            is_rune: str_to_bool(e.get("IsRune").unwrap().as_str().unwrap()),
-            namer: e["namer"].as_str().unwrap(),
-        }
-    }
-}
 
 #[derive(Debug)]
 struct ActNodeRow<'a> {
@@ -138,17 +111,12 @@ impl Hash for SkillWithId {
     }
 }
 
-pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<SkillModeTable>, sm_act_table: &Table<SmActTable>, act_table: &BGTable, act_node_table: &BGTable) {
+pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<SkillModeTable>, sm_act_table: &Table<SmActTable>, act_table: &Table<ActTable>, act_node_table: &BGTable) {
     let act_node_entities = act_node_table.entities();
     let mut act_node_rows = act_node_entities.iter().map(|e| {
         ActNodeRow::new(e)
     }).collect::<Vec<_>>();
     act_node_rows.sort_by_key(|row| row.order);
-
-    let act_entities = act_table.entities();
-    let act_rows = act_entities.iter().map(|e| {
-        ActRow::new(e)
-    }).collect::<Vec<_>>();
 
     let mut skills = skill_table.iter().flat_map(|skill_row| {
         let mode_rows = skill_mode_table.iter().filter(|row| {
@@ -164,7 +132,7 @@ pub fn process_skill(skill_table: &Table<SkillTable>, skill_mode_table: &Table<S
             assert!(sm_acts.len() > 0, "skill_mode {} has no sm_acts", mode_row.name);
 
             let acts = sm_acts.iter().map(|sm_act_row| {
-                let act_rows = act_rows.iter().filter(|act_row| {
+                let act_rows = act_table.iter().filter(|act_row| {
                     sm_act_row.act == format!("{}_{}", act_row.name, act_row.row_id)
                 }).collect::<Vec<_>>();
                 assert_eq!(act_rows.len(), 1, "sm_act {} has multiple acts", sm_act_row.name);
