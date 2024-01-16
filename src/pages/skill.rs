@@ -35,6 +35,7 @@ pub fn SkillListPage(cx: Scope) -> Element {
                 name: "tabs",
                 role: "tab",
                 aria_label: "All",
+                checked: true,
             }
             div { class: "tab-content p-2",
                 role: "tabpanel",
@@ -54,19 +55,20 @@ pub fn SkillListPage(cx: Scope) -> Element {
                 name: "tabs",
                 role: "tab",
                 aria_label: "Rarity",
-                checked: true,
             }
-            div { class: "tab-content p-2",
+            div { class: "tab-content p-2 divide-y",
                 role: "tabpanel",
                 for rarity in rarities {
-                    div { class: "text-xl mt-4 mb-2",
-                        Rarity { rarity: rarity }
-                    }
-                    div { class: "flex flex-wrap gap-2",
-                        for skill in db.skill.iter().filter(|s| s.in_dictionary && s.rarity == rarity) {
-                            Link { class: "inline-block hover:bg-primary border-primary border-solid border-2 rounded-md p-1",
-                                to: Route::SkillPage { skill_id: skill.id.clone() },
-                                SpriteIcon { class: "rounded-md", sprite: &skill.modes[0].icon, size: 96 }
+                    div { class: "py-4",
+                        h2 { class: "mb-2",
+                            Rarity { rarity: rarity }
+                        }
+                        div { class: "flex flex-wrap gap-2",
+                            for skill in db.skill.iter().filter(|s| s.in_dictionary && s.rarity == rarity) {
+                                Link { class: "inline-block hover:bg-primary border-primary border-solid border-2 rounded-md p-1",
+                                    to: Route::SkillPage { skill_id: skill.id.clone() },
+                                    SpriteIcon { class: "rounded-md", sprite: &skill.modes[0].icon, size: 96 }
+                                }
                             }
                         }
                     }
