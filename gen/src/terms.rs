@@ -3,13 +3,15 @@ use std::sync::OnceLock;
 use regex::Regex;
 use yaml_rust::YamlLoader;
 
-use data::LANGUAGES;
 use data::term::{Term, TermMap};
+use data::LANGUAGES;
 
 use crate::data::token::Token;
 
 pub fn write_terms() {
-    let s = std::fs::read_to_string("dump/asset/ExportedProject/Assets/Resources/I2Languages.asset").unwrap();
+    let s =
+        std::fs::read_to_string("dump/asset/ExportedProject/Assets/Resources/I2Languages.asset")
+            .unwrap();
     let docs = YamlLoader::load_from_str(s.as_str()).unwrap();
     let doc = &docs[0];
     let terms = doc["MonoBehaviour"]["mSource"]["mTerms"].as_vec().unwrap();
@@ -56,21 +58,27 @@ pub fn write_terms() {
         }
 
         {
-            let file_writer = std::io::BufWriter::new(std::fs::File::create(format!("dump/{}.csv", lang)).unwrap());
+            let file_writer = std::io::BufWriter::new(
+                std::fs::File::create(format!("dump/{}.csv", lang)).unwrap(),
+            );
             let mut csv_writer = csv::Writer::from_writer(file_writer);
             for (key, value) in new_out.iter() {
                 csv_writer.write_record(&[key, &value]).unwrap();
             }
         }
 
-        let nodes = new_out.iter().map(|(key, value)| {
-            let nodes = parse(value);
-            (key.clone(), Term { nodes })
-        }).collect::<Vec<_>>();
+        let nodes = new_out
+            .iter()
+            .map(|(key, value)| {
+                let nodes = parse(value);
+                (key.clone(), Term { nodes })
+            })
+            .collect::<Vec<_>>();
 
-        let file_writer = std::io::BufWriter::new(std::fs::File::create(format!("public/i18n/{}/term.avro", lang)).unwrap());
+        let file_writer = std::io::BufWriter::new(
+            std::fs::File::create(format!("public/i18n/{}/term.avro", lang)).unwrap(),
+        );
         TermMap::write(file_writer, nodes.iter()).unwrap();
-
     }
 }
 
@@ -119,12 +127,36 @@ mod test {
         assert_eq!(parse("abc"), vec![Token::Text("abc")]);
         assert_eq!(parse("__"), vec![Token::NewLine]);
         assert_eq!(parse("<abc>"), vec![Token::Var("abc")]);
-        assert_eq!(parse("<abc><abc>"), vec![Token::Var("abc"), Token::Var("abc")]);
+        assert_eq!(
+            parse("<abc><abc>"),
+            vec![Token::Var("abc"), Token::Var("abc")]
+        );
         assert_eq!(parse("{abc}"), vec![Token::Var("abc")]);
-        assert_eq!(parse("{abc}{abc}"), vec![Token::Var("abc"), Token::Var("abc")]);
-        assert_eq!(parse("abc__def"), vec![Token::Text("abc"), Token::NewLine, Token::Text("def")]);
-        assert_eq!(parse("abc<def>ghi"), vec![Token::Text("abc"), Token::Var("def"), Token::Text("ghi")]);
-        assert_eq!(parse("abc{def}ghi"), vec![Token::Text("abc"), Token::Var("def"), Token::Text("ghi")]);
-        assert_eq!(parse("abc__def<ghi>{jkl}"), vec![Token::Text("abc"), Token::NewLine, Token::Text("def"), Token::Var("ghi"), Token::Var("jkl")]);
+        assert_eq!(
+            parse("{abc}{abc}"),
+            vec![Token::Var("abc"), Token::Var("abc")]
+        );
+        assert_eq!(
+            parse("abc__def"),
+            vec![Token::Text("abc"), Token::NewLine, Token::Text("def")]
+        );
+        assert_eq!(
+            parse("abc<def>ghi"),
+            vec![Token::Text("abc"), Token::Var("def"), Token::Text("ghi")]
+        );
+        assert_eq!(
+            parse("abc{def}ghi"),
+            vec![Token::Text("abc"), Token::Var("def"), Token::Text("ghi")]
+        );
+        assert_eq!(
+            parse("abc__def<ghi>{jkl}"),
+            vec![
+                Token::Text("abc"),
+                Token::NewLine,
+                Token::Text("def"),
+                Token::Var("ghi"),
+                Token::Var("jkl")
+            ]
+        );
     }
 }

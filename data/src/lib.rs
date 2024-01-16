@@ -7,13 +7,14 @@ use std::io::{Read, Write};
 use apache_avro::AvroSchema;
 use serde::{Deserialize, Serialize};
 
-pub mod term;
 pub mod skill;
 pub mod state;
+pub mod term;
 pub mod token;
 
-pub const LANGUAGES: [&str; 12] =
-    ["ja", "en", "fr", "ko", "zh-CN", "zh-TW", "de", "es", "it", "ru", "pt", "pt-BR"];
+pub const LANGUAGES: [&str; 12] = [
+    "ja", "en", "fr", "ko", "zh-CN", "zh-TW", "de", "es", "it", "ru", "pt", "pt-BR",
+];
 
 #[derive(Clone, Default)]
 pub struct Database {
@@ -51,9 +52,13 @@ pub struct Sprite {
     pub height: u8,
 }
 
-pub fn write_avro<'a, W: Write, T: AvroSchema + Serialize + 'a, I: Iterator<Item = &'a T>>(avro_write: W, items: I) -> Result<(), apache_avro::Error> {
+pub fn write_avro<'a, W: Write, T: AvroSchema + Serialize + 'a, I: Iterator<Item = &'a T>>(
+    avro_write: W,
+    items: I,
+) -> Result<(), apache_avro::Error> {
     let schema = T::get_schema();
-    let mut writer = apache_avro::Writer::with_codec(&schema, avro_write, apache_avro::Codec::Deflate);
+    let mut writer =
+        apache_avro::Writer::with_codec(&schema, avro_write, apache_avro::Codec::Deflate);
     for item in items {
         writer.append_ser(item)?;
     }

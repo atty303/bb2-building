@@ -5,8 +5,8 @@ use dioxus::prelude::*;
 use dioxus_router::prelude::{Router, RouterConfig, RouterConfigFactory, WebHistory};
 use fermi::{use_init_atom_root, use_set};
 
-use data::Database;
 use data::term::TermMap;
+use data::Database;
 
 use crate::atoms::DATABASE;
 use crate::pages::Route;
@@ -16,11 +16,13 @@ pub struct Language {
 }
 
 async fn fetch_database() -> anyhow::Result<Database> {
-    let base_uri = gloo_utils::document().base_uri().map_err(|err| anyhow!(format!("{:?}", err)))?;
+    let base_uri = gloo_utils::document()
+        .base_uri()
+        .map_err(|err| anyhow!(format!("{:?}", err)))?;
     let base_uri = base_uri.ok_or(anyhow!("base_uri"))?;
 
     let skill_cursor = {
-        let res = reqwest::get(format!("{}{}",base_uri, "data/skill.avro")).await?;
+        let res = reqwest::get(format!("{}{}", base_uri, "data/skill.avro")).await?;
         let body = res.bytes().await?;
         std::io::Cursor::new(body)
     };
@@ -35,7 +37,9 @@ async fn fetch_database() -> anyhow::Result<Database> {
 }
 
 async fn fetch_i18n(lang: &str) -> anyhow::Result<TermMap> {
-    let base_uri = gloo_utils::document().base_uri().map_err(|err| anyhow!(format!("{:?}", err)))?;
+    let base_uri = gloo_utils::document()
+        .base_uri()
+        .map_err(|err| anyhow!(format!("{:?}", err)))?;
     let base_uri = base_uri.ok_or(anyhow!("base_uri"))?;
 
     let res = reqwest::get(format!("{}i18n/{}/term.avro", base_uri, lang)).await?;
@@ -61,8 +65,8 @@ pub fn App(cx: Scope) -> Element {
                 Ok(ref mut v) => {
                     v.set_term(i18n);
                     set_database(v.clone());
-                },
-                _ => ()
+                }
+                _ => (),
             }
             db
         }

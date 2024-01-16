@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
-use std::hash::{BuildHasher, Hasher};
 use std::hash::Hash;
+use std::hash::{BuildHasher, Hasher};
 
 pub struct IdHash {
     pub seed: u64,
@@ -9,10 +9,7 @@ pub struct IdHash {
 
 impl IdHash {
     pub fn new(seed: u64, bits: usize) -> Self {
-        Self {
-            seed,
-            bits,
-        }
+        Self { seed, bits }
     }
 
     pub fn id_hash<T: Hash>(&self, v: &T) -> u64 {
@@ -21,8 +18,7 @@ impl IdHash {
         hasher.finish() >> (64 - self.bits)
     }
 
-    pub fn search_seed<T: Hash, I: IntoIterator<Item = T> + Copy>(&mut self, values: I)
-    {
+    pub fn search_seed<T: Hash, I: IntoIterator<Item = T> + Copy>(&mut self, values: I) {
         let max = 10000;
         'seed: for s in 0..max {
             self.seed = s;

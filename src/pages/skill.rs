@@ -1,7 +1,7 @@
-use dioxus::prelude::*;
-use dioxus_router::prelude::{Link, use_navigator};
-use fermi::use_read_rc;
 use data::skill::Skill;
+use dioxus::prelude::*;
+use dioxus_router::prelude::{use_navigator, Link};
+use fermi::use_read_rc;
 
 use crate::atoms::DATABASE;
 use crate::components::rarity::Rarity;
@@ -111,24 +111,28 @@ pub fn SkillSearchPage(cx: Scope) -> Element {
 pub fn SkillPage(cx: Scope, skill_id: String) -> Element {
     let db = use_read_rc(cx, &DATABASE);
 
-    db.skill.values().find(|s| &s.id == skill_id).map(|skill| {
-        render! {
-            div {
-                class: "text-sm breadcrumbs",
-                ul {
-                    li { "Home" }
-                    li { "Skill" }
-                    li { skill.name(db.term()) }
+    db.skill
+        .values()
+        .find(|s| &s.id == skill_id)
+        .map(|skill| {
+            render! {
+                div {
+                    class: "text-sm breadcrumbs",
+                    ul {
+                        li { "Home" }
+                        li { "Skill" }
+                        li { skill.name(db.term()) }
+                    }
+                }
+
+                SkillView { skill: &skill }
+            }
+        })
+        .unwrap_or_else(|| {
+            render! {
+                div {
+                    "Skill not found"
                 }
             }
-
-            SkillView { skill: &skill }
-        }
-    }).unwrap_or_else(|| {
-        render! {
-            div {
-                "Skill not found"
-            }
-        }
-    })
+        })
 }

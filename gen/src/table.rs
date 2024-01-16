@@ -6,10 +6,10 @@ use json::JsonValue;
 
 pub mod act;
 pub mod act_node;
-pub mod state;
 pub mod skill;
 pub mod skill_mode;
 pub mod sm_act;
+pub mod state;
 
 pub trait TableParser {
     type Row;
@@ -43,15 +43,22 @@ impl EntityParser {
     }
 
     pub fn get_str(&self, name: &str) -> String {
-        self.values[name].as_str().expect(format!("field {} should be string", name).as_str()).to_string()
+        self.values[name]
+            .as_str()
+            .expect(format!("field {} should be string", name).as_str())
+            .to_string()
     }
 
     pub fn get_usize(&self, name: &str) -> usize {
-        self.get_str(name).parse().expect(format!("field {} should be usize", name).as_str())
+        self.get_str(name)
+            .parse()
+            .expect(format!("field {} should be usize", name).as_str())
     }
 
     pub fn get_i32(&self, name: &str) -> i32 {
-        self.get_str(name).parse().expect(format!("field {} should be i32", name).as_str())
+        self.get_str(name)
+            .parse()
+            .expect(format!("field {} should be i32", name).as_str())
     }
 
     pub fn get_bool(&self, name: &str) -> bool {
@@ -84,16 +91,15 @@ impl<T: TableParser> Table<T> {
             fields.push(field["Name"].as_str().unwrap().to_string());
         }
 
-        let rows = meta["Entities"].members().map(|e| {
-            let ep = EntityParser::new(e);
-            T::parse_row(&ep)
-        }).collect::<Vec<_>>();
+        let rows = meta["Entities"]
+            .members()
+            .map(|e| {
+                let ep = EntityParser::new(e);
+                T::parse_row(&ep)
+            })
+            .collect::<Vec<_>>();
 
-        Table {
-            meta,
-            fields,
-            rows,
-        }
+        Table { meta, fields, rows }
     }
 
     pub fn name(&self) -> &str {

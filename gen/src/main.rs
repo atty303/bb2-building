@@ -10,20 +10,20 @@ use json::JsonValue;
 
 use skill::process_skill;
 use state::process_state;
-use table::{Table, UnknownTable};
 use table::act::ActTable;
 use table::act_node::ActNodeTable;
 use table::skill::SkillTable;
 use table::skill_mode::SkillModeTable;
 use table::sm_act::SmActTable;
 use table::state::StateTable;
+use table::{Table, UnknownTable};
 
-mod terms;
-mod table;
-mod skill;
 mod idhash;
-mod state;
+mod skill;
 mod sprite;
+mod state;
+mod table;
+mod terms;
 
 #[derive(Debug, Parser)]
 #[command(name = "gen")]
@@ -54,7 +54,9 @@ fn main() {
             let db = read_db();
             for meta in db["Metas"].members() {
                 let table: Table<UnknownTable> = Table::new(meta.to_owned());
-                table.to_csv(std::io::BufWriter::new(std::fs::File::create(format!("dump/table/{}.csv", table.name())).unwrap()));
+                table.to_csv(std::io::BufWriter::new(
+                    std::fs::File::create(format!("dump/table/{}.csv", table.name())).unwrap(),
+                ));
             }
         }
         Commands::Skill { write } => {
@@ -75,7 +77,7 @@ fn main() {
                     "skill_mode" => skill_mode_table = Some(Table::new(meta.to_owned())),
                     "sm_act" => sm_act_table = Some(Table::new(meta.to_owned())),
                     // "state" => state_table = Some(Table::new(meta.to_owned())),
-                    _ => ()
+                    _ => (),
                 }
             }
 
@@ -85,7 +87,8 @@ fn main() {
                 &sm_act_table.unwrap(),
                 &act_table.unwrap(),
                 &act_node_table.unwrap(),
-                write);
+                write,
+            );
         }
         Commands::State => {
             let mut state_table: Option<Table<StateTable>> = None;
@@ -95,7 +98,7 @@ fn main() {
                 let name = meta["Name"].as_str().unwrap();
                 match name {
                     "state" => state_table = Some(Table::new(meta.to_owned())),
-                    _ => ()
+                    _ => (),
                 }
             }
 

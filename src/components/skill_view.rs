@@ -11,33 +11,33 @@ use crate::pages::Route;
 pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
     let database = use_read(cx, &DATABASE);
     render! {
-        div {
-            class: "flex flex-col border-solid border border-base-300 rounded-md my-2",
-            div {
-                class: "flex flex-row items-center gap-2 bg-base-300 text-base-content p-2",
-                Sprite { sprite: &skill.modes[0].icon, scale: 0.5 }
-                span {
-                    class: "flex-grow",
-                    Link {
-                        class: "text-primary hover:underline cursor-pointer",
-                        to: Route::SkillPage { skill_id: skill.id.clone() },
-                        skill.name(database.term())
-                    }
-                }
-                span {
-                    Rarity { rarity: skill.rarity }
-                }
-            }
-            ul {
-                class: "flex flex-row gap-2 p-2",
-                for mode in &skill.modes {
-                    li {
-                        SkillMode { mode: mode }
-                    }
-                }
-            }
-        }
-     }
+       div {
+           class: "flex flex-col border-solid border border-base-300 rounded-md my-2",
+           div {
+               class: "flex flex-row items-center gap-2 bg-base-300 text-base-content p-2",
+               Sprite { sprite: &skill.modes[0].icon, scale: 0.5 }
+               span {
+                   class: "flex-grow",
+                   Link {
+                       class: "text-primary hover:underline cursor-pointer",
+                       to: Route::SkillPage { skill_id: skill.id.clone() },
+                       skill.name(database.term())
+                   }
+               }
+               span {
+                   Rarity { rarity: skill.rarity }
+               }
+           }
+           ul {
+               class: "flex flex-row gap-2 p-2",
+               for mode in &skill.modes {
+                   li {
+                       SkillMode { mode: mode }
+                   }
+               }
+           }
+       }
+    }
 }
 
 #[component]
@@ -77,8 +77,6 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
         }
     }
 }
-
-
 
 #[component]
 pub fn Description(cx: Scope, nodes: Vec<data::token::Token>) -> Element {

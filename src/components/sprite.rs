@@ -11,7 +11,12 @@ pub fn Sprite<'a>(cx: Scope<'a>, sprite: &'a data::Sprite, scale: f64) -> Elemen
 }
 
 #[component]
-pub fn SpriteIcon<'a>(cx: Scope<'a>, sprite: &'a data::Sprite, size: i32, class: &'a str) -> Element {
+pub fn SpriteIcon<'a>(
+    cx: Scope<'a>,
+    sprite: &'a data::Sprite,
+    size: i32,
+    class: &'a str,
+) -> Element {
     let sprite_size = sprite.width.max(sprite.height);
     let scale = *size as f64 / sprite_size as f64;
     render! {

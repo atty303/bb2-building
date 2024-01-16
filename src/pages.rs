@@ -3,13 +3,13 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 
-mod skill;
 mod home;
+mod skill;
 
-use home::Home;
-use skill::{SkillListPage, SkillSearchPage, SkillPage};
 use crate::components::footer::Footer;
 use crate::components::nav_bar::NavBar;
+use home::Home;
+use skill::{SkillListPage, SkillPage, SkillSearchPage};
 
 /// An enum of all of the possible routes in the app.
 #[derive(Routable, Clone)]
