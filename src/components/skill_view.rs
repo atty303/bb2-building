@@ -30,9 +30,19 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
            }
             ul { class: "flex flex-row gap-2 p-2",
                 TabGroup {
+                    class: "tabs",
                     TabList {
-                        Tab { index: 0, "NORMAL" }
-                        Tab { index: 1, "ALTERNATE" }
+                        Tab { index: 0,
+                            render_children: move |attrs, selected| {
+                                render! {
+                                    button {
+                                        ..*attrs,
+                                        "NORMAL {selected:?}"
+                                    }
+                                }
+                            }
+                        }
+                        // Tab { index: 1, class: "tab", render: move |selected| render! { "ALTERNATE" } }
                     }
                     TabPanels {
                         TabPanel { index: 0,
