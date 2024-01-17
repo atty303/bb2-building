@@ -76,7 +76,7 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
 #[component]
 pub fn Description(cx: Scope, tokens: Tokens) -> Element {
     render! {
-        for token in &tokens.0 {
+        for token in &tokens.vec() {
             match token {
                 Token::Text(text) => rsx! { "{text}" },
                 Token::NewLine => rsx! { br {} },
@@ -90,7 +90,10 @@ pub fn Description(cx: Scope, tokens: Tokens) -> Element {
                 Token::Indent => rsx! {
                     br {}
                     "　"
-                }
+                },
+                Token::Panic(text) => rsx! {
+                    span { class: "text-error font-bold", "{text}" }
+                },
             }
         }
     }

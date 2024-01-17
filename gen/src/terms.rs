@@ -79,7 +79,7 @@ pub fn term_repository_from_dump() -> HashMap<&'static str, TermRepository> {
                 (
                     key.clone(),
                     Term {
-                        tokens: Tokens(parse(value)),
+                        tokens: Tokens::from_vec(parse(value)),
                     },
                 )
             })

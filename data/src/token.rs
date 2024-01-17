@@ -1,5 +1,6 @@
-use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
+
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Token {
@@ -10,6 +11,7 @@ pub enum Token {
     Indent,
     Empty,
     Error(String),
+    Panic(String),
 }
 
 impl Token {
@@ -19,11 +21,19 @@ impl Token {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Tokens(pub Vec<Token>);
+pub struct Tokens(Vec<Token>);
 
 impl Tokens {
     pub fn new() -> Self {
         Self(vec![])
+    }
+
+    pub fn from_vec(vec: Vec<Token>) -> Self {
+        Self(vec)
+    }
+
+    pub fn vec(&self) -> &Vec<Token> {
+        &self.0
     }
 
     pub fn push(&mut self, token: Token) {
@@ -71,6 +81,21 @@ impl Tokens {
         out
     }
 
+    pub fn map_var_1<F: Fn(&mut Tokens) -> ()>(&self, f0: F) -> Tokens {
+        self.map_var(|out, s| match s {
+            "0" => f0(out),
+            _ => (),
+        })
+    }
+
+    pub fn map_var_2<F: Fn(&mut Tokens) -> ()>(&self, f0: F, f1: F) -> Tokens {
+        self.map_var(|out, s| match s {
+            "0" => f0(out),
+            "1" => f1(out),
+            _ => (),
+        })
+    }
+
     pub fn format<F: Fn(&mut Tokens, &str) -> ()>(&self, formatter: F) -> Tokens {
         let mut out: Tokens;
         let mut tokens = self.clone();
@@ -115,6 +140,7 @@ impl Display for Tokens {
                 Token::Empty => (),
                 Token::Error(s) => write!(f, "!{}!", s)?,
                 Token::Indent => write!(f, "\n  ")?,
+                Token::Panic(s) => write!(f, "!{}!", s)?,
             }
         }
         Ok(())

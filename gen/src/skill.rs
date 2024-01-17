@@ -224,105 +224,100 @@ fn act_node_formatter(
 ) {
     match name {
         "lasthit" => match row.avoid_type.as_str() {
-            "LastHit" => out.extend(terms.get("DC-SkillNodeDesc-LastHit")),
-            _ => out.push(Token::Empty), // TODO: error handling?
+            "LastHit" => terms.get("DC-SkillNodeDesc-LastHit").write(out),
+            _ => Token::Empty.write(out), // TODO: error handling?
         },
         "t" => {
             let target = if row.target < 0 { 0 } else { row.target };
-            out.extend(terms.get(&format!("DC-SkillNodeDesc-TargetName-{}", target)));
+            terms
+                .get(&format!("DC-SkillNodeDesc-TargetName-{}", target))
+                .write(out);
         }
         "tg" => {
-            out.extend(terms.get(&format!(
-                "DC-SkillNodeDesc-TargetSkill-{}",
-                // TODO: param_key じゃないっぽい(-1がある)
-                row.param_key
-            )))
+            terms
+                .get(&format!(
+                    "DC-SkillNodeDesc-TargetSkill-{}",
+                    // TODO: param_key じゃないっぽい(-1がある)
+                    row.param_key
+                ))
+                .write(out)
         }
-        "dr" => out.extend(terms.get("WD-DamageType-Direct")),
+        "dr" => terms.get("WD-DamageType-Direct").write(out),
         "accu" => match row.avoid_type.as_str() {
             "" | "LastHit" => {
-                out.push(Token::Indent);
-                out.extend(terms.get("DC-SkillNodeDesc-AvoidType-"));
+                Token::Indent.write(out);
+                terms.get("DC-SkillNodeDesc-AvoidType-").write(out);
             }
             "A" => {
-                out.push(Token::Indent);
-                out.extend(terms.get("DC-SkillNodeDesc-AvoidType-A"));
+                Token::Indent.write(out);
+                terms.get("DC-SkillNodeDesc-AvoidType-A").write(out);
             }
             "C" => {
-                out.push(Token::Indent);
-                out.extend(terms.get("DC-SkillNodeDesc-AvoidType-C"));
+                Token::Indent.write(out);
+                terms.get("DC-SkillNodeDesc-AvoidType-C").write(out);
             }
             _ => {
-                out.push(Token::Error(format!(
-                    "invalid avoid_type: {}",
-                    row.avoid_type
-                )));
+                Token::Panic(format!("invalid avoid_type: {}", row.avoid_type)).write(out);
             }
         },
-        "hit" => out.push(Token::Text(row.hit_rate.to_string())),
+        "hit" => Token::Text(row.hit_rate.to_string()).write(out),
         "crit" => {
             if row.crit_rate == 0 || row.crit_rate == 100 {
-                out.push(Token::Empty)
+                Token::Empty.write(out);
             } else {
-                out.push(Token::Indent);
-                out.extend(
-                    terms
-                        .get("DC-SkillNodeDesc-CritRate")
-                        .map_var(|out, s| match s {
-                            "0" => out.push(Token::Text(row.crit_rate.to_string())),
-                            _ => (),
-                        }),
-                );
+                Token::Indent.write(out);
+                terms
+                    .get("DC-SkillNodeDesc-CritRate")
+                    .map_var_1(|out| Token::Text(row.crit_rate.to_string()).write(out))
+                    .write(out);
             }
         }
         // reduce
         "rd" => match row.reduce.as_str() {
-            "" => out.push(Token::Empty),
+            "" => Token::Empty.write(out),
             "P" | "M" | "V" => {
-                out.push(Token::Indent);
-                out.extend(terms.get(&format!("DC-SkillNodeDesc-Reduce-{}", row.reduce)));
+                Token::Indent.write(out);
+                terms
+                    .get(&format!("DC-SkillNodeDesc-Reduce-{}", row.reduce))
+                    .write(out);
             }
-            _ => out.push(Token::Error(format!("invalid reduce: {}", row.reduce))),
+            _ => Token::Panic(format!("invalid reduce: {}", row.reduce)).write(out),
         },
         "inc" => {
             if row.inc_relate.is_empty() {
-                out.push(Token::Empty)
+                Token::Empty.write(out);
             } else {
-                out.push(Token::Indent);
+                Token::Indent.write(out);
                 let pair = row.inc_relate.split(':').collect::<Vec<_>>();
                 let key = pair[0];
                 match key {
-                    "CritRate" => out.extend(terms.get("DC-SkillNodeDesc-AboutIncPower")),
-                    _ => (), // TODO: verify
+                    "CritRate" => terms.get("DC-SkillNodeDesc-AboutIncPower").write(out),
+                    s => Token::Error(format!("inc_relate[{}]", s)).write(out),
                 }
             }
         }
+        // increase relate target
         "irt" => match row.inc_target.as_str() {
-            "SELF" => out.extend(terms.get("DC-SkillNodeDesc-TargetName-0")),
-            "TARGET" => out.extend(terms.get("DC-SkillNodeDesc-TargetName-1")),
-            _ => out.push(Token::Error(format!(
-                "invalid inc_target: {}",
-                row.inc_target
-            ))),
+            "SELF" => terms.get("DC-SkillNodeDesc-TargetName-0").write(out),
+            "TARGET" => terms.get("DC-SkillNodeDesc-TargetName-1").write(out),
+            _ => Token::Panic(format!("inc_target[{}]", row.inc_target)).write(out),
         },
         "irf" => {
             let pair = row.inc_relate.split(':').collect::<Vec<_>>();
             let key = pair[0];
-            out.extend(terms.get(&format!("NM-{}", key)));
+            match terms.try_get(&format!("NM-{}", key)) {
+                Some(s) => s.write(out),
+                None => Token::Error(format!("inc_relate[{}]", key)).write(out),
+            }
         }
-        "ipw" => out.push(Token::Text(row.inc_power.to_string())),
-        "power" => out.extend(terms.get("DC-SkillNodeDesc-AboutPower")),
-        "pwd" => {
-            // rt,rf,pw
-            out.extend(terms.get("DC-SkillNodeDesc-AboutPowerDtl"))
-        }
+        "ipw" => Token::Text(row.inc_power.to_string()).write(out),
+        "power" => terms.get("DC-SkillNodeDesc-AboutPower").write(out),
+        // rt,rf,pw
+        "pwd" => terms.get("DC-SkillNodeDesc-AboutPowerDtl").write(out),
         "rt" => match row.inc_target.as_str() {
-            "SELF" => out.extend(terms.get("DC-SkillNodeDesc-TargetName-0")),
-            "TARGET" => out.extend(terms.get("DC-SkillNodeDesc-TargetName-1")),
-            _ => out.push(Token::Error(format!(
-                "invalid inc_target: {}",
-                row.inc_target
-            ))),
+            "SELF" => terms.get("DC-SkillNodeDesc-TargetName-0").write(out),
+            "TARGET" => terms.get("DC-SkillNodeDesc-TargetName-1").write(out),
+            _ => Token::Panic(format!("inc_target[{}]", row.inc_target)).write(out),
         },
         "rf" => {
             if row.relate.contains('/') {
@@ -343,50 +338,44 @@ fn act_node_formatter(
                 out.extend(terms.get(&format!("NM-{}", key)));
             }
         }
-        "pw" => out.push(Token::Text(row.power.to_string())),
+        "pw" => Token::Text(row.power.to_string()).write(out),
         "last" => {
-            fn a(name: &str, value: i32, terms: &TermRepository) -> Tokens {
+            fn item(name: &str, value: i32, terms: &TermRepository) -> Tokens {
                 terms
                     .get(&format!("DC-SkillNodeDesc-Last{}", name))
-                    .map_var(|out, s| match s {
-                        "0" => Token::Text(value.to_string()).write(out),
-                        _ => (),
-                    })
+                    .map_var_1(|out| Token::Text(value.to_string()).write(out))
             }
 
-            let mut it = vec![];
+            let mut items = vec![];
             if row.state_last[0] >= 0 {
-                it.push(a("Act", row.state_last[0], terms));
+                items.push(item("Act", row.state_last[0], terms));
             }
             if row.state_last[1] >= 0 {
-                it.push(a("Turn", row.state_last[1], terms));
+                items.push(item("Turn", row.state_last[1], terms));
             }
             if row.state_last[2] >= 0 {
-                it.push(a("Combat", row.state_last[2], terms));
+                items.push(item("Combat", row.state_last[2], terms));
             }
             if row.state_last[3] >= 0 {
-                it.push(a("Room", row.state_last[3], terms));
+                items.push(item("Room", row.state_last[3], terms));
             }
             if row.state_last[4] >= 0 {
-                it.push(a("Floor", row.state_last[4], terms));
+                items.push(item("Floor", row.state_last[4], terms));
             }
 
-            if !it.is_empty() {
+            if !items.is_empty() {
                 Token::Indent.write(out);
                 terms
                     .get("DC-SkillNodeDesc-LastCombine")
-                    .map_var(|out, s| match s {
-                        "0" => {
-                            let mut first = true;
-                            for i in &it {
-                                if !first {
-                                    terms.get("DC-SkillNodeDesc-LastDivider").write(out);
-                                }
-                                i.write(out);
-                                first = false;
+                    .map_var_1(|out| {
+                        let mut first = true;
+                        for i in &items {
+                            if !first {
+                                terms.get("DC-SkillNodeDesc-LastDivider").write(out);
                             }
+                            i.write(out);
+                            first = false;
                         }
-                        _ => (),
                     })
                     .write(out);
             } else {
@@ -396,19 +385,23 @@ fn act_node_formatter(
         "st" => {
             if let Some(state_row_id) = &row.state_row_id {
                 if let Some(state) = states.get(state_row_id) {
-                    out.extend(terms.get(&format!("NM-{}", &state.id)))
+                    if let Some(text) = terms.try_get(&format!("NM-{}", &state.id)) {
+                        text.write(out);
+                    } else {
+                        Token::Error(format!("state[{}]", state.id)).write(out);
+                    }
                 } else {
-                    out.push(Token::Error(format!("state not found: {}", state_row_id)));
+                    Token::Panic(format!("state not found: {}", state_row_id)).write(out);
                 }
             }
         }
         "srpw" => {
             if let Some(state_row_id) = &row.state_row_id {
                 if let Some(state) = states.get(state_row_id) {
-                    let text = state.format.replace("{v}", &format!("{}", row.power));
-                    out.push(Token::Text(text));
+                    let text = state.format.replace("{v}", &row.power.to_string());
+                    Token::Text(text).write(out);
                 } else {
-                    out.push(Token::Error(format!("state not found: {}", state_row_id)));
+                    Token::Panic(format!("state not found: {}", state_row_id)).write(out);
                 }
             }
         }
@@ -416,17 +409,14 @@ fn act_node_formatter(
         "md" => {
             if row.action_type == "AltMode" {
                 if row.power == 0 {
-                    out.extend(terms.get("WD-SkillAltModeName-0"));
+                    terms.get("WD-SkillAltModeName-0").write(out);
                 } else if row.power == 1 {
-                    out.extend(terms.get("WD-SkillAltModeName-1"));
+                    terms.get("WD-SkillAltModeName-1").write(out);
                 } else {
-                    out.push(Token::Error(format!("invalid power {}", row.power)));
+                    Token::Panic(format!("invalid power {}", row.power)).write(out);
                 }
             } else {
-                out.push(Token::Error(format!(
-                    "invalid action_type {}",
-                    row.action_type
-                )));
+                Token::Panic(format!("invalid action_type {}", row.action_type)).write(out);
             }
         }
         _ => (),

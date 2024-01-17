@@ -28,7 +28,14 @@ impl<'a> TermRepository {
     pub fn get(&'a self, key: &str) -> Tokens {
         match self.inner.get(key) {
             Some(v) => v.tokens.clone(),
-            None => Tokens(vec![Token::Error(key.to_string())]),
+            None => Tokens::from_vec(vec![Token::Error(key.to_string())]),
+        }
+    }
+
+    pub fn try_get(&'a self, key: &str) -> Option<Tokens> {
+        match self.inner.get(key) {
+            Some(v) => Some(v.tokens.clone()),
+            None => None,
         }
     }
 
