@@ -3,6 +3,7 @@ extern crate clap;
 extern crate data;
 extern crate json;
 extern crate regex;
+extern crate serde;
 extern crate yaml_rust;
 
 use clap::{Parser, Subcommand};
@@ -12,6 +13,7 @@ use data::LANGUAGES;
 use state::state_repository_from_dump;
 use table::act::ActTable;
 use table::act_node::ActNodeTable;
+use table::enemy::EnemyTable;
 use table::skill::SkillTable;
 use table::skill_mode::SkillModeTable;
 use table::sm_act::SmActTable;
@@ -75,6 +77,7 @@ fn run_database(lang: String, write: bool) {
     let mut skill_mode_table: Option<Table<SkillModeTable>> = None;
     let mut sm_act_table: Option<Table<SmActTable>> = None;
     let mut state_table: Option<Table<StateTable>> = None;
+    let mut enemy_table: Option<Table<EnemyTable>> = None;
 
     let db = read_db();
     for meta in db["Metas"].members() {
@@ -86,6 +89,7 @@ fn run_database(lang: String, write: bool) {
             "skill_mode" => skill_mode_table = Some(Table::new(meta.to_owned())),
             "sm_act" => sm_act_table = Some(Table::new(meta.to_owned())),
             "state" => state_table = Some(Table::new(meta.to_owned())),
+            "enemy" => enemy_table = Some(Table::new(meta.to_owned())),
             _ => (),
         }
     }
@@ -95,6 +99,7 @@ fn run_database(lang: String, write: bool) {
     let sm_act_table = sm_act_table.unwrap();
     let act_table = act_table.unwrap();
     let act_node_table = act_node_table.unwrap();
+    let enemy_table = enemy_table.unwrap();
 
     let states = state_repository_from_dump(&state_table.unwrap());
     let terms_i18n = terms::term_repository_from_dump();
@@ -114,6 +119,7 @@ fn run_database(lang: String, write: bool) {
             &sm_act_table,
             &act_table,
             &act_node_table,
+            &enemy_table,
             terms,
             &states,
         );

@@ -6,6 +6,7 @@ use json::JsonValue;
 
 pub mod act;
 pub mod act_node;
+pub mod enemy;
 pub mod skill;
 pub mod skill_mode;
 pub mod sm_act;
@@ -126,6 +127,32 @@ impl<T: TableParser> Table<T> {
                 row.push(field["Value"].as_str().unwrap().to_string());
             }
             csv_writer.write_record(row).unwrap();
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct RowRef {
+    pub table: String,
+    pub row_id: String,
+}
+
+impl RowRef {
+    pub fn parse(s: &str) -> Option<RowRef> {
+        let a = s.splitn(2, '.').collect::<Vec<&str>>();
+        match &a[..] {
+            [table_name, tail] => {
+                let table_id_and_row_id = tail.splitn(3, '_').collect::<Vec<&str>>();
+                match &table_id_and_row_id[..] {
+                    [_, _table_id, row_id] => Some(RowRef {
+                        table: table_name.to_string(),
+                        row_id: row_id.to_string(),
+                    }),
+                    _ => None,
+                }
+            }
+            [""] => None,
+            _ => None,
         }
     }
 }

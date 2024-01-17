@@ -13,10 +13,11 @@ use idhash::IdHash;
 use sprite::parse_icon;
 use table::act::ActTable;
 use table::act_node::{ActNodeRow, ActNodeTable};
+use table::enemy::EnemyTable;
 use table::skill::{SkillRow, SkillTable};
 use table::skill_mode::{SkillModeRow, SkillModeTable};
 use table::sm_act::{SmActRow, SmActTable};
-use table::Table;
+use table::{RowRef, Table};
 
 struct SkillIdOrder {
     skill: Skill,
@@ -36,6 +37,7 @@ pub fn process_skill(
     sm_act_table: &Table<SmActTable>,
     act_table: &Table<ActTable>,
     act_node_table: &Table<ActNodeTable>,
+    enemy_table: &Table<EnemyTable>,
     terms: &TermRepository,
     states: &StateRepository,
 ) -> SkillRepository {
@@ -56,6 +58,7 @@ pub fn process_skill(
                         sm_act_table,
                         act_table,
                         act_node_table,
+                        enemy_table,
                         terms,
                         states,
                     )
@@ -107,6 +110,7 @@ fn process_skill_mode(
     sm_act_table: &Table<SmActTable>,
     act_table: &Table<ActTable>,
     act_node_table: &Table<ActNodeTable>,
+    enemy_table: &Table<EnemyTable>,
     terms: &TermRepository,
     states: &StateRepository,
 ) -> SkillMode {
@@ -122,7 +126,16 @@ fn process_skill_mode(
 
     let acts = sm_act_rows
         .iter()
-        .map(|sm_act_row| process_sm_act(sm_act_row, act_table, act_node_table, terms, states))
+        .map(|sm_act_row| {
+            process_sm_act(
+                sm_act_row,
+                act_table,
+                act_node_table,
+                enemy_table,
+                terms,
+                states,
+            )
+        })
         .collect::<Vec<_>>();
 
     // format
@@ -182,6 +195,7 @@ fn process_sm_act(
     sm_act_row: &SmActRow,
     act_table: &Table<ActTable>,
     act_node_table: &Table<ActNodeTable>,
+    enemy_table: &Table<EnemyTable>,
     terms: &TermRepository,
     states: &StateRepository,
 ) -> Act {
@@ -201,7 +215,7 @@ fn process_sm_act(
         .iter()
         .filter(|r| r.act == format!("{}_{}", act_row.name, act_row.row_id))
         .filter(|row| row.action_type != "Visual")
-        .map(|act_node_row| process_act_node(act_node_row, terms, states))
+        .map(|act_node_row| process_act_node(act_node_row, enemy_table, terms, states))
         .collect::<Vec<_>>();
 
     let tokens = terms.get(&format!(
@@ -221,6 +235,7 @@ fn act_node_formatter(
     name: &str,
     out: &mut Tokens,
     row: &ActNodeRow,
+    enemy_table: &Table<EnemyTable>,
     terms: &TermRepository,
     states: &StateRepository,
 ) {
@@ -395,8 +410,11 @@ fn act_node_formatter(
             }
         }
         // Add: <lasthit><t>に<st><srpw>を付与<stpw><rd><inc><accu><crit><last>
-        "st" => {
-            if let Some(state_row_id) = &row.state_row_id {
+        "st" => match &row.any_ref {
+            Some(RowRef {
+                table: ref a,
+                row_id: state_row_id,
+            }) if a == "state" => {
                 if let Some(state) = states.get(state_row_id) {
                     if let Some(text) = terms.try_get(&format!("NM-{}", &state.id)) {
                         text.write(out);
@@ -404,23 +422,29 @@ fn act_node_formatter(
                         Token::Error(format!("state[{}]", state.id)).write(out);
                     }
                 } else {
-                    Token::Panic(format!("state not found: {}", state_row_id)).write(out);
+                    panic!("state not found: {}", state_row_id);
                 }
             }
-        }
+            _ => (),
+        },
         // Add: <lasthit><t>に<st><srpw>を付与<stpw><rd><inc><accu><crit><last>
         "srpw" => {
             if !row.relate.is_empty() {
                 Token::Empty.write(out);
             } else {
-                if let Some(state_row_id) = &row.state_row_id {
-                    if let Some(state) = states.get(state_row_id) {
-                        // TODO: ex) 「ポイズン→猛毒」のときは表示しない
-                        let text = state.format.replace("{v}", &row.power.to_string());
-                        Token::Text(text).write(out);
-                    } else {
-                        Token::Panic(format!("state not found: {}", state_row_id)).write(out);
+                match &row.any_ref {
+                    Some(RowRef {
+                        table: ref a,
+                        row_id: state_row_id,
+                    }) if a == "state" => {
+                        if let Some(state) = states.get(state_row_id) {
+                            let text = state.format.replace("{v}", &row.power.to_string());
+                            Token::Text(text).write(out);
+                        } else {
+                            Token::Panic(format!("state not found: {}", state_row_id)).write(out);
+                        }
                     }
+                    _ => (),
                 }
             }
         }
@@ -445,12 +469,25 @@ fn act_node_formatter(
                 Token::Panic(format!("invalid action_type {}", row.action_type)).write(out);
             }
         }
+        "enemy" => match &row.any_ref {
+            Some(RowRef {
+                table: ref a,
+                row_id: enemy_row_id,
+            }) if a == "enemy" => match enemy_table.iter().find(|r| r.row_id == *enemy_row_id) {
+                Some(enemy_row) => {
+                    terms.get(&format!("NM-{}", enemy_row.id)).write(out);
+                }
+                None => panic!("enemy not found: {}", enemy_row_id),
+            },
+            _ => (),
+        },
         _ => (),
     }
 }
 
 fn process_act_node(
     act_node_row: &ActNodeRow,
+    enemy_table: &Table<EnemyTable>,
     terms: &TermRepository,
     states: &StateRepository,
 ) -> ActNode {
@@ -459,7 +496,9 @@ fn process_act_node(
         action_type => {
             let description = terms
                 .get(&format!("DC-SkillNodeDesc-{}", action_type))
-                .format(|out, s| act_node_formatter(s, out, &act_node_row, terms, states));
+                .format(|out, s| {
+                    act_node_formatter(s, out, &act_node_row, enemy_table, terms, states)
+                });
             if act_node_row.act_num != 1 {
                 terms.get("DC-SkillNodeDesc-MultipleCase").map_var_2(
                     |out| description.write(out),
@@ -483,7 +522,6 @@ fn process_act_node(
         action_type: act_node_row.action_type.to_string(),
         target: act_node_row.target.try_into().unwrap(),
         param_key: ParamKey::from_str(&act_node_row.param_key).unwrap(),
-        state_row_id: act_node_row.state_row_id.clone(),
         hit_rate: act_node_row.hit_rate.try_into().unwrap(),
         avoid_type: AvoidType::from_str(&act_node_row.avoid_type).unwrap(),
         relate_target: Target::from_str(&act_node_row.relate_target).unwrap(),

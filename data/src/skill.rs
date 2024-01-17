@@ -174,7 +174,6 @@ pub struct ActNode {
     pub action_type: String,
     pub target: i8,
     pub param_key: ParamKey,
-    pub state_row_id: Option<String>,
     pub hit_rate: u16,
     pub avoid_type: AvoidType,
     pub relate_target: Target,

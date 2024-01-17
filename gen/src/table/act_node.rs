@@ -1,4 +1,4 @@
-use table::{EntityParser, TableParser};
+use table::{EntityParser, RowRef, TableParser};
 
 pub struct ActNodeTable;
 
@@ -37,7 +37,7 @@ pub struct ActNodeRow {
     pub is_skill: bool,
     pub check_target: bool,
     // extra
-    pub state_row_id: Option<String>,
+    pub any_ref: Option<RowRef>,
 }
 
 impl TableParser for ActNodeTable {
@@ -50,18 +50,7 @@ impl TableParser for ActNodeTable {
             .collect::<Vec<_>>();
         assert_eq!(last.len(), 5, "invalid state_last: {}", state_last);
 
-        let state_row_id = if p.get_str("any").starts_with("state.") {
-            Some(
-                p.get_str("any")
-                    .splitn(3, '_')
-                    .skip(2)
-                    .next()
-                    .unwrap()
-                    .to_string(),
-            )
-        } else {
-            None
-        };
+        let any_ref = RowRef::parse(&p.get_str("any"));
 
         ActNodeRow {
             row_id: p.row_id(),
@@ -96,7 +85,7 @@ impl TableParser for ActNodeTable {
             crit_rate: p.get_i32("CritRate"),
             is_skill: p.get_bool("IsSkill"),
             check_target: p.get_bool("CheckTarget"),
-            state_row_id,
+            any_ref,
         }
     }
 }
