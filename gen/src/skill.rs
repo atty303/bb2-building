@@ -355,6 +355,18 @@ fn act_node_formatter(
                 or[0].write(out);
                 terms.get("WD-Relate-Or").write(out);
                 or[1].clone().write(out);
+            } else if row.relate.contains('+') {
+                let mut it = row.relate.split('+');
+                let or = [it.next().unwrap(), it.next().unwrap()]
+                    .iter()
+                    .map(|s| {
+                        let n = &s[3..4];
+                        terms.get(&format!("NM-MainParam:{}", n))
+                    })
+                    .collect::<Vec<_>>();
+                or[0].write(out);
+                terms.get("WD-Relate-And").write(out);
+                or[1].clone().write(out);
             } else {
                 let r = terms
                     .try_get(&format!("DC-SkillNodeDesc-Relate-{}", row.relate))
@@ -501,8 +513,12 @@ fn process_act_node(
     let description = match act_node_row.action_type.as_str() {
         "Reveal" => Tokens::new(),
         action_type => {
+            let at = match action_type {
+                "LosePossNum" => "ReducePoss",
+                s => s,
+            };
             let description = terms
-                .get(&format!("DC-SkillNodeDesc-{}", action_type))
+                .get(&format!("DC-SkillNodeDesc-{}", at))
                 .format(|out, s| {
                     act_node_formatter(s, out, &act_node_row, enemy_table, terms, states)
                 });
