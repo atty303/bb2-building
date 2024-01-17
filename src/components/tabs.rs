@@ -87,8 +87,9 @@ where
     index: usize,
     #[props(default = false)]
     disabled: bool,
-    render_children: F,
-    _phantom: Option<PhantomData<&'a ()>>,
+    render: F,
+    #[props(default = PhantomData)]
+    _phantom: PhantomData<&'a ()>,
 }
 
 #[allow(non_snake_case)]
@@ -99,16 +100,28 @@ where
     let state = use_shared_state::<TabState>(cx).expect("Tab must be a child of TabGroup");
     let selected = state.read().selected == cx.props.index;
 
-    let attrs = cx.bump().alloc(vec![Attribute::new(
-        "role",
-        AttributeValue::Text("tab").into(),
-        None,
-        false,
-    )]);
+    let attrs = cx.bump().alloc(vec![
+        Attribute::new("role", AttributeValue::Text("tab"), None, false),
+        Attribute::new(
+            "tabindex",
+            AttributeValue::Text(if selected { "0" } else { "-1" }),
+            None,
+            false,
+        ),
+        Attribute::new(
+            "onclick",
+            cx.listener(move |_: Event<MouseEvent>| {
+                log::debug!("onclick");
+                state.write().selected = cx.props.index;
+            }),
+            None,
+            true,
+        ),
+    ]);
     // let attr = Attribute::new("role", AttributeValue::Text("tab").into(), None, false);
     // attrs.push(attr);
 
-    (cx.props.render_children)(attrs, selected)
+    (cx.props.render)(attrs, selected)
 }
 
 #[component]

@@ -33,11 +33,21 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
                     class: "tabs",
                     TabList {
                         Tab { index: 0,
-                            render_children: move |attrs, selected| {
+                            render: move |attrs, selected| {
                                 render! {
                                     button {
                                         ..*attrs,
-                                        "NORMAL {selected:?}"
+                                        "NORMAL"
+                                    }
+                                }
+                            }
+                        }
+                        Tab { index: 1,
+                            render: move |attrs, selected| {
+                                render! {
+                                    button {
+                                        ..*attrs,
+                                        "ALTERNATE"
                                     }
                                 }
                             }
