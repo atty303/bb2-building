@@ -310,8 +310,14 @@ fn act_node_formatter(
         }
         "ipw" => Token::Text(row.inc_power.to_string()).write(out),
         "power" => terms.get("DC-SkillNodeDesc-AboutPower").write(out),
-        // rt,rf,pw
-        "pwd" => terms.get("DC-SkillNodeDesc-AboutPowerDtl").write(out),
+        // <rt>の<rf> <pw>%
+        "pwd" => {
+            if row.relate.is_empty() {
+                Token::Empty.write(out);
+            } else {
+                terms.get("DC-SkillNodeDesc-AboutPowerDtl").write(out)
+            }
+        }
         "rt" => match row.inc_target.as_str() {
             "SELF" => terms.get("DC-SkillNodeDesc-TargetName-0").write(out),
             "TARGET" => terms.get("DC-SkillNodeDesc-TargetName-1").write(out),
@@ -331,11 +337,9 @@ fn act_node_formatter(
                 terms.get("WD-Relate-Or").write(out);
                 or[1].clone().write(out);
             } else {
-                let pair = row.relate.split(':').collect::<Vec<_>>();
-                let key = pair[0];
                 let r = terms
-                    .try_get(&format!("DC-SkillNodeDesc-Relate-{}", key))
-                    .or_else(|| terms.try_get(&format!("NM-{}", key)));
+                    .try_get(&format!("DC-SkillNodeDesc-Relate-{}", row.relate))
+                    .or_else(|| terms.try_get(&format!("NM-{}", row.relate)));
                 match r {
                     Some(t) => t.write(out),
                     None => Token::Error(format!("relate[{}]", row.relate)).write(out),
@@ -386,6 +390,7 @@ fn act_node_formatter(
                 Token::Empty.write(out);
             }
         }
+        // Add: <lasthit><t>に<st><srpw>を付与<stpw><rd><inc><accu><crit><last>
         "st" => {
             if let Some(state_row_id) = &row.state_row_id {
                 if let Some(state) = states.get(state_row_id) {
@@ -399,17 +404,30 @@ fn act_node_formatter(
                 }
             }
         }
+        // Add: <lasthit><t>に<st><srpw>を付与<stpw><rd><inc><accu><crit><last>
         "srpw" => {
-            if let Some(state_row_id) = &row.state_row_id {
-                if let Some(state) = states.get(state_row_id) {
-                    let text = state.format.replace("{v}", &row.power.to_string());
-                    Token::Text(text).write(out);
-                } else {
-                    Token::Panic(format!("state not found: {}", state_row_id)).write(out);
+            if !row.relate.is_empty() {
+                Token::Empty.write(out);
+            } else {
+                if let Some(state_row_id) = &row.state_row_id {
+                    if let Some(state) = states.get(state_row_id) {
+                        // TODO: ex) 「ポイズン→猛毒」のときは表示しない
+                        let text = state.format.replace("{v}", &row.power.to_string());
+                        Token::Text(text).write(out);
+                    } else {
+                        Token::Panic(format!("state not found: {}", state_row_id)).write(out);
+                    }
                 }
             }
         }
-        "stpw" => out.push(Token::Empty), // TODO:
+        "stpw" => {
+            if row.relate.is_empty() {
+                Token::Empty.write(out);
+            } else {
+                Token::Indent.write(out);
+                terms.get("DC-SkillNodeDesc-AboutPowerDtl").write(out)
+            }
+        }
         "md" => {
             if row.action_type == "AltMode" {
                 if row.power == 0 {
