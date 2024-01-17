@@ -19,7 +19,7 @@ pub fn TabGroup<'a>(
 
     render! {
         div {
-            &children
+            {children}
         }
     }
 }
@@ -33,7 +33,7 @@ pub fn TabList<'a>(
     render! {
         div {
             role: "tablist",
-            &children
+            {children}
         }
     }
 }
@@ -51,7 +51,7 @@ pub fn Tab<'a>(
             role: "tab",
             tabindex: if state.read().selected == *index { 0 } else { -1 },
             onclick: move |_| state.write().selected = *index,
-            &children
+            {children}
         }
     }
 }
@@ -59,7 +59,7 @@ pub fn Tab<'a>(
 #[component]
 pub fn TabPanels<'a>(cx: Scope<'a>, children: Element<'a>) -> Element<'a> {
     render! {
-        &children
+        {children}
     }
 }
 
@@ -78,7 +78,7 @@ pub fn TabPanel<'a>(
             div {
                 role: "tabpanel",
                 tabindex: if selected { 0 } else { -1 },
-                &children
+                {children}
             }
         }
     } else {
