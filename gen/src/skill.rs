@@ -143,15 +143,20 @@ fn process_skill_mode(
             _ => (),
         });
 
-    let mut tail = terms.get("WD-Cooldown");
-    tail.push(Token::Text(format!(": {}", mode_row.cooldown)));
-    tail.push(Token::NewLine);
+    let tail = if skill_row.is_free {
+        terms.get("NM-TIPS_FreeSkill")
+    } else {
+        let mut tail = terms.get("WD-Cooldown");
+        tail.push(Token::Text(format!(": {}", mode_row.cooldown)));
+        tail.push(Token::NewLine);
 
-    tail.extend(terms.get("WD-SkillPossRemain"));
-    tail.push(Token::Text(format!(
-        ": -{}/{}",
-        mode_row.use_num, skill_row.poss_num
-    )));
+        tail.extend(terms.get("WD-SkillPossRemain"));
+        tail.push(Token::Text(format!(
+            ": -{}/{}",
+            mode_row.use_num, skill_row.poss_num
+        )));
+        tail
+    };
 
     SkillMode {
         id: mode_row.id.to_string(),

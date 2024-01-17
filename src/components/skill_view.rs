@@ -67,17 +67,17 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
                 }
             }
             div {
-                Description { nodes: mode.format() }
+                Description { tokens: mode.format() }
             }
         }
     }
 }
 
 #[component]
-pub fn Description(cx: Scope, nodes: Tokens) -> Element {
+pub fn Description(cx: Scope, tokens: Tokens) -> Element {
     render! {
-        for node in &nodes.0 {
-            match node {
+        for token in &tokens.0 {
+            match token {
                 Token::Text(text) => rsx! { "{text}" },
                 Token::NewLine => rsx! { br {} },
                 Token::Empty => rsx! { "" },
