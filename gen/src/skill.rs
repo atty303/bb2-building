@@ -132,15 +132,12 @@ fn process_skill_mode(
         } else {
             "NM-SkillNodeDesc-ModeName-Normal"
         })
-        .map_var(|out, s| match s {
-            "0" => {
-                if mode_row.is_brave {
-                    out.extend(terms.get("NM-SkillNodeDesc-ModeName-ForBrave"))
-                } else {
-                    out.push(Token::Empty);
-                }
+        .map_var_1(|out| {
+            if mode_row.is_brave {
+                out.extend(terms.get("NM-SkillNodeDesc-ModeName-ForBrave"))
+            } else {
+                out.push(Token::Empty);
             }
-            _ => (),
         });
 
     let tail = if skill_row.is_free {
@@ -329,13 +326,19 @@ fn act_node_formatter(
                         terms.get(&format!("NM-MainParam:{}", n))
                     })
                     .collect::<Vec<_>>();
-                out.extend(or[0].clone());
-                out.extend(terms.get("WD-Relate-Or"));
-                out.extend(or[1].clone());
+                or[0].write(out);
+                terms.get("WD-Relate-Or").write(out);
+                or[1].clone().write(out);
             } else {
                 let pair = row.relate.split(':').collect::<Vec<_>>();
                 let key = pair[0];
-                out.extend(terms.get(&format!("NM-{}", key)));
+                let r = terms
+                    .try_get(&format!("DC-SkillNodeDesc-Relate-{}", key))
+                    .or_else(|| terms.try_get(&format!("NM-{}", key)));
+                match r {
+                    Some(t) => t.write(out),
+                    None => Token::Error(format!("relate[{}]", row.relate)).write(out),
+                };
             }
         }
         "pw" => Token::Text(row.power.to_string()).write(out),
