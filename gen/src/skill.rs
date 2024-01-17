@@ -428,21 +428,26 @@ fn process_act_node(
     terms: &TermRepository,
     states: &StateRepository,
 ) -> ActNode {
-    // let description = Tokens(vec![]);
-    let description = terms
+    let mut description = terms
         .get(&format!("DC-SkillNodeDesc-{}", act_node_row.action_type))
         .format(|out, s| act_node_formatter(s, out, &act_node_row, terms, states));
-    let description = if act_node_row.act_num == 1 {
-        description
-    } else {
+    if act_node_row.act_num != 1 {
         terms
             .get("DC-SkillNodeDesc-MultipleCase")
             .map_var(|out, s| match s {
-                "0" => out.extend(description.clone()),
-                "1" => out.push(Token::Text(act_node_row.act_num.to_string())),
+                "0" => description.write(out),
+                "1" => Token::Text(act_node_row.act_num.to_string()).write(out),
                 _ => (),
             })
+            .write(&mut description);
     };
+
+    for t in description.vec() {
+        match t {
+            Token::Panic(s) => panic!("panic: {}", s),
+            _ => (),
+        }
+    }
 
     ActNode {
         id: act_node_row.id.to_string(),
