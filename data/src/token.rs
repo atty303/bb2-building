@@ -88,7 +88,11 @@ impl Tokens {
         })
     }
 
-    pub fn map_var_2<F: Fn(&mut Tokens) -> ()>(&self, f0: F, f1: F) -> Tokens {
+    pub fn map_var_2<F0: Fn(&mut Tokens) -> (), F1: Fn(&mut Tokens) -> ()>(
+        &self,
+        f0: F0,
+        f1: F1,
+    ) -> Tokens {
         self.map_var(|out, s| match s {
             "0" => f0(out),
             "1" => f1(out),

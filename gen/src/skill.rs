@@ -434,20 +434,17 @@ fn process_act_node(
     let description = match act_node_row.action_type.as_str() {
         "Reveal" => Tokens::new(),
         action_type => {
-            let mut description = terms
+            let description = terms
                 .get(&format!("DC-SkillNodeDesc-{}", action_type))
                 .format(|out, s| act_node_formatter(s, out, &act_node_row, terms, states));
             if act_node_row.act_num != 1 {
-                terms
-                    .get("DC-SkillNodeDesc-MultipleCase")
-                    .map_var(|out, s| match s {
-                        "0" => description.write(out),
-                        "1" => Token::Text(act_node_row.act_num.to_string()).write(out),
-                        _ => (),
-                    })
-                    .write(&mut description);
-            };
-            description
+                terms.get("DC-SkillNodeDesc-MultipleCase").map_var_2(
+                    |out| description.write(out),
+                    |out| Token::Text(act_node_row.act_num.to_string()).write(out),
+                )
+            } else {
+                description
+            }
         }
     };
 
