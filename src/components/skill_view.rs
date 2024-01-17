@@ -3,6 +3,7 @@ use dioxus_router::prelude::Link;
 
 use data::token::{Token, Tokens};
 
+use crate::components::tabs::{Tab, TabGroup, TabList, TabPanel, TabPanels};
 use crate::components::Rarity;
 use crate::components::Sprite;
 use crate::pages::Route;
@@ -10,7 +11,7 @@ use crate::pages::Route;
 #[component]
 pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
     render! {
-       div {
+        div {
            class: "flex flex-col border-solid border border-base-300 rounded-md my-2",
            div {
                class: "flex flex-row items-center gap-2 bg-base-300 text-base-content p-2",
@@ -27,9 +28,22 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
                    Rarity { rarity: skill.rarity }
                }
            }
-           ul {
-               class: "flex flex-row gap-2 p-2",
-               for mode in &skill.modes {
+            ul { class: "flex flex-row gap-2 p-2",
+                TabGroup {
+                    TabList {
+                        Tab { index: 0, "NORMAL" }
+                        Tab { index: 1, "ALTERNATE" }
+                    }
+                    TabPanels {
+                        TabPanel { index: 0,
+                            "TAB 1"
+                        }
+                        TabPanel { index: 1,
+                            "TAB 2"
+                        }
+                    }
+                }
+                for mode in &skill.modes {
                    li {
                        SkillMode { mode: mode }
                    }

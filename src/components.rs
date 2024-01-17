@@ -13,3 +13,4 @@ mod nav_bar;
 mod rarity;
 mod skill_view;
 mod sprite;
+mod tabs;
