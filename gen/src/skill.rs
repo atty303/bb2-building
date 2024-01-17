@@ -160,6 +160,10 @@ fn process_skill_mode(
         let out = &mut tail;
 
         Token::Text(format!(": {}", mode_row.cooldown)).write(out);
+        if mode_row.is_quick {
+            Token::Text(" ".to_string()).write(out);
+            terms.get("WD-SkillQuick").write(out);
+        }
         Token::NewLine.write(out);
 
         terms.get("WD-SkillPossRemain").write(out);
