@@ -324,7 +324,10 @@ fn act_node_formatter(
             let key = &row.inc_relate;
             match terms.try_get(&format!("NM-{}", key)) {
                 Some(s) => s.write(out),
-                None => Token::Error(format!("irf[{}]", key)).write(out),
+                None => match terms.try_get(&format!("DC-SkillNodeDesc-Relate-{}", key)) {
+                    Some(s) => s.write(out),
+                    _ => Token::Error(format!("irf[{}]", key)).write(out),
+                },
             }
         }
         "ipw" => Token::Text(row.inc_power.to_string()).write(out),
@@ -367,6 +370,9 @@ fn act_node_formatter(
                 or[0].write(out);
                 terms.get("WD-Relate-And").write(out);
                 or[1].clone().write(out);
+            } else if row.relate.starts_with("Aff") {
+                let n = &row.relate[3..4];
+                terms.get(&format!("NM-MainParam:{}", n)).write(out);
             } else {
                 let r = terms
                     .try_get(&format!("DC-SkillNodeDesc-Relate-{}", row.relate))
@@ -435,10 +441,15 @@ fn act_node_formatter(
                 row_id: state_row_id,
             }) if a == "state" => {
                 if let Some(state) = states.get(state_row_id) {
-                    if let Some(text) = terms.try_get(&format!("NM-{}", &state.id)) {
+                    // let id = match state.id.as_str() {
+                    //     "ConsumeNum-" => "ConsumeNum+",
+                    //     id => id,
+                    // };
+                    if let Some(text) = terms.try_get(&format!("NM-{}", state.id)) {
                         text.write(out);
                     } else {
-                        Token::Error(format!("state[{}]", state.id)).write(out);
+                        Token::Text(state.name.clone()).write(out);
+                        //Token::Error(format!("state[{}]", state.id)).write(out);
                     }
                 } else {
                     panic!("state not found: {}", state_row_id);
@@ -500,6 +511,7 @@ fn act_node_formatter(
             },
             _ => (),
         },
+        "nrpw" => Token::Empty.write(out),
         _ => (),
     }
 }

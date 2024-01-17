@@ -8,6 +8,7 @@ pub fn state_repository_from_dump(state_table: &Table<StateTable>) -> StateRepos
         .map(|state_row| State {
             row_id: state_row.row_id.clone(),
             id: state_row.id.clone(),
+            name: state_row.name.clone(),
             format: state_row.format.clone(),
             long_format: state_row.long_format.clone(),
         })

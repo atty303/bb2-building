@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 pub struct State {
     pub row_id: String,
     pub id: String,
+    /// japanese name
+    pub name: String,
     pub format: String,
     pub long_format: String,
 }
