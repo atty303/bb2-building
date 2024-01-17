@@ -20,7 +20,7 @@ impl StateRepository {
     pub fn from_vec(vec: Vec<State>) -> Self {
         let mut inner = HashMap::new();
         for state in vec {
-            inner.insert(state.id.clone(), state);
+            inner.insert(state.row_id.clone(), state);
         }
         Self { inner }
     }

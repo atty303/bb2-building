@@ -12,6 +12,12 @@ pub enum Token {
     Error(String),
 }
 
+impl Token {
+    pub fn write(&self, other: &mut Tokens) {
+        other.push(self.clone());
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Tokens(pub Vec<Token>);
 
@@ -26,6 +32,10 @@ impl Tokens {
 
     pub fn extend(&mut self, other: Tokens) {
         self.0.extend(other.0);
+    }
+
+    pub fn write(&self, other: &mut Tokens) {
+        other.0.extend(self.0.clone());
     }
 
     pub fn is_empty(&self) -> bool {

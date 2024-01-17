@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use data::skill::{
     Act, ActNode, ActTrigger, AvoidType, ParamKey, Reduce, Skill, SkillCategory, SkillMode,
-    SkillRepository, StateLast, Target,
+    SkillRepository, Target,
 };
 use data::state::StateRepository;
 use data::term::TermRepository;
@@ -340,55 +340,52 @@ fn act_node_formatter(
         }
         "pw" => out.push(Token::Text(row.power.to_string())),
         "last" => {
-            // if self.state_last.room >= 0 {
-            //     out.push(Token::NewLine);
-            //     out.push(Token::Text("　".to_string()));
-            //     out.extend(db.term().get("DC-SkillNodeDesc-LastCombine").map_var(
-            //         |out, s| match s {
-            //             "0" => {
-            //                 let t = db
-            //                     .term()
-            //                     .get("DC-SkillNodeDesc-LastRoom")
-            //                     .map_var(|out, s| match s {
-            //                         "0" => {
-            //                             out.push(Token::Text(self.state_last.room.to_string()));
-            //                         }
-            //                         _ => (),
-            //                     });
-            //                 out.extend(t);
-            //             }
-            //             _ => (),
-            //         },
-            //     ));
-            // } else if self.state_last.f1 >= 0 {
-            //     out.push(Token::Error("state_last.f1".to_string()));
-            // } else if self.state_last.f2 >= 0 {
-            //     out.push(Token::NewLine);
-            //     out.push(Token::Text("　".to_string()));
-            //     out.extend(db.term().get("DC-SkillNodeDesc-LastCombine").map_var(
-            //         |out, s| match s {
-            //             "0" => {
-            //                 let t = db
-            //                     .term()
-            //                     .get("DC-SkillNodeDesc-LastTurn")
-            //                     .map_var(|out, s| match s {
-            //                         "0" => {
-            //                             out.push(Token::Text(self.state_last.f2.to_string()));
-            //                         }
-            //                         _ => (),
-            //                     });
-            //                 out.extend(t);
-            //             }
-            //             _ => (),
-            //         },
-            //     ));
-            // } else if self.state_last.f3 >= 0 {
-            //     out.push(Token::Error("state_last.f3".to_string()));
-            // } else if self.state_last.f5 >= 0 {
-            //     out.push(Token::Error("state_last.f5".to_string()));
-            // } else {
-            //     out.push(Token::Empty);
-            // }
+            if row.state_last[3] >= 0 {
+                Token::Indent.write(out);
+                terms
+                    .get("DC-SkillNodeDesc-LastCombine")
+                    .map_var(|out, s| match s {
+                        "0" => {
+                            terms
+                                .get("DC-SkillNodeDesc-LastRoom")
+                                .map_var(|out, s| match s {
+                                    "0" => {
+                                        Token::Text(row.state_last[3].to_string()).write(out);
+                                    }
+                                    _ => (),
+                                })
+                                .write(out);
+                        }
+                        _ => (),
+                    })
+                    .write(out);
+            } else if row.state_last[0] >= 0 {
+                Token::Error("state_last.0".to_string()).write(out);
+            } else if row.state_last[1] >= 0 {
+                Token::Indent.write(out);
+                terms
+                    .get("DC-SkillNodeDesc-LastCombine")
+                    .map_var(|out, s| match s {
+                        "0" => {
+                            terms
+                                .get("DC-SkillNodeDesc-LastTurn")
+                                .map_var(|out, s| match s {
+                                    "0" => {
+                                        Token::Text(row.state_last[1].to_string()).write(out);
+                                    }
+                                    _ => (),
+                                })
+                                .write(out);
+                        }
+                        _ => (),
+                    });
+            } else if row.state_last[2] >= 0 {
+                Token::Error("state_last.2".to_string()).write(out);
+            } else if row.state_last[4] >= 0 {
+                Token::Error("state_last.4".to_string()).write(out);
+            } else {
+                Token::Empty.write(out);
+            }
         }
         "st" => {
             if let Some(state_row_id) = &row.state_row_id {
@@ -435,18 +432,6 @@ fn process_act_node(
     terms: &TermRepository,
     states: &StateRepository,
 ) -> ActNode {
-    let last = act_node_row.state_last.split('|').collect::<Vec<_>>();
-    assert_eq!(
-        last.len(),
-        5,
-        "invalid state_last: {}",
-        act_node_row.state_last
-    );
-    let last = last
-        .iter()
-        .map(|v| v.parse::<i8>().unwrap())
-        .collect::<Vec<_>>();
-
     // let description = Tokens(vec![]);
     let description = terms
         .get(&format!("DC-SkillNodeDesc-{}", act_node_row.action_type))
@@ -478,13 +463,6 @@ fn process_act_node(
         inc_target: Target::from_str(&act_node_row.inc_target).unwrap(),
         inc_relate: act_node_row.inc_relate.to_string(),
         inc_power: act_node_row.inc_power.try_into().unwrap(),
-        state_last: StateLast {
-            f1: last[0],
-            f2: last[1],
-            f3: last[2],
-            room: last[3],
-            f5: last[4],
-        },
         act_num: act_node_row.act_num.try_into().unwrap(),
         crit_rate: act_node_row.crit_rate.try_into().unwrap(),
 

@@ -31,7 +31,7 @@ pub struct ActNodeRow {
     pub inc_target: String,
     pub inc_relate: String,
     pub inc_power: i32,
-    pub state_last: String,
+    pub state_last: Vec<i32>,
     pub act_num: i32,
     pub crit_rate: i32,
     pub is_skill: bool,
@@ -43,6 +43,13 @@ pub struct ActNodeRow {
 impl TableParser for ActNodeTable {
     type Row = ActNodeRow;
     fn parse_row(p: &EntityParser) -> Self::Row {
+        let state_last = p.get_str("StateLast");
+        let last = state_last
+            .split('|')
+            .map(|v| v.parse::<i32>().unwrap())
+            .collect::<Vec<_>>();
+        assert_eq!(last.len(), 5, "invalid state_last: {}", state_last);
+
         let state_row_id = if p.get_str("any").starts_with("state.") {
             Some(
                 p.get_str("any")
@@ -84,7 +91,7 @@ impl TableParser for ActNodeTable {
             inc_target: p.get_str("IncTarget"),
             inc_relate: p.get_str("IncRelate"),
             inc_power: p.get_i32("IncPower"),
-            state_last: p.get_str("StateLast"),
+            state_last: last,
             act_num: p.get_i32("ActNum"),
             crit_rate: p.get_i32("CritRate"),
             is_skill: p.get_bool("IsSkill"),

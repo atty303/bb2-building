@@ -10,15 +10,6 @@ use token::{Token, Tokens};
 
 type SkillHash = u16;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct StateLast {
-    pub f1: i8,
-    pub f2: i8, // TODO: turn
-    pub f3: i8,
-    pub room: i8,
-    pub f5: i8,
-}
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumString, Display)]
 pub enum ActTrigger {
     OnUse,
@@ -132,6 +123,7 @@ pub struct SkillMode {
 impl SkillMode {
     pub fn format(&self) -> Tokens {
         let mut tokens = self.description_head.clone();
+        tokens.push(Token::NewLine);
         for act in &self.acts {
             tokens.extend(act.format());
             tokens.push(Token::NewLine);
@@ -179,7 +171,6 @@ pub struct ActNode {
     pub inc_target: Target,
     pub inc_relate: String,
     pub inc_power: u16,
-    pub state_last: StateLast,
     pub act_num: u8,
     pub crit_rate: u16,
     // extra
