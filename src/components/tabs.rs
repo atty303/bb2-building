@@ -1,7 +1,10 @@
 use dioxus::core::AttributeValue;
+use dioxus::hooks::error::UseSharedStateResult;
 use dioxus::prelude::*;
+use std::any::TypeId;
 use std::marker::PhantomData;
 use std::ops::Deref;
+use std::rc::Rc;
 
 struct TabState {
     selected: usize,
@@ -101,27 +104,37 @@ where
     let selected = state.read().selected == cx.props.index;
 
     let attrs = cx.bump().alloc(vec![
-        Attribute::new("role", AttributeValue::Text("tab"), None, false),
-        Attribute::new(
-            "tabindex",
-            AttributeValue::Text(if selected { "0" } else { "-1" }),
-            None,
-            false,
-        ),
+        // Attribute::new("role", AttributeValue::Text("tab"), None, false),
+        // Attribute::new(
+        //     "tabindex",
+        //     AttributeValue::Text(if selected { "0" } else { "-1" }),
+        //     None,
+        //     true,
+        // ),
         Attribute::new(
             "onclick",
-            cx.listener(move |_: Event<MouseEvent>| {
-                log::debug!("onclick");
-                state.write().selected = cx.props.index;
+            cx.listener(move |e: Event<PlatformEventData>| {
+                log::debug!("onclick: {}", cx.props.index);
+                log::debug!("{:?}", state.read().selected);
+                state.write_silent().selected = cx.props.index;
             }),
             None,
-            true,
+            false,
         ),
     ]);
     // let attr = Attribute::new("role", AttributeValue::Text("tab").into(), None, false);
     // attrs.push(attr);
 
-    (cx.props.render)(attrs, selected)
+    //(cx.props.render)(attrs, selected)
+    render! {
+        button {
+            ..*attrs,
+            // onclick: move |e: MouseEvent| {
+            //     log::debug!("onclick");
+            // },
+            "B"
+        }
+    }
 }
 
 #[component]
@@ -140,18 +153,18 @@ pub fn TabPanel<'a>(
     children: Element<'a>,
 ) -> Element<'a> {
     let state = use_shared_state::<TabState>(cx).expect("TabPanel must be a child of TabGroup");
-    let selected = state.read().selected == *index;
-    if *r#static || (*unmount && selected) {
-        render! {
-            div {
-                role: "tabpanel",
-                tabindex: if selected { 0 } else { -1 },
-                {children}
-            }
-        }
-    } else {
-        None
-    }
+    // let selected = state.read().selected == *index;
+    // if *r#static || (*unmount && selected) {
+    //     render! {
+    //         div {
+    //             role: "tabpanel",
+    //             tabindex: if selected { 0 } else { -1 },
+    //             {children}
+    //         }
+    //     }
+    // } else {
+    None
+    // }
 }
 
 #[cfg(test)]
