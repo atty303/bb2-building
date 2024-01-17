@@ -89,7 +89,9 @@ pub fn Description(cx: Scope, nodes: Tokens) -> Element {
                 },
                 Token::Indent => rsx! {
                     br {}
-                }}
+                    "　"
+                }
+            }
         }
     }
 }
