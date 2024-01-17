@@ -235,15 +235,12 @@ fn act_node_formatter(
                 .get(&format!("DC-SkillNodeDesc-TargetName-{}", target))
                 .write(out);
         }
-        "tg" => {
-            terms
-                .get(&format!(
-                    "DC-SkillNodeDesc-TargetSkill-{}",
-                    // TODO: param_key じゃないっぽい(-1がある)
-                    row.param_key
-                ))
-                .write(out)
-        }
+        "tg" => match row.param_key.as_str() {
+            "LastAutoUse" => Token::Empty.write(out),
+            key => terms
+                .get(&format!("DC-SkillNodeDesc-TargetSkill-{}", key))
+                .write(out),
+        },
         "dr" => terms.get("WD-DamageType-Direct").write(out),
         "accu" => match row.avoid_type.as_str() {
             "" | "LastHit" => {
@@ -347,6 +344,13 @@ fn act_node_formatter(
             }
         }
         "pw" => Token::Text(row.power.to_string()).write(out),
+        "ppw" => {
+            if row.relate.is_empty() {
+                Token::Text(row.power.to_string()).write(out);
+            } else {
+                Token::Empty.write(out);
+            }
+        }
         "last" => {
             fn item(name: &str, value: i32, terms: &TermRepository) -> Tokens {
                 terms
