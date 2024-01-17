@@ -123,12 +123,16 @@ pub struct SkillMode {
 impl SkillMode {
     pub fn format(&self) -> Tokens {
         let mut tokens = self.description_head.clone();
-        tokens.push(Token::NewLine);
+        let out = &mut tokens;
+        Token::NewLine.write(out);
+
         for act in &self.acts {
-            tokens.extend(act.format());
-            tokens.push(Token::NewLine);
+            act.format().write(out);
+            Token::NewLine.write(out);
         }
-        tokens.extend(self.description_tail.clone());
+
+        Token::NewLine.write(out);
+        self.description_tail.write(out);
         tokens
     }
 }
@@ -145,12 +149,21 @@ pub struct Act {
 impl Act {
     pub fn format(&self) -> Tokens {
         let mut tokens = Tokens::new();
-        tokens.extend(self.description.clone());
-        tokens.push(Token::NewLine);
-        for node in &self.nodes {
-            tokens.extend(node.format());
-            tokens.push(Token::NewLine);
+        let out = &mut tokens;
+
+        self.description.write(out);
+        Token::NewLine.write(out);
+
+        let mut first = true;
+        for node in self.nodes.iter().filter(|n| !n.description.is_empty()) {
+            if first {
+                first = false;
+            } else {
+                Token::NewLine.write(out);
+            }
+            node.format().write(out);
         }
+
         tokens
     }
 }
