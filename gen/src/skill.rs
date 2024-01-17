@@ -173,6 +173,8 @@ fn process_skill_mode(
         tail
     };
 
+    let description_body = terms.try_get(&format!("DC-{}", mode_row.id));
+
     SkillMode {
         id: mode_row.id.to_string(),
         icon: parse_icon(&mode_row.icon),
@@ -186,6 +188,7 @@ fn process_skill_mode(
         acts,
         name: terms.get_str(&format!("NM-{}", mode_row.id)),
         description_head: head,
+        description_body,
         description_tail: tail,
         poss_num: skill_row.poss_num.try_into().unwrap(),
     }

@@ -116,6 +116,7 @@ pub struct SkillMode {
     // extra fields
     pub name: String,
     pub description_head: Tokens,
+    pub description_body: Option<Tokens>,
     pub description_tail: Tokens,
     pub poss_num: i8, // copy from Skill
 }
@@ -126,9 +127,14 @@ impl SkillMode {
         let out = &mut tokens;
         Token::NewLine.write(out);
 
-        for act in &self.acts {
-            act.format().write(out);
+        if let Some(body) = &self.description_body {
+            body.write(out);
             Token::NewLine.write(out);
+        } else {
+            for act in &self.acts {
+                act.format().write(out);
+                Token::NewLine.write(out);
+            }
         }
 
         Token::NewLine.write(out);

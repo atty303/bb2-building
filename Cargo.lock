@@ -825,6 +825,7 @@ dependencies = [
  "data",
  "json",
  "regex",
+ "serde",
  "yaml-rust",
 ]
 
