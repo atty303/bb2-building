@@ -134,9 +134,9 @@ fn process_skill_mode(
         })
         .map_var_1(|out| {
             if mode_row.is_brave {
-                out.extend(terms.get("NM-SkillNodeDesc-ModeName-ForBrave"))
+                terms.get("NM-SkillNodeDesc-ModeName-ForBrave").write(out);
             } else {
-                out.push(Token::Empty);
+                Token::Empty.write(out);
             }
         });
 
@@ -144,14 +144,19 @@ fn process_skill_mode(
         terms.get("NM-TIPS_FreeSkill")
     } else {
         let mut tail = terms.get("WD-Cooldown");
-        tail.push(Token::Text(format!(": {}", mode_row.cooldown)));
-        tail.push(Token::NewLine);
+        let out = &mut tail;
 
-        tail.extend(terms.get("WD-SkillPossRemain"));
-        tail.push(Token::Text(format!(
-            ": -{}/{}",
-            mode_row.use_num, skill_row.poss_num
-        )));
+        Token::Text(format!(": {}", mode_row.cooldown)).write(out);
+        Token::NewLine.write(out);
+
+        terms.get("WD-SkillPossRemain").write(out);
+        Token::Text(format!(": -{}/{}", mode_row.use_num, skill_row.poss_num)).write(out);
+
+        if mode_row.use_init {
+            Token::NewLine.write(out);
+            terms.get("NM-TIPS_UseInit").write(out);
+        }
+
         tail
     };
 
@@ -280,17 +285,13 @@ fn act_node_formatter(
             }
             _ => Token::Panic(format!("invalid reduce: {}", row.reduce)).write(out),
         },
+        // [威力強化] <irt>の<irf><ipw>%
         "inc" => {
             if row.inc_relate.is_empty() {
                 Token::Empty.write(out);
             } else {
                 Token::Indent.write(out);
-                let pair = row.inc_relate.split(':').collect::<Vec<_>>();
-                let key = pair[0];
-                match key {
-                    "CritRate" => terms.get("DC-SkillNodeDesc-AboutIncPower").write(out),
-                    s => Token::Error(format!("inc_relate[{}]", s)).write(out),
-                }
+                terms.get("DC-SkillNodeDesc-AboutIncPower").write(out)
             }
         }
         // increase relate target
@@ -300,11 +301,11 @@ fn act_node_formatter(
             _ => Token::Panic(format!("inc_target[{}]", row.inc_target)).write(out),
         },
         "irf" => {
-            let pair = row.inc_relate.split(':').collect::<Vec<_>>();
-            let key = pair[0];
+            //let pair = row.inc_relate.split(':').collect::<Vec<_>>();
+            let key = &row.inc_relate;
             match terms.try_get(&format!("NM-{}", key)) {
                 Some(s) => s.write(out),
-                None => Token::Error(format!("inc_relate[{}]", key)).write(out),
+                None => Token::Error(format!("irf[{}]", key)).write(out),
             }
         }
         "ipw" => Token::Text(row.inc_power.to_string()).write(out),
