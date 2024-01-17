@@ -345,49 +345,50 @@ fn act_node_formatter(
         }
         "pw" => out.push(Token::Text(row.power.to_string())),
         "last" => {
+            fn a(name: &str, value: i32, terms: &TermRepository) -> Tokens {
+                terms
+                    .get(&format!("DC-SkillNodeDesc-Last{}", name))
+                    .map_var(|out, s| match s {
+                        "0" => Token::Text(value.to_string()).write(out),
+                        _ => (),
+                    })
+            }
+
+            let mut it = vec![];
+            if row.state_last[0] >= 0 {
+                it.push(a("Act", row.state_last[0], terms));
+            }
+            if row.state_last[1] >= 0 {
+                it.push(a("Turn", row.state_last[1], terms));
+            }
+            if row.state_last[2] >= 0 {
+                it.push(a("Combat", row.state_last[2], terms));
+            }
             if row.state_last[3] >= 0 {
+                it.push(a("Room", row.state_last[3], terms));
+            }
+            if row.state_last[4] >= 0 {
+                it.push(a("Floor", row.state_last[4], terms));
+            }
+
+            if !it.is_empty() {
                 Token::Indent.write(out);
                 terms
                     .get("DC-SkillNodeDesc-LastCombine")
                     .map_var(|out, s| match s {
                         "0" => {
-                            terms
-                                .get("DC-SkillNodeDesc-LastRoom")
-                                .map_var(|out, s| match s {
-                                    "0" => {
-                                        Token::Text(row.state_last[3].to_string()).write(out);
-                                    }
-                                    _ => (),
-                                })
-                                .write(out);
+                            let mut first = true;
+                            for i in &it {
+                                if !first {
+                                    terms.get("DC-SkillNodeDesc-LastDivider").write(out);
+                                }
+                                i.write(out);
+                                first = false;
+                            }
                         }
                         _ => (),
                     })
                     .write(out);
-            } else if row.state_last[0] >= 0 {
-                Token::Error("state_last.0".to_string()).write(out);
-            } else if row.state_last[1] >= 0 {
-                Token::Indent.write(out);
-                terms
-                    .get("DC-SkillNodeDesc-LastCombine")
-                    .map_var(|out, s| match s {
-                        "0" => {
-                            terms
-                                .get("DC-SkillNodeDesc-LastTurn")
-                                .map_var(|out, s| match s {
-                                    "0" => {
-                                        Token::Text(row.state_last[1].to_string()).write(out);
-                                    }
-                                    _ => (),
-                                })
-                                .write(out);
-                        }
-                        _ => (),
-                    });
-            } else if row.state_last[2] >= 0 {
-                Token::Error("state_last.2".to_string()).write(out);
-            } else if row.state_last[4] >= 0 {
-                Token::Error("state_last.4".to_string()).write(out);
             } else {
                 Token::Empty.write(out);
             }
