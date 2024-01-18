@@ -27,64 +27,13 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
                     Rarity { rarity: skill.rarity }
                 }
             }
-            // TabGroup {
-            //     render: move |children, _selected_index| {
-            //         render! {
-            //             div {
-            //                 {children}
-            //             }
-            //         }
-            //     },
-            //     TabList {
-            //         render: move |attrs, children, _selected_index| {
-            //             render! {
-            //                 div {
-            //                     class: "tabs tabs-bordered",
-            //                     ..*attrs,
-            //                     {children}
-            //                 }
-            //             }
-            //         },
-            //         LocalTab {
-            //             index: 0,
-            //             "NORMAL"
-            //         }
-            //         LocalTab {
-            //             index: 1,
-            //             "ALTERNATE"
-            //         }
-            //     }
-            //     TabPanels {
-            //         render: move |attrs, children, _selected_index| {
-            //             render! {
-            //                 div {
-            //                     ..*attrs,
-            //                     {children}
-            //                 }
-            //             }
-            //         },
-            //         LocalTabPanel {
-            //             index: 0,
-            //             ul { class: "flex flex-row gap-2 p-2",
-            //                 for mode in skill.modes.iter().filter(|m| !m.is_alt) {
-            //                     li {
-            //                         SkillMode { mode: &mode }
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //         LocalTabPanel {
-            //             index: 1,
-            //             ul { class: "flex flex-row gap-2 p-2",
-            //                 for mode in skill.modes.iter().filter(|m| m.is_alt) {
-            //                     li {
-            //                         SkillMode { mode: &mode }
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
+            div { class: "flex flex-row gap-2 p-2",
+                for mode in skill.modes.iter().filter(|m| true) {
+                    div {
+                        SkillMode { mode: &mode }
+                    }
+                }
+            }
         }
     }
 }
