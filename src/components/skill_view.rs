@@ -9,6 +9,26 @@ use crate::components::Sprite;
 use crate::pages::Route;
 
 #[component]
+fn LocalTab<'a>(cx: Scope<'a>, index: usize, children: Element<'a>) -> Element {
+    render! {
+        Tab {
+            index: *index,
+            render: move |attrs, children, selected| {
+                let active = if selected { "tab-active" } else { "" };
+                render! {
+                    button {
+                        class: "tab {active}",
+                        ..*attrs,
+                        {children}
+                    }
+                }
+            },
+            {children}
+        }
+    }
+}
+
+#[component]
 pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
     render! {
         div {
@@ -32,19 +52,20 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
                 TabGroup {
                     class: "tabs",
                     TabList {
-                        Tab {
+                        render: move |attrs, children| {
+                            render! {
+                                div {
+                                    class: "tabs tabs-bordered",
+                                    ..*attrs,
+                                    {children}
+                                }
+                            }
+                        },
+                        LocalTab {
                             index: 0,
-                            // render: move |attrs, children, selected| {
-                            //     render! {
-                            //         button {
-                            //             ..*attrs,
-                            //             {children}
-                            //         }
-                            //     }
-                            // },
                             "NORMAL"
                         }
-                        Tab {
+                        LocalTab {
                             index: 1,
                             "ALTERNATE"
                         }

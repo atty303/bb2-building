@@ -29,29 +29,30 @@ pub fn TabGroup<'a>(
 }
 
 #[component]
-pub fn TabList<'a>(
+pub fn TabList<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>) -> Element<'a>>(
     cx: Scope<'a>,
     selected_index: Option<usize>,
+    render: F,
     children: Element<'a>,
 ) -> Element<'a> {
-    render! {
-        div {
-            role: "tablist",
-            {children}
-        }
-    }
-}
+    let attrs = cx.bump().alloc(vec![Attribute::new(
+        "role",
+        AttributeValue::Text("tablist"),
+        None,
+        false,
+    )]);
 
-// pub type RenderTab<'a> = dyn Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, bool) -> Element<'a>;
+    render(attrs, children)
+}
 
 #[component]
 pub fn Tab<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, bool) -> Element<'a>>(
     cx: Scope<'a>,
     index: usize,
     #[props(default = false)] disabled: bool,
-    render: Option<Box<F>>,
+    render: F,
     children: Element<'a>,
-    #[props(default = PhantomData)] _phantom: PhantomData<&'a F>,
+    #[props(default = PhantomData)] _phantom: PhantomData<&'a ()>,
 ) -> Element<'a> {
     let state = use_shared_state::<TabState>(cx).expect("Tab must be a child of TabGroup");
     let selected = state.read().selected == *index;
@@ -74,16 +75,7 @@ pub fn Tab<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, bool) -> Element<'
         ),
     ]);
 
-    if let Some(r) = render {
-        r(attrs, children, selected)
-    } else {
-        render! {
-            button {
-                ..*attrs,
-                {children}
-            }
-        }
-    }
+    render(attrs, children, selected)
 }
 
 #[component]
