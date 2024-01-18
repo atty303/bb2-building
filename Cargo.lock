@@ -1220,6 +1220,7 @@ dependencies = [
 [[package]]
 name = "indicium"
 version = "0.6.1"
+source = "git+https://github.com/atty303/indicium.git?rev=a3c8c168e0c4f9167612b80eda194b2a179e5338#a3c8c168e0c4f9167612b80eda194b2a179e5338"
 dependencies = [
  "ahash 0.8.7",
  "eddie",
