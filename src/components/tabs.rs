@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use dioxus::core::{AttributeValue, DynamicNode};
+use dioxus::core::AttributeValue;
 use dioxus::prelude::*;
 
 struct TabState {
@@ -29,12 +29,12 @@ pub fn TabGroup<'a>(
 }
 
 #[component]
-pub fn TabList<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>) -> Element<'a>>(
+pub fn TabList<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, usize) -> Element<'a>>(
     cx: Scope<'a>,
-    selected_index: Option<usize>,
     render: F,
     children: Element<'a>,
 ) -> Element<'a> {
+    let state = use_shared_state::<TabState>(cx).expect("Tab must be a child of TabGroup");
     let attrs = cx.bump().alloc(vec![Attribute::new(
         "role",
         AttributeValue::Text("tablist"),
@@ -42,7 +42,7 @@ pub fn TabList<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>) -> Element<'a>
         false,
     )]);
 
-    render(attrs, children)
+    render(attrs, children, state.read().selected)
 }
 
 #[component]
@@ -79,30 +79,39 @@ pub fn Tab<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, bool) -> Element<'
 }
 
 #[component]
-pub fn TabPanels<'a>(cx: Scope<'a>, children: Element<'a>) -> Element<'a> {
-    render! {
-        {children}
-    }
+pub fn TabPanels<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, usize) -> Element<'a>>(
+    cx: Scope<'a>,
+    render: F,
+    children: Element<'a>,
+) -> Element<'a> {
+    let state = use_shared_state::<TabState>(cx).expect("TabPanel must be a child of TabGroup");
+    render(cx.bump().alloc(vec![]), children, state.read().selected)
 }
 
 #[component]
-pub fn TabPanel<'a>(
+pub fn TabPanel<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, bool) -> Element<'a>>(
     cx: Scope<'a>,
     index: usize,
     #[props(default = false)] r#static: bool,
     #[props(default = true)] unmount: bool,
+    render: F,
     children: Element<'a>,
 ) -> Element<'a> {
     let state = use_shared_state::<TabState>(cx).expect("TabPanel must be a child of TabGroup");
     let selected = state.read().selected == *index;
+
     if *r#static || (*unmount && selected) {
-        render! {
-            div {
-                role: "tabpanel",
-                tabindex: if selected { 0 } else { -1 },
-                {children}
-            }
-        }
+        let attrs = cx.bump().alloc(vec![
+            Attribute::new("role", AttributeValue::Text("tabpanel"), None, false),
+            Attribute::new(
+                "tabindex",
+                AttributeValue::Text(if selected { "0" } else { "-1" }),
+                None,
+                false,
+            ),
+        ]);
+
+        render(attrs, children, selected)
     } else {
         None
     }

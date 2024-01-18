@@ -29,6 +29,26 @@ fn LocalTab<'a>(cx: Scope<'a>, index: usize, children: Element<'a>) -> Element {
 }
 
 #[component]
+fn LocalTabPanel<'a>(cx: Scope<'a>, index: usize, children: Element<'a>) -> Element {
+    render! {
+        TabPanel {
+            index: *index,
+            render: move |attrs, children, selected| {
+                let active = if selected { "" } else { "" };
+                render! {
+                    button {
+                        class: "{active}",
+                        ..*attrs,
+                        {children}
+                    }
+                }
+            },
+            {children}
+        }
+    }
+}
+
+#[component]
 pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
     render! {
         div {
@@ -52,7 +72,7 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
                 TabGroup {
                     class: "tabs",
                     TabList {
-                        render: move |attrs, children| {
+                        render: move |attrs, children, _selected_index| {
                             render! {
                                 div {
                                     class: "tabs tabs-bordered",
@@ -71,10 +91,20 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
                         }
                     }
                     TabPanels {
-                        TabPanel { index: 0,
+                        render: move |attrs, children, _selected_index| {
+                            render! {
+                                div {
+                                    ..*attrs,
+                                    {children}
+                                }
+                            }
+                        },
+                        LocalTabPanel {
+                            index: 0,
                             "TAB 1"
                         }
-                        TabPanel { index: 1,
+                        LocalTabPanel {
+                            index: 1,
                             "TAB 2"
                         }
                     }
