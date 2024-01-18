@@ -63,6 +63,7 @@ pub fn App(cx: Scope) -> Element {
                 let mut db = fetch_database(lang).await;
                 match db {
                     Ok(ref mut v) => {
+                        crate::search::create(v);
                         set_database(v.clone());
                     }
                     _ => (),

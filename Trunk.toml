@@ -1,6 +1,7 @@
 [build]
 target = "index.html"
 dist = "dist"
+no_sri = true
 
 [watch]
 watch = ["src", "public", "index.html", "data"]

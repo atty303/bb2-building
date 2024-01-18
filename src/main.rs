@@ -8,6 +8,7 @@ mod atoms;
 mod components;
 mod hooks;
 mod pages;
+mod search;
 
 fn main() {
     if false {

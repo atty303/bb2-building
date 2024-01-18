@@ -637,6 +637,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "eddie"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12ad36183b190ad1632999a8735b9842f3fda7a5afa433d9132e80860ef7051a"
+
+[[package]]
 name = "encoding_rs"
 version = "0.8.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -853,8 +859,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "190092ea657667030ac6a35e305e62fc4dd69fd98ac98631e5d3a2b1575a12b5"
 dependencies = [
  "cfg-if",
+ "js-sys",
  "libc",
  "wasi",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -1210,6 +1218,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "indicium"
+version = "0.6.1"
+dependencies = [
+ "ahash 0.8.7",
+ "eddie",
+ "kstring",
+ "tracing",
+]
+
+[[package]]
 name = "interprocess-docfix"
 version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1271,6 +1289,15 @@ dependencies = [
  "bitflags 2.4.1",
  "serde",
  "unicode-segmentation",
+]
+
+[[package]]
+name = "kstring"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec3066350882a1cd6d950d055997f379ac37fd39f81cd4d8ed186032eb3c5747"
+dependencies = [
+ "static_assertions",
 ]
 
 [[package]]
@@ -1893,6 +1920,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "static_assertions"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+
+[[package]]
 name = "strsim"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2302,14 +2335,17 @@ dependencies = [
  "dioxus-router",
  "dioxus-web",
  "fermi",
+ "getrandom",
  "gloo-storage 0.3.0",
  "gloo-utils 0.2.0",
+ "indicium",
  "log",
  "reqwest",
  "serde",
  "tracing",
  "tracing-subscriber",
  "tracing-web",
+ "wasm-bindgen",
  "web-sys",
 ]
 
