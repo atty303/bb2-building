@@ -7,7 +7,6 @@ pub use skill_view::*;
 pub use sprite::*;
 
 mod app;
-mod example;
 mod footer;
 mod icon;
 mod nav_bar;

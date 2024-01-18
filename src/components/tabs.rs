@@ -1,10 +1,7 @@
-use dioxus::core::AttributeValue;
-use dioxus::hooks::error::UseSharedStateResult;
-use dioxus::prelude::*;
-use std::any::TypeId;
 use std::marker::PhantomData;
-use std::ops::Deref;
-use std::rc::Rc;
+
+use dioxus::core::AttributeValue;
+use dioxus::prelude::*;
 
 struct TabState {
     selected: usize,
@@ -45,94 +42,81 @@ pub fn TabList<'a>(
     }
 }
 
-// #[component]
-// pub fn Tab<'a, F>(
-//     cx: Scope<'a>,
-//     index: usize,
-//     #[props(default = false)] disabled: bool,
-//     render: F,
-// ) -> Element<'a>
-// where
-//     F: FnOnce(Vec<Attribute<'a>>, bool) -> Element,
-// {
-//     let state = use_shared_state::<TabState>(cx).expect("Tab must be a child of TabGroup");
-//     let selected = state.read().selected == *index;
-//
-//     let mut attrs = vec![];
-//     attrs.push(Attribute::new(
-//         "role",
-//         AttributeValue::Text("tab"),
-//         None,
-//         false,
-//     ));
-//     render(attrs, selected)
-// }
-
 #[component]
-fn TabProps<'a>(cx: Scope, role: &'a str) -> Element {
-    render! {
-        div {
-            role: "tab",
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct Hoge<'a> {
-    phantom: PhantomData<&'a ()>,
-}
-
-#[derive(Props, PartialEq)]
-pub struct TabProps<'a, F>
-where
-    F: Fn(&'a Vec<Attribute<'a>>, bool) -> Element<'a>,
-{
+pub fn Tab<'a, F: Fn(&'a Vec<Attribute<'a>>, bool) -> Element<'a>>(
+    cx: Scope<'a>,
     index: usize,
-    #[props(default = false)]
-    disabled: bool,
+    #[props(default = false)] disabled: bool,
     render: F,
-    #[props(default = PhantomData)]
-    _phantom: PhantomData<&'a ()>,
-}
-
-#[allow(non_snake_case)]
-pub fn Tab<'a, F>(cx: Scope<'a, TabProps<'a, F>>) -> Element<'a>
-where
-    F: Fn(&'a Vec<Attribute<'a>>, bool) -> Element<'a>,
-{
+    #[props(default = PhantomData)] _phantom: PhantomData<&'a ()>,
+) -> Element<'a> {
     let state = use_shared_state::<TabState>(cx).expect("Tab must be a child of TabGroup");
-    let selected = state.read().selected == cx.props.index;
+    let selected = state.read().selected == *index;
 
     let attrs = cx.bump().alloc(vec![
-        // Attribute::new("role", AttributeValue::Text("tab"), None, false),
-        // Attribute::new(
-        //     "tabindex",
-        //     AttributeValue::Text(if selected { "0" } else { "-1" }),
-        //     None,
-        //     true,
-        // ),
+        Attribute::new("role", AttributeValue::Text("tab"), None, false),
+        Attribute::new(
+            "tabindex",
+            AttributeValue::Text(if selected { "0" } else { "-1" }),
+            None,
+            false,
+        ),
         Attribute::new(
             "onclick",
-            cx.listener(move |e: Event<PlatformEventData>| {
-                log::debug!("onclick: {}", cx.props.index);
+            cx.listener(move |_: Event<PlatformEventData>| {
                 state.write().selected = cx.props.index;
-                log::debug!("{:?}", state.read().selected);
             }),
             None,
             false,
         ),
     ]);
-    // let attr = Attribute::new("role", AttributeValue::Text("tab").into(), None, false);
-    // attrs.push(attr);
 
-    (cx.props.render)(attrs, selected)
-    // render! {
-    //     button {
-    //         ..*attrs,
-    //         "B"
-    //     }
-    // }
+    render(attrs, selected)
 }
+
+// #[derive(Props, PartialEq)]
+// pub struct TabProps<'a, F>
+// where
+//     F: Fn(&'a Vec<Attribute<'a>>, bool) -> Element<'a>,
+// {
+//     index: usize,
+//     #[props(default = false)]
+//     disabled: bool,
+//     render: F,
+//     #[props(default = PhantomData)]
+//     _phantom: PhantomData<&'a ()>,
+// }
+//
+// #[allow(non_snake_case)]
+// pub fn Tab<'a, F>(cx: Scope<'a, TabProps<'a, F>>) -> Element<'a>
+// where
+//     F: Fn(&'a Vec<Attribute<'a>>, bool) -> Element<'a>,
+// {
+//     let state = use_shared_state::<TabState>(cx).expect("Tab must be a child of TabGroup");
+//     let selected = state.read().selected == cx.props.index;
+//
+//     let attrs = cx.bump().alloc(vec![
+//         Attribute::new("role", AttributeValue::Text("tab"), None, false),
+//         Attribute::new(
+//             "tabindex",
+//             AttributeValue::Text(if selected { "0" } else { "-1" }),
+//             None,
+//             true,
+//         ),
+//         Attribute::new(
+//             "onclick",
+//             cx.listener(move |e: Event<PlatformEventData>| {
+//                 log::debug!("onclick: {}", cx.props.index);
+//                 state.write().selected = cx.props.index;
+//                 log::debug!("{:?}", state.read().selected);
+//             }),
+//             None,
+//             false,
+//         ),
+//     ]);
+//
+//     (cx.props.render)(attrs, selected)
+// }
 
 #[component]
 pub fn TabPanels<'a>(cx: Scope<'a>, children: Element<'a>) -> Element<'a> {
@@ -150,18 +134,18 @@ pub fn TabPanel<'a>(
     children: Element<'a>,
 ) -> Element<'a> {
     let state = use_shared_state::<TabState>(cx).expect("TabPanel must be a child of TabGroup");
-    // let selected = state.read().selected == *index;
-    // if *r#static || (*unmount && selected) {
-    //     render! {
-    //         div {
-    //             role: "tabpanel",
-    //             tabindex: if selected { 0 } else { -1 },
-    //             {children}
-    //         }
-    //     }
-    // } else {
-    None
-    // }
+    let selected = state.read().selected == *index;
+    if *r#static || (*unmount && selected) {
+        render! {
+            div {
+                role: "tabpanel",
+                tabindex: if selected { 0 } else { -1 },
+                {children}
+            }
+        }
+    } else {
+        None
+    }
 }
 
 #[cfg(test)]
