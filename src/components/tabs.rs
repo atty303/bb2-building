@@ -115,8 +115,8 @@ where
             "onclick",
             cx.listener(move |e: Event<PlatformEventData>| {
                 log::debug!("onclick: {}", cx.props.index);
+                state.write().selected = cx.props.index;
                 log::debug!("{:?}", state.read().selected);
-                state.write_silent().selected = cx.props.index;
             }),
             None,
             false,
@@ -125,16 +125,13 @@ where
     // let attr = Attribute::new("role", AttributeValue::Text("tab").into(), None, false);
     // attrs.push(attr);
 
-    //(cx.props.render)(attrs, selected)
-    render! {
-        button {
-            ..*attrs,
-            // onclick: move |e: MouseEvent| {
-            //     log::debug!("onclick");
-            // },
-            "B"
-        }
-    }
+    (cx.props.render)(attrs, selected)
+    // render! {
+    //     button {
+    //         ..*attrs,
+    //         "B"
+    //     }
+    // }
 }
 
 #[component]

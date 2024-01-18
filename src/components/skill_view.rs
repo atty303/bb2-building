@@ -37,7 +37,7 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
                                 render! {
                                     button {
                                         ..*attrs,
-                                        "NORMAL"
+                                        "NORMAL {selected}"
                                     }
                                 }
                             }
