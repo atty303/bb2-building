@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use {skill, GlobalRepository};
 
-#[derive(Clone, Default, Serialize, Deserialize)]
+#[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Database {
     pub global: GlobalRepository,
     pub skill: skill::SkillRepository,

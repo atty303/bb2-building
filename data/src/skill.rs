@@ -201,7 +201,7 @@ impl ActNode {
     }
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SkillRepository {
     inner: HashMap<SkillHash, Skill>,
     order: Vec<SkillHash>,

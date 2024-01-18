@@ -170,7 +170,7 @@ pub fn SkillPage(cx: Scope, skill_id: String) -> Element {
                     }
                 }
 
-                SkillView { skill: &skill }
+                SkillView { skill_hash: skill.hash }
             }
         })
         .unwrap_or_else(|| {
