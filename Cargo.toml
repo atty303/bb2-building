@@ -19,7 +19,8 @@ gloo-utils = "0.2"
 gloo-storage = "0.3"
 
 log = "0.4"
-wasm-logger = "0.2"
+tracing = "0.1"
+tracing-wasm = "0.2"
 
 reqwest = "0.11"
 

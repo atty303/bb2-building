@@ -6,6 +6,6 @@ mod hooks;
 mod pages;
 
 fn main() {
-    wasm_logger::init(wasm_logger::Config::default());
+    tracing_wasm::set_as_global_default();
     dioxus_web::launch(App);
 }
