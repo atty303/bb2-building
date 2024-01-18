@@ -20,7 +20,8 @@ gloo-storage = "0.3"
 
 log = "0.4"
 tracing = "0.1"
-tracing-wasm = "0.2"
+tracing-subscriber = "0.3"
+tracing-web = "0.1"
 
 reqwest = "0.11"
 
