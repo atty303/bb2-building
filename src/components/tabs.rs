@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use dioxus::core::AttributeValue;
+use dioxus::core::{AttributeValue, DynamicNode};
 use dioxus::prelude::*;
 
 struct TabState {
@@ -42,14 +42,16 @@ pub fn TabList<'a>(
     }
 }
 
+// pub type RenderTab<'a> = dyn Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, bool) -> Element<'a>;
+
 #[component]
 pub fn Tab<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, bool) -> Element<'a>>(
     cx: Scope<'a>,
     index: usize,
     #[props(default = false)] disabled: bool,
-    render: F,
+    render: Option<Box<F>>,
     children: Element<'a>,
-    #[props(default = PhantomData)] _phantom: PhantomData<&'a ()>,
+    #[props(default = PhantomData)] _phantom: PhantomData<&'a F>,
 ) -> Element<'a> {
     let state = use_shared_state::<TabState>(cx).expect("Tab must be a child of TabGroup");
     let selected = state.read().selected == *index;
@@ -72,7 +74,16 @@ pub fn Tab<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, bool) -> Element<'
         ),
     ]);
 
-    render(attrs, children, selected)
+    if let Some(r) = render {
+        r(attrs, children, selected)
+    } else {
+        render! {
+            button {
+                ..*attrs,
+                {children}
+            }
+        }
+    }
 }
 
 #[component]
