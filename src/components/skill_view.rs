@@ -36,7 +36,7 @@ fn LocalTabPanel<'a>(cx: Scope<'a>, index: usize, children: Element<'a>) -> Elem
             render: move |attrs, children, selected| {
                 let active = if selected { "" } else { "" };
                 render! {
-                    button {
+                    div {
                         class: "{active}",
                         ..*attrs,
                         {children}
@@ -52,74 +52,81 @@ fn LocalTabPanel<'a>(cx: Scope<'a>, index: usize, children: Element<'a>) -> Elem
 pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
     render! {
         div {
-           class: "flex flex-col border-solid border border-base-300 rounded-md my-2",
-           div {
-               class: "flex flex-row items-center gap-2 bg-base-300 text-base-content p-2",
-               Sprite { sprite: &skill.modes[0].icon, scale: 0.5 }
-               span {
-                   class: "flex-grow",
-                   Link {
-                       class: "text-primary hover:underline cursor-pointer",
-                       to: Route::SkillPage { skill_id: skill.id.clone() },
-                       "{skill.name}"
-                   }
-               }
-               span {
-                   Rarity { rarity: skill.rarity }
-               }
-           }
-            ul { class: "flex flex-row gap-2 p-2",
-                TabGroup {
-                    render: move |children, _selected_index| {
-                        render! {
+            class: "flex flex-col border-solid border border-base-300 rounded-md my-2",
+            div {
+                class: "flex flex-row items-center gap-2 bg-base-300 text-base-content p-2",
+                Sprite { sprite: &skill.modes[0].icon, scale: 0.5 }
+                span {
+                    class: "flex-grow",
+                    Link {
+                        class: "text-primary hover:underline cursor-pointer",
+                        to: Route::SkillPage { skill_id: skill.id.clone() },
+                        "{skill.name}"
+                    }
+                }
+                span {
+                    Rarity { rarity: skill.rarity }
+                }
+            }
+            TabGroup {
+                render: move |children, _selected_index| {
+                    render! {
+                        div {
                             {children}
                         }
+                    }
+                },
+                TabList {
+                    render: move |attrs, children, _selected_index| {
+                        render! {
+                            div {
+                                class: "tabs tabs-bordered",
+                                ..*attrs,
+                                {children}
+                            }
+                        }
                     },
-                    TabList {
-                        render: move |attrs, children, _selected_index| {
-                            render! {
-                                div {
-                                    class: "tabs tabs-bordered",
-                                    ..*attrs,
-                                    {children}
+                    LocalTab {
+                        index: 0,
+                        "NORMAL"
+                    }
+                    LocalTab {
+                        index: 1,
+                        "ALTERNATE"
+                    }
+                }
+                TabPanels {
+                    render: move |attrs, children, _selected_index| {
+                        render! {
+                            div {
+                                ..*attrs,
+                                {children}
+                            }
+                        }
+                    },
+                    LocalTabPanel {
+                        index: 0,
+                        ul { class: "flex flex-row gap-2 p-2",
+                            for mode in skill.modes.iter().filter(|m| !m.is_alt) {
+                                li {
+                                    SkillMode { mode: &mode }
                                 }
                             }
-                        },
-                        LocalTab {
-                            index: 0,
-                            "NORMAL"
-                        }
-                        LocalTab {
-                            index: 1,
-                            "ALTERNATE"
                         }
                     }
-                    TabPanels {
-                        render: move |attrs, children, _selected_index| {
-                            render! {
-                                div {
-                                    ..*attrs,
-                                    {children}
+                    LocalTabPanel {
+                        index: 1,
+                        ul { class: "flex flex-row gap-2 p-2",
+                            for mode in skill.modes.iter().filter(|m| m.is_alt) {
+                                li {
+                                    SkillMode { mode: &mode }
                                 }
                             }
-                        },
-                        LocalTabPanel {
-                            index: 0,
-                            "TAB 1"
-                        }
-                        LocalTabPanel {
-                            index: 1,
-                            "TAB 2"
                         }
                     }
                 }
-                for mode in &skill.modes {
-                   li {
-                       SkillMode { mode: mode }
-                   }
-               }
-           }
-       }
+            }
+        }
     }
 }
 
