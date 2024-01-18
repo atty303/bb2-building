@@ -5,6 +5,7 @@ pub use nav_bar::*;
 pub use rarity::*;
 pub use skill_view::*;
 pub use sprite::*;
+pub use tabs::*;
 
 mod app;
 mod footer;

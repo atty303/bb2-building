@@ -5,7 +5,48 @@ use fermi::use_read_rc;
 
 use crate::atoms::DATABASE;
 use crate::components::{Rarity, SkillView, SpriteIcon};
+use crate::components::{Tab, TabGroup, TabList, TabPanel, TabPanels};
 use crate::pages::Route;
+
+#[component]
+fn LocalTab<'a>(cx: Scope<'a>, index: usize, children: Element<'a>) -> Element {
+    render! {
+        Tab {
+            index: *index,
+            render: move |attrs, children, selected| {
+                let active = if selected { "tab-active" } else { "" };
+                render! {
+                    button {
+                        class: "tab {active}",
+                        ..*attrs,
+                        {children}
+                    }
+                }
+            },
+            {children}
+        }
+    }
+}
+
+#[component]
+fn LocalTabPanel<'a>(cx: Scope<'a>, index: usize, children: Element<'a>) -> Element {
+    render! {
+        TabPanel {
+            index: *index,
+            render: move |attrs, children, selected| {
+                let active = if selected { "" } else { "" };
+                render! {
+                    div {
+                        class: "{active}",
+                        ..*attrs,
+                        {children}
+                    }
+                }
+            },
+            {children}
+        }
+    }
+}
 
 #[component]
 pub fn SkillListPage(cx: Scope, tab: String) -> Element {
@@ -27,55 +68,69 @@ pub fn SkillListPage(cx: Scope, tab: String) -> Element {
             "Search"
         }
 
-        div { class: "tabs tabs-bordered tabs-lg",
-            role: "tablist",
-
-            input { class: "tab text-primary",
-                r#type: "radio",
-                name: "tabs",
-                role: "tab",
-                aria_label: "All",
-                checked: tab != "rarity",
-                onclick: move |_| {
-                    nav.replace(Route::SkillListPage { tab: "all".to_string() });
-                },
-            }
-            div { class: "tab-content p-2",
-                role: "tabpanel",
-                div { class: "grid grid-cols-5 w-fit gap-2",
-                    for skill in db.skill.iter().filter(|s| s.in_dictionary) {
-                        SkillLink { skill: &skill }
+        TabGroup {
+            render: move |children, _selected_index| {
+                render! {
+                    div {
+                        {children}
                     }
                 }
-            }
-
-            input { class: "tab text-primary",
-                r#type: "radio",
-                name: "tabs",
-                role: "tab",
-                aria_label: "Rarity",
-                checked: tab == "rarity",
-                onclick: move |_| {
-                    nav.replace(Route::SkillListPage { tab: "rarity".to_string() });
-                },
-            }
-            div { class: "tab-content p-2 divide-y",
-                role: "tabpanel",
-                for rarity in rarities {
-                    div { class: "py-4",
-                        h2 { class: "mb-2",
-                            Rarity { rarity: rarity }
+            },
+            TabList {
+                render: move |attrs, children, _selected_index| {
+                    render! {
+                        div {
+                            class: "tabs tabs-bordered tab-lg text-primary mb-2",
+                            ..*attrs,
+                            {children}
                         }
-                        div { class: "flex flex-wrap gap-2",
-                            for skill in db.skill.iter().filter(|s| s.in_dictionary && s.rarity == rarity) {
-                                SkillLink { skill: &skill }
+                    }
+                },
+                LocalTab {
+                    index: 0,
+                    "ALL",
+                }
+                LocalTab {
+                    index: 1,
+                    "RARITY",
+                }
+            }
+            TabPanels {
+                render: move |attrs, children, _selected_index| {
+                    render! {
+                        div {
+                            ..*attrs,
+                            {children}
+                        }
+                    }
+                },
+                LocalTabPanel {
+                    index: 0,
+                    div { class: "grid grid-cols-5 w-fit gap-2",
+                        for skill in db.skill.iter() {
+                            SkillLink { skill: &skill }
+                        }
+                    }
+                }
+                LocalTabPanel {
+                    index: 1,
+                    div { class: "p-2 divide-y",
+                        for rarity in rarities {
+                            div { class: "py-4",
+                                h2 { class: "mb-2",
+                                    Rarity { rarity: rarity }
+                                }
+                                div { class: "flex flex-wrap gap-2",
+                                    for skill in db.skill.iter().filter(|s| s.rarity == rarity) {
+                                        SkillLink { skill: &skill }
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         }
-
     }
 }
 

@@ -3,50 +3,9 @@ use dioxus_router::prelude::Link;
 
 use data::token::{Token, Tokens};
 
-use crate::components::tabs::{Tab, TabGroup, TabList, TabPanel, TabPanels};
 use crate::components::Rarity;
 use crate::components::Sprite;
 use crate::pages::Route;
-
-#[component]
-fn LocalTab<'a>(cx: Scope<'a>, index: usize, children: Element<'a>) -> Element {
-    render! {
-        Tab {
-            index: *index,
-            render: move |attrs, children, selected| {
-                let active = if selected { "tab-active" } else { "" };
-                render! {
-                    button {
-                        class: "tab {active}",
-                        ..*attrs,
-                        {children}
-                    }
-                }
-            },
-            {children}
-        }
-    }
-}
-
-#[component]
-fn LocalTabPanel<'a>(cx: Scope<'a>, index: usize, children: Element<'a>) -> Element {
-    render! {
-        TabPanel {
-            index: *index,
-            render: move |attrs, children, selected| {
-                let active = if selected { "" } else { "" };
-                render! {
-                    div {
-                        class: "{active}",
-                        ..*attrs,
-                        {children}
-                    }
-                }
-            },
-            {children}
-        }
-    }
-}
 
 #[component]
 pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
@@ -68,64 +27,64 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
                     Rarity { rarity: skill.rarity }
                 }
             }
-            TabGroup {
-                render: move |children, _selected_index| {
-                    render! {
-                        div {
-                            {children}
-                        }
-                    }
-                },
-                TabList {
-                    render: move |attrs, children, _selected_index| {
-                        render! {
-                            div {
-                                class: "tabs tabs-bordered",
-                                ..*attrs,
-                                {children}
-                            }
-                        }
-                    },
-                    LocalTab {
-                        index: 0,
-                        "NORMAL"
-                    }
-                    LocalTab {
-                        index: 1,
-                        "ALTERNATE"
-                    }
-                }
-                TabPanels {
-                    render: move |attrs, children, _selected_index| {
-                        render! {
-                            div {
-                                ..*attrs,
-                                {children}
-                            }
-                        }
-                    },
-                    LocalTabPanel {
-                        index: 0,
-                        ul { class: "flex flex-row gap-2 p-2",
-                            for mode in skill.modes.iter().filter(|m| !m.is_alt) {
-                                li {
-                                    SkillMode { mode: &mode }
-                                }
-                            }
-                        }
-                    }
-                    LocalTabPanel {
-                        index: 1,
-                        ul { class: "flex flex-row gap-2 p-2",
-                            for mode in skill.modes.iter().filter(|m| m.is_alt) {
-                                li {
-                                    SkillMode { mode: &mode }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            // TabGroup {
+            //     render: move |children, _selected_index| {
+            //         render! {
+            //             div {
+            //                 {children}
+            //             }
+            //         }
+            //     },
+            //     TabList {
+            //         render: move |attrs, children, _selected_index| {
+            //             render! {
+            //                 div {
+            //                     class: "tabs tabs-bordered",
+            //                     ..*attrs,
+            //                     {children}
+            //                 }
+            //             }
+            //         },
+            //         LocalTab {
+            //             index: 0,
+            //             "NORMAL"
+            //         }
+            //         LocalTab {
+            //             index: 1,
+            //             "ALTERNATE"
+            //         }
+            //     }
+            //     TabPanels {
+            //         render: move |attrs, children, _selected_index| {
+            //             render! {
+            //                 div {
+            //                     ..*attrs,
+            //                     {children}
+            //                 }
+            //             }
+            //         },
+            //         LocalTabPanel {
+            //             index: 0,
+            //             ul { class: "flex flex-row gap-2 p-2",
+            //                 for mode in skill.modes.iter().filter(|m| !m.is_alt) {
+            //                     li {
+            //                         SkillMode { mode: &mode }
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //         LocalTabPanel {
+            //             index: 1,
+            //             ul { class: "flex flex-row gap-2 p-2",
+            //                 for mode in skill.modes.iter().filter(|m| m.is_alt) {
+            //                     li {
+            //                         SkillMode { mode: &mode }
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
         }
     }
 }
