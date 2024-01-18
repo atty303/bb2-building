@@ -1,8 +1,11 @@
 var segmenter = undefined;
 
-export function tokenize(text) {
-    if (!segmenter) {
-        segmenter = new Intl.Segmenter("ja", {granularity: "word"});
+export class IntlTokenizer {
+    constructor(locale) {
+        this.segmenter = new Intl.Segmenter(locale, {granularity: "word"});
     }
-    return [...segmenter.segment(text)[Symbol.iterator]()].map(({segment}) => segment);
+
+    tokenize(text) {
+        return [...this.segmenter.segment(text)[Symbol.iterator]()].map(({segment}) => segment);
+    }
 }

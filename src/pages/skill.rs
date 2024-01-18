@@ -1,3 +1,5 @@
+mod search;
+
 use data::skill::Skill;
 use dioxus::prelude::*;
 use dioxus_router::prelude::{use_navigator, Link};
@@ -7,6 +9,8 @@ use crate::atoms::DATABASE;
 use crate::components::{Rarity, SkillView, SpriteIcon};
 use crate::components::{Tab, TabGroup, TabList, TabPanel, TabPanels};
 use crate::pages::Route;
+
+pub use search::SkillSearchPage;
 
 #[component]
 fn LocalTab<'a>(cx: Scope<'a>, index: usize, children: Element<'a>) -> Element {
@@ -144,17 +148,6 @@ fn SkillLink<'a>(cx: Scope, skill: &'a Skill) -> Element<'a> {
                 SpriteIcon { class: "rounded-md", sprite: &skill.modes[0].icon, size: 96 }
             }
 
-        }
-    }
-}
-
-#[component]
-pub fn SkillSearchPage(cx: Scope) -> Element {
-    let db = use_read_rc(cx, &DATABASE);
-
-    render! {
-        for skill in db.skill.iter().filter(|s| s.in_dictionary) {
-            SkillView { skill: &skill }
         }
     }
 }

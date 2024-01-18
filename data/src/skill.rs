@@ -8,7 +8,7 @@ use strum::{Display, EnumString};
 use sprite::Sprite;
 use token::{Token, Tokens};
 
-type SkillHash = u16;
+pub type SkillHash = u16;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumString, Display)]
 pub enum ActTrigger {

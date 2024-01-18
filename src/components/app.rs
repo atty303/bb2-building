@@ -56,15 +56,16 @@ pub fn App(cx: Scope) -> Element {
     });
 
     let set_database = use_set(cx, &DATABASE);
+    let set_search_index = use_set(cx, &crate::atoms::SEARCH_INDEX);
     let database_future = use_future(cx, language, |_| {
-        to_owned![language, set_database];
+        to_owned![language, set_database, set_search_index];
         async move {
             if let Some(lang) = language.get() {
                 let mut db = fetch_database(lang).await;
                 match db {
                     Ok(ref mut v) => {
-                        crate::search::create(v);
                         set_database(v.clone());
+                        set_search_index(crate::search::create(&v));
                     }
                     _ => (),
                 }

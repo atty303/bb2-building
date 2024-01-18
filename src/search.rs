@@ -1,21 +1,26 @@
 use std::rc::Rc;
 
-use indicium::simple::{Indexable, KString, SearchIndexBuilder, Tokenizer};
+use indicium::simple::{Indexable, KString, SearchIndex, SearchIndexBuilder, Tokenizer};
 
-use data::skill::Skill;
+use data::skill::{Skill, SkillHash};
 use data::Database;
 
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen(module = "/src/tokenizer.js")]
-extern "C" {
-    fn tokenize(string: String) -> Vec<String>;
+#[derive(Default)]
+pub struct SearchRepository {
+    pub skill: SearchIndex<SkillHash>,
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen(module = "/src/tokenizer.js")]
 extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
+    type IntlTokenizer;
+
+    #[wasm_bindgen(constructor)]
+    fn new(locale: String) -> IntlTokenizer;
+
+    #[wasm_bindgen(method)]
+    fn tokenize(this: &IntlTokenizer, string: String) -> Vec<String>;
 }
 
 struct Document {
@@ -24,27 +29,25 @@ struct Document {
 
 impl Indexable for Document {
     fn strings(&self) -> Vec<String> {
-        self.skill
-            .modes
-            .iter()
-            .map(|mode| format!("{}", mode.format()))
-            .collect()
+        let mut strings = vec![self.skill.name.clone()];
+        strings.push(
+            self.skill
+                .modes
+                .iter()
+                .flat_map(|mode| vec![mode.name.clone(), format!("{}", mode.format())])
+                .collect(),
+        );
+        strings
     }
 }
 
-pub fn create(db: &Database) {
+pub fn create(db: &Database) -> SearchRepository {
     let tokenizer: Tokenizer = Rc::new(Box::new(|string| {
-        let mut tokens = vec![];
-        tokenize(string.to_string())
+        let intl = IntlTokenizer::new("ja-JP".to_string());
+        intl.tokenize(string.to_string())
             .into_iter()
-            .map(|s| {
-                tokenize(s)
-                    .into_iter()
-                    .map(|s| KString::from_string(s))
-                    .collect::<Vec<_>>()
-            })
-            .for_each(|mut v| tokens.append(&mut v));
-        tokens
+            .map(|s| KString::from_string(s))
+            .collect::<Vec<_>>()
     }));
 
     let mut index = SearchIndexBuilder::default()
@@ -59,7 +62,5 @@ pub fn create(db: &Database) {
         );
     }
 
-    let r = index.search("猛毒");
-
-    log(&format!("{:?}", r));
+    SearchRepository { skill: index }
 }
