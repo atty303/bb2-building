@@ -43,11 +43,12 @@ pub fn TabList<'a>(
 }
 
 #[component]
-pub fn Tab<'a, F: Fn(&'a Vec<Attribute<'a>>, bool) -> Element<'a>>(
+pub fn Tab<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, bool) -> Element<'a>>(
     cx: Scope<'a>,
     index: usize,
     #[props(default = false)] disabled: bool,
     render: F,
+    children: Element<'a>,
     #[props(default = PhantomData)] _phantom: PhantomData<&'a ()>,
 ) -> Element<'a> {
     let state = use_shared_state::<TabState>(cx).expect("Tab must be a child of TabGroup");
@@ -71,52 +72,8 @@ pub fn Tab<'a, F: Fn(&'a Vec<Attribute<'a>>, bool) -> Element<'a>>(
         ),
     ]);
 
-    render(attrs, selected)
+    render(attrs, children, selected)
 }
-
-// #[derive(Props, PartialEq)]
-// pub struct TabProps<'a, F>
-// where
-//     F: Fn(&'a Vec<Attribute<'a>>, bool) -> Element<'a>,
-// {
-//     index: usize,
-//     #[props(default = false)]
-//     disabled: bool,
-//     render: F,
-//     #[props(default = PhantomData)]
-//     _phantom: PhantomData<&'a ()>,
-// }
-//
-// #[allow(non_snake_case)]
-// pub fn Tab<'a, F>(cx: Scope<'a, TabProps<'a, F>>) -> Element<'a>
-// where
-//     F: Fn(&'a Vec<Attribute<'a>>, bool) -> Element<'a>,
-// {
-//     let state = use_shared_state::<TabState>(cx).expect("Tab must be a child of TabGroup");
-//     let selected = state.read().selected == cx.props.index;
-//
-//     let attrs = cx.bump().alloc(vec![
-//         Attribute::new("role", AttributeValue::Text("tab"), None, false),
-//         Attribute::new(
-//             "tabindex",
-//             AttributeValue::Text(if selected { "0" } else { "-1" }),
-//             None,
-//             true,
-//         ),
-//         Attribute::new(
-//             "onclick",
-//             cx.listener(move |e: Event<PlatformEventData>| {
-//                 log::debug!("onclick: {}", cx.props.index);
-//                 state.write().selected = cx.props.index;
-//                 log::debug!("{:?}", state.read().selected);
-//             }),
-//             None,
-//             false,
-//         ),
-//     ]);
-//
-//     (cx.props.render)(attrs, selected)
-// }
 
 #[component]
 pub fn TabPanels<'a>(cx: Scope<'a>, children: Element<'a>) -> Element<'a> {
