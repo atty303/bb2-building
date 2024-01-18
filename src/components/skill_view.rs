@@ -70,7 +70,11 @@ pub fn SkillView<'a>(cx: Scope<'a>, skill: &'a data::skill::Skill) -> Element {
            }
             ul { class: "flex flex-row gap-2 p-2",
                 TabGroup {
-                    class: "tabs",
+                    render: move |children, _selected_index| {
+                        render! {
+                            {children}
+                        }
+                    },
                     TabList {
                         render: move |attrs, children, _selected_index| {
                             render! {

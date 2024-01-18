@@ -9,23 +9,19 @@ struct TabState {
 
 /// The main Tab.Group component.
 #[component]
-pub fn TabGroup<'a>(
+pub fn TabGroup<'a, F: Fn(&'a Element<'a>, usize) -> Element<'a>>(
     cx: Scope<'a>,
-    #[props(extends = GlobalAttributes)] attributes: Vec<Attribute<'a>>,
     #[props(default = 0)] default_index: usize,
     selected_index: Option<usize>,
+    render: F,
     children: Element<'a>,
 ) -> Element<'a> {
     use_shared_state_provider(cx, || TabState {
         selected: selected_index.unwrap_or(*default_index),
     });
+    let state = use_shared_state::<TabState>(cx).unwrap();
 
-    render! {
-        div {
-            ..*attributes,
-            {children}
-        }
-    }
+    render(children, state.read().selected)
 }
 
 #[component]
@@ -34,7 +30,7 @@ pub fn TabList<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, usize) -> Elem
     render: F,
     children: Element<'a>,
 ) -> Element<'a> {
-    let state = use_shared_state::<TabState>(cx).expect("Tab must be a child of TabGroup");
+    let state = use_shared_state::<TabState>(cx).expect("TabList must be a child of TabGroup");
     let attrs = cx.bump().alloc(vec![Attribute::new(
         "role",
         AttributeValue::Text("tablist"),
@@ -84,7 +80,7 @@ pub fn TabPanels<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, usize) -> El
     render: F,
     children: Element<'a>,
 ) -> Element<'a> {
-    let state = use_shared_state::<TabState>(cx).expect("TabPanel must be a child of TabGroup");
+    let state = use_shared_state::<TabState>(cx).expect("TabPanels must be a child of TabGroup");
     render(cx.bump().alloc(vec![]), children, state.read().selected)
 }
 
@@ -114,29 +110,5 @@ pub fn TabPanel<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, bool) -> Elem
         render(attrs, children, selected)
     } else {
         None
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[component]
-    fn Example(cx: Scope) -> Element {
-        render! {
-            // TabGroup {
-            //     TabList {
-            //         // Tab { index: 0, "Tab 1" }
-            //         // Tab { index: 1, "Tab 2" }
-            //         // Tab { index: 2, "Tab 3" }
-            //     }
-            //     TabPanels {
-            //         TabPanel { index: 0, "Panel 1" }
-            //         TabPanel { index: 1, "Panel 2" }
-            //         TabPanel { index: 2, "Panel 3" }
-            //     }
-            // }
-            ""
-        }
     }
 }
