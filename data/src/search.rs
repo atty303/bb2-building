@@ -1,16 +1,15 @@
+use skill::Target;
 use std::hash::Hash;
 
-pub trait SearchIndexable<K, M: SearchMarker> {
+pub trait SearchIndexable<K, M: SearchMarker, N: Search<M>> {
     fn id(&self) -> K;
     fn strings(&self) -> Vec<String>;
-    fn lift(&self) -> M {
-        todo!()
-    }
+    fn lift(&self) -> M;
 }
 
-pub trait Search<M: SearchMarker> {
+pub trait Search<M: SearchMarker>: Sized {
     type Key: Ord + Clone + Hash;
-    type Item: SearchIndexable<Self::Key, M>;
+    type Item: SearchIndexable<Self::Key, M, Self>;
     type Repository: Repository<Self::Key, Self::Item>;
     type Marker: SearchMarker;
 }
@@ -23,5 +22,5 @@ pub trait Repository<K, V> {
 }
 
 pub trait SearchMarker: Sized + Search<Self> {
-    fn new(&self, item: Self::Item) -> Self;
+    fn new(item: &Self::Item) -> Self::Marker;
 }

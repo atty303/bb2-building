@@ -7,8 +7,8 @@ use strum::{Display, EnumString};
 
 use sprite::Sprite;
 use token::{Token, Tokens};
-use SearchMarker;
 use {Repository, SearchIndexable};
+use {Search, SearchMarker};
 
 pub type SkillHash = u16;
 
@@ -103,7 +103,7 @@ pub struct Skill {
     pub name: String,
 }
 
-impl<M: SearchMarker> SearchIndexable<SkillHash, M> for Skill {
+impl<M: SearchMarker, N: Search<M>> SearchIndexable<SkillHash, M, N> for Skill {
     fn id(&self) -> SkillHash {
         self.hash
     }
@@ -117,6 +117,10 @@ impl<M: SearchMarker> SearchIndexable<SkillHash, M> for Skill {
                 .collect(),
         );
         strings
+    }
+
+    fn lift(&self) -> M {
+        M::new(self)
     }
 }
 

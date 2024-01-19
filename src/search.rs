@@ -4,33 +4,28 @@ use indicium::simple::{Indexable, KString, SearchIndex, SearchIndexBuilder, Toke
 use wasm_bindgen::prelude::*;
 
 use data::skill::{Skill, SkillHash, SkillRepository};
-use data::{Database, Repository, Search, SearchIndexable, SearchMarker};
+use data::{Repository, Search, SearchIndexable, SearchMarker};
 
-pub struct SearchCatalog<
-    'a,
-    M: SearchMarker,
-    T: Search<M>,
-    R: Repository<T::Key, T::Item> + Default,
-> {
+pub struct SearchCatalog<M: SearchMarker, T: Search<M>, R: Repository<T::Key, T::Item> + Default> {
     pub index: SearchIndex<T::Key>,
-    pub repository: &'a R,
+    pub repository: Rc<R>,
 }
 
-impl<'a, M: SearchMarker, T: Search<M>, R: Repository<T::Key, T::Item> + Default>
-    SearchCatalog<'a, M, T, R>
+impl<M: SearchMarker, T: Search<M>, R: Repository<T::Key, T::Item> + Default>
+    SearchCatalog<M, T, R>
 {
-    pub fn search(&self, query: &str) -> Vec<&'a T::Key> {
+    pub fn search<'a>(&'a self, query: &'a str) -> Vec<&'a T::Key> {
         self.index.search(query)
     }
 }
 
-impl<'a, M: SearchMarker, T: Search<M>, R: Repository<T::Key, T::Item> + Default> Default
-    for SearchCatalog<'a, M, T, R>
+impl<M: SearchMarker, T: Search<M>, R: Repository<T::Key, T::Item> + Default> Default
+    for SearchCatalog<M, T, R>
 {
     fn default() -> Self {
         Self {
             index: SearchIndex::default(),
-            repository: &R::default(),
+            repository: R::default().into(),
         }
     }
 }
@@ -38,7 +33,7 @@ impl<'a, M: SearchMarker, T: Search<M>, R: Repository<T::Key, T::Item> + Default
 pub struct SkillSearch(Skill);
 
 impl SearchMarker for SkillSearch {
-    fn new(&self, item: Self::Item) -> Self {
+    fn new(item: Self::Item) -> Self {
         Self(item)
     }
 }
@@ -51,8 +46,8 @@ impl Search<SkillSearch> for SkillSearch {
 }
 
 #[derive(Default)]
-pub struct SearchCatalogs<'a> {
-    pub skill: SearchCatalog<'a, SkillSearch, SkillSearch, SkillRepository>,
+pub struct SearchCatalogs {
+    pub skill: SearchCatalog<SkillSearch, SkillSearch, SkillRepository>,
 }
 
 #[wasm_bindgen(module = "/src/tokenizer.js")]
@@ -86,7 +81,8 @@ impl Indexable for Document {
 
 impl Indexable for SkillSearch {
     fn strings(&self) -> Vec<String> {
-        todo!("SkillSearch::strings")
+        <Skill as SearchIndexable<SkillHash, SkillSearch>>::strings(&self.0)
+        //self.strings()
         //<SkillSearch as SearchMarker>::T::Item::strings(self)
     }
 }
@@ -97,8 +93,8 @@ impl Indexable for SkillSearch {
 //     }
 // }
 
-pub fn create_catalog<M: SearchMarker + Indexable, T: Search<M>>(
-    repository: &T::Repository,
+pub fn create_catalog<'a, M: SearchMarker + Indexable, T: Search<M>>(
+    repository: Rc<T::Repository>,
 ) -> SearchCatalog<M, T, T::Repository>
 where
     <T as Search<M>>::Repository: Default,
@@ -119,5 +115,8 @@ where
         index.insert(id, &item.lift());
     }
 
-    SearchCatalog { index, repository }
+    SearchCatalog {
+        index,
+        repository: repository,
+    }
 }

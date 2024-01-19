@@ -1,4 +1,5 @@
 use std::io::{Read, Write};
+use std::rc::Rc;
 
 use serde::{Deserialize, Serialize};
 
@@ -7,7 +8,7 @@ use {skill, GlobalRepository};
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Database {
     pub global: GlobalRepository,
-    pub skill: skill::SkillRepository,
+    pub skill: Rc<skill::SkillRepository>,
 }
 
 impl Database {

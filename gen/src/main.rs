@@ -8,6 +8,7 @@ extern crate yaml_rust;
 
 use clap::{Parser, Subcommand};
 use json::JsonValue;
+use std::rc::Rc;
 
 use data::LANGUAGES;
 use state::state_repository_from_dump;
@@ -123,7 +124,10 @@ fn run_database(lang: String, write: bool) {
             terms,
             &states,
         );
-        let database = data::Database { global, skill };
+        let database = data::Database {
+            global,
+            skill: Rc::new(skill),
+        };
 
         if write {
             let mut writer = std::io::BufWriter::new(

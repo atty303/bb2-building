@@ -69,7 +69,7 @@ pub fn App(cx: Scope) -> Element {
                         set_database(v.clone());
                         let db = &get_database.skill;
                         let catalogs = SearchCatalogs {
-                            skill: crate::search::create_catalog(db),
+                            skill: crate::search::create_catalog(db.clone()),
                         };
                         set_search_catalogs.set(catalogs);
                     }
