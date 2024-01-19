@@ -3,7 +3,7 @@ use fermi::{use_atom_state, use_read};
 
 use data::skill::SkillHash;
 
-use crate::atoms::{DATABASE, SEARCH_INDEX};
+use crate::atoms::{DATABASE, SEARCH_CATALOGS};
 
 pub struct UseSearchSkill {
     pub query: UseRef<String>,
@@ -12,7 +12,7 @@ pub struct UseSearchSkill {
 
 pub fn use_search_skill(cx: &ScopeState) -> &UseSearchSkill {
     let db = use_read(cx, &DATABASE);
-    let index = use_atom_state(cx, &SEARCH_INDEX);
+    let index = use_atom_state(cx, &SEARCH_CATALOGS);
 
     let query = use_ref(cx, || String::new());
     let results = use_ref(cx, || Vec::<SkillHash>::new());

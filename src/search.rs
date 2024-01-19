@@ -6,9 +6,33 @@ use wasm_bindgen::prelude::*;
 use data::skill::{Skill, SkillHash, SkillRepository};
 use data::{Database, Repository, Search, SearchIndexable, SearchMarker};
 
-pub struct SearchCatalog<'a, M: SearchMarker, T: Search<M>, R: Repository<T::Key, T::Item>> {
+pub struct SearchCatalog<
+    'a,
+    M: SearchMarker,
+    T: Search<M>,
+    R: Repository<T::Key, T::Item> + Default,
+> {
     pub index: SearchIndex<T::Key>,
     pub repository: &'a R,
+}
+
+impl<'a, M: SearchMarker, T: Search<M>, R: Repository<T::Key, T::Item> + Default>
+    SearchCatalog<'a, M, T, R>
+{
+    pub fn search(&self, query: &str) -> Vec<&'a T::Key> {
+        self.index.search(query)
+    }
+}
+
+impl<'a, M: SearchMarker, T: Search<M>, R: Repository<T::Key, T::Item> + Default> Default
+    for SearchCatalog<'a, M, T, R>
+{
+    fn default() -> Self {
+        Self {
+            index: SearchIndex::default(),
+            repository: &R::default(),
+        }
+    }
 }
 
 pub struct SkillSearch(Skill);
@@ -27,8 +51,8 @@ impl Search<SkillSearch> for SkillSearch {
 }
 
 #[derive(Default)]
-pub struct SearchRepository {
-    pub skill: SearchIndex<SkillHash>,
+pub struct SearchCatalogs<'a> {
+    pub skill: SearchCatalog<'a, SkillSearch, SkillSearch, SkillRepository>,
 }
 
 #[wasm_bindgen(module = "/src/tokenizer.js")]
@@ -60,30 +84,6 @@ impl Indexable for Document {
     }
 }
 
-pub fn create(db: &Database) -> SearchRepository {
-    let tokenizer: Tokenizer = Rc::new(Box::new(|string| {
-        let intl = IntlTokenizer::new("ja-JP".to_string());
-        intl.tokenize(string.to_string())
-            .into_iter()
-            .map(|s| KString::from_string(s))
-            .collect::<Vec<_>>()
-    }));
-
-    let mut index = SearchIndexBuilder::default()
-        .tokenizer(Some(tokenizer))
-        .build();
-    for skill in db.skill.values() {
-        index.insert(
-            &skill.hash,
-            &Document {
-                skill: skill.clone(),
-            },
-        );
-    }
-
-    SearchRepository { skill: index }
-}
-
 impl Indexable for SkillSearch {
     fn strings(&self) -> Vec<String> {
         todo!("SkillSearch::strings")
@@ -99,7 +99,10 @@ impl Indexable for SkillSearch {
 
 pub fn create_catalog<M: SearchMarker + Indexable, T: Search<M>>(
     repository: &T::Repository,
-) -> SearchCatalog<M, T, T::Repository> {
+) -> SearchCatalog<M, T, T::Repository>
+where
+    <T as Search<M>>::Repository: Default,
+{
     let tokenizer: Tokenizer = Rc::new(Box::new(|string| {
         let intl = IntlTokenizer::new("ja-JP".to_string());
         intl.tokenize(string.to_string())

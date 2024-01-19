@@ -1,3 +1,5 @@
+use std::hash::Hash;
+
 pub trait SearchIndexable<K, M: SearchMarker> {
     fn id(&self) -> K;
     fn strings(&self) -> Vec<String>;
@@ -7,7 +9,7 @@ pub trait SearchIndexable<K, M: SearchMarker> {
 }
 
 pub trait Search<M: SearchMarker> {
-    type Key: Ord + Clone;
+    type Key: Ord + Clone + Hash;
     type Item: SearchIndexable<Self::Key, M>;
     type Repository: Repository<Self::Key, Self::Item>;
     type Marker: SearchMarker;
