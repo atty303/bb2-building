@@ -7,6 +7,8 @@ use strum::{Display, EnumString};
 
 use sprite::Sprite;
 use token::{Token, Tokens};
+use SearchMarker;
+use {Repository, SearchIndexable};
 
 pub type SkillHash = u16;
 
@@ -99,6 +101,23 @@ pub struct Skill {
     pub is_free: bool,
     // extra fields
     pub name: String,
+}
+
+impl<M: SearchMarker> SearchIndexable<SkillHash, M> for Skill {
+    fn id(&self) -> SkillHash {
+        self.hash
+    }
+
+    fn strings(&self) -> Vec<String> {
+        let mut strings = vec![self.name.clone()];
+        strings.push(
+            self.modes
+                .iter()
+                .flat_map(|mode| vec![mode.name.clone(), format!("{}", mode.format())])
+                .collect(),
+        );
+        strings
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -235,6 +254,19 @@ impl SkillRepository {
             }
         }
         min..max + 1
+    }
+}
+
+impl Repository<SkillHash, Skill> for SkillRepository {
+    fn get(&self, key: &SkillHash) -> Option<&Skill> {
+        self.inner.get(key)
+    }
+
+    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = &'a SkillHash> + 'a>
+    where
+        SkillHash: 'a,
+    {
+        Box::new(self.order.iter())
     }
 }
 
