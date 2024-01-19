@@ -118,10 +118,6 @@ impl<M: SearchMarker, N: Search<M>> SearchIndexable<SkillHash, M, N> for Skill {
         );
         strings
     }
-
-    fn lift(&self) -> M {
-        M::new(self)
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

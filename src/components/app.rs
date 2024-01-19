@@ -8,7 +8,7 @@ use data::{Database, LANGUAGES};
 use crate::atoms::DATABASE;
 use crate::hooks::use_persistent;
 use crate::pages::Route;
-use crate::search::SearchCatalogs;
+use crate::search::{SearchCatalogs, SkillSearch};
 
 async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
     if let Some(_) = LANGUAGES.iter().find(|l| *l == &lang) {
@@ -69,7 +69,11 @@ pub fn App(cx: Scope) -> Element {
                         set_database(v.clone());
                         let db = &get_database.skill;
                         let catalogs = SearchCatalogs {
-                            skill: crate::search::create_catalog(db.clone()),
+                            skill: crate::search::create_catalog::<
+                                SkillSearch,
+                                SkillSearch,
+                                SkillSearch,
+                            >(db.clone()),
                         };
                         set_search_catalogs.set(catalogs);
                     }

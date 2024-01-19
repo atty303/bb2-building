@@ -4,7 +4,6 @@ use std::hash::Hash;
 pub trait SearchIndexable<K, M: SearchMarker, N: Search<M>> {
     fn id(&self) -> K;
     fn strings(&self) -> Vec<String>;
-    fn lift(&self) -> M;
 }
 
 pub trait Search<M: SearchMarker>: Sized {
@@ -21,6 +20,8 @@ pub trait Repository<K, V> {
         K: 'a;
 }
 
-pub trait SearchMarker: Sized + Search<Self> {
-    fn new(item: &Self::Item) -> Self::Marker;
+pub trait SearchMarker: Sized {}
+
+pub trait ToSearchMaker<M: SearchMarker, S: Search<M>> {
+    fn to_search_marker(item: &S::Item) -> M;
 }

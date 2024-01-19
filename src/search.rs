@@ -4,7 +4,7 @@ use indicium::simple::{Indexable, KString, SearchIndex, SearchIndexBuilder, Toke
 use wasm_bindgen::prelude::*;
 
 use data::skill::{Skill, SkillHash, SkillRepository};
-use data::{Repository, Search, SearchIndexable, SearchMarker};
+use data::{Repository, Search, SearchIndexable, SearchMarker, ToSearchMaker};
 
 pub struct SearchCatalog<M: SearchMarker, T: Search<M>, R: Repository<T::Key, T::Item> + Default> {
     pub index: SearchIndex<T::Key>,
@@ -32,17 +32,19 @@ impl<M: SearchMarker, T: Search<M>, R: Repository<T::Key, T::Item> + Default> De
 
 pub struct SkillSearch(Skill);
 
-impl SearchMarker for SkillSearch {
-    fn new(item: Self::Item) -> Self {
-        Self(item)
-    }
-}
+impl SearchMarker for SkillSearch {}
 
-impl Search<SkillSearch> for SkillSearch {
+impl<'a> Search<SkillSearch> for SkillSearch {
     type Key = SkillHash;
     type Item = Skill;
     type Repository = SkillRepository;
     type Marker = SkillSearch;
+}
+
+impl ToSearchMaker<SkillSearch, SkillSearch> for SkillSearch {
+    fn to_search_marker(item: &Skill) -> SkillSearch {
+        SkillSearch(item.clone())
+    }
 }
 
 #[derive(Default)]
@@ -79,9 +81,9 @@ impl Indexable for Document {
     }
 }
 
-impl Indexable for SkillSearch {
+impl<'a> Indexable for SkillSearch {
     fn strings(&self) -> Vec<String> {
-        <Skill as SearchIndexable<SkillHash, SkillSearch>>::strings(&self.0)
+        <Skill as SearchIndexable<SkillHash, SkillSearch, SkillSearch>>::strings(&self.0)
         //self.strings()
         //<SkillSearch as SearchMarker>::T::Item::strings(self)
     }
@@ -93,7 +95,7 @@ impl Indexable for SkillSearch {
 //     }
 // }
 
-pub fn create_catalog<'a, M: SearchMarker + Indexable, T: Search<M>>(
+pub fn create_catalog<'a, M: SearchMarker + Indexable, T: Search<M>, N: ToSearchMaker<M, T>>(
     repository: Rc<T::Repository>,
 ) -> SearchCatalog<M, T, T::Repository>
 where
@@ -112,7 +114,7 @@ where
         .build();
     for id in repository.iter() {
         let item = repository.get(id).unwrap();
-        index.insert(id, &item.lift());
+        index.insert(id, &N::to_search_marker(item));
     }
 
     SearchCatalog {
