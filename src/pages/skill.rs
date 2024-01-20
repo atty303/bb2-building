@@ -4,14 +4,11 @@ use dioxus_signals::{ReadOnlySignal, Signal};
 use fermi::use_read_rc;
 
 use data::skill::Skill;
-pub use search::SkillSearchPage;
 
 use crate::atoms::DATABASE;
 use crate::components::{Rarity, SkillView, SpriteIcon};
 use crate::hooks::use_search_skill;
 use crate::pages::Route;
-
-mod search;
 
 #[component]
 pub fn SkillListPage(cx: Scope) -> Element {
@@ -19,7 +16,7 @@ pub fn SkillListPage(cx: Scope) -> Element {
     let rarities = db.skill.rarity_range();
 
     let search = use_search_skill(cx);
-    let skills = search.results.read().iter();
+    let skills = search.results.read().iter().collect::<Vec<_>>();
 
     render! {
         div {
@@ -112,4 +109,11 @@ pub fn SkillPage(cx: Scope, skill_id: String) -> Element {
                 }
             }
         })
+}
+
+#[component]
+pub fn SkillSearchPage<'a>(cx: Scope<'a>) -> Element {
+    let nav = use_navigator(cx);
+    nav.replace(Route::SkillListPage {});
+    None
 }

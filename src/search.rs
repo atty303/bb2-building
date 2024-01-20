@@ -1,3 +1,5 @@
+use std::collections::hash_map::DefaultHasher;
+use std::hash::Hash;
 use std::rc::Rc;
 
 use indicium::simple::{Indexable, KString, SearchIndex, SearchIndexBuilder, Tokenizer};
@@ -7,9 +9,25 @@ use wasm_bindgen::prelude::*;
 use data::skill::{Skill, SkillHash, SkillRepository};
 use data::{Repository, Search, SearchIndexable, SearchMarker, ToSearchMaker};
 
+use std::hash::Hasher;
+
 pub struct SearchCatalog<M: SearchMarker, T: Search<M>, R: Repository<T::Key, T::Item> + Default> {
     pub index: SearchIndex<T::Key>,
     pub repository: Rc<R>,
+}
+
+impl<M: SearchMarker, T: Search<M>, R: Repository<T::Key, T::Item> + Default> PartialEq
+    for SearchCatalog<M, T, R>
+{
+    fn eq(&self, other: &Self) -> bool {
+        let mut hasher_self = DefaultHasher::new();
+        self.index.hash(&mut hasher_self);
+
+        let mut hasher_other = DefaultHasher::new();
+        other.index.hash(&mut hasher_other);
+
+        hasher_self.finish() == hasher_other.finish()
+    }
 }
 
 impl<M: SearchMarker, T: Search<M>, R: Repository<T::Key, T::Item> + Default>
@@ -50,7 +68,7 @@ impl ToSearchMaker<SkillSearch, SkillSearch> for SkillSearch {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, PartialEq)]
 pub struct SearchCatalogs {
     pub skill: SearchCatalog<SkillSearch, SkillSearch, SkillRepository>,
 }
