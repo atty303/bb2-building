@@ -98,7 +98,6 @@ impl Indexable for Document {
                 .flat_map(|mode| vec![mode.name.clone(), format!("{}", mode.format())])
                 .collect(),
         );
-        tracing::info!("strings: {:?}", strings);
         strings
     }
 }
@@ -106,16 +105,8 @@ impl Indexable for Document {
 impl<'a> Indexable for SkillSearch {
     fn strings(&self) -> Vec<String> {
         <Skill as SearchIndexable<SkillHash, SkillSearch, SkillSearch>>::strings(&self.0)
-        //self.strings()
-        //<SkillSearch as SearchMarker>::T::Item::strings(self)
     }
 }
-
-// impl<K: Ord + SearchIndexable<K>> Indexable for SearchIndexable<K> {
-//     fn strings(&self) -> Vec<String> {
-//         self.strings()
-//     }
-// }
 
 pub fn create_catalog<'a, M: SearchMarker + Indexable, T: Search<M>, N: ToSearchMaker<M, T>>(
     repository: Rc<T::Repository>,

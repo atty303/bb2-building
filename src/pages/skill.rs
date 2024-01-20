@@ -2,6 +2,7 @@ use dioxus::prelude::*;
 use dioxus_router::prelude::{use_navigator, Link};
 use dioxus_signals::{ReadOnlySignal, Signal};
 use fermi::use_read_rc;
+use std::collections::HashSet;
 
 use data::skill::Skill;
 
@@ -12,11 +13,16 @@ use crate::pages::Route;
 
 #[component]
 pub fn SkillListPage(cx: Scope) -> Element {
-    let db = use_read_rc(cx, &DATABASE);
-    let rarities = db.skill.rarity_range();
-
     let search = use_search_skill(cx);
-    let skills = search.results.read().iter().collect::<Vec<_>>();
+
+    let rarities = search
+        .results
+        .read()
+        .iter()
+        .map(|s| s.read().rarity)
+        .collect::<HashSet<_>>();
+    let mut rarities = rarities.iter().collect::<Vec<_>>();
+    rarities.sort_unstable();
 
     render! {
         div {
@@ -39,30 +45,27 @@ pub fn SkillListPage(cx: Scope) -> Element {
             }
         }
 
-        if true {
+        if false {
             div { class: "flex flex-wrap gap-2",
                 for skill in search.results.read().iter() {
                     SkillLink { skill: *skill }
                 }
             }
         } else {
-            ""
-            // div { class: "p-2 divide-y",
-            //     for rarity in rarities {
-            //         div { class: "py-4",
-            //             h2 { class: "mb-2",
-            //                 Rarity { rarity: rarity }
-            //             }
-            //             div { class: "flex flex-wrap w-fit gap-2",
-            //                 {search.results.read().iter()/*.filter(|s| s.rarity == rarity)*/.map(|skill| {
-            //                     rsx! {
-            //                         SkillView { skill: skill }
-            //                     }
-            //                 })}
-            //             }
-            //         }
-            //     }
-            // }
+            div { class: "p-2 divide-y",
+                for rarity in rarities {
+                    div { class: "py-4",
+                        h2 { class: "mb-2",
+                            Rarity { rarity: *rarity }
+                        }
+                        div { class: "flex flex-wrap w-fit gap-2",
+                            for skill in search.results.read().iter().filter(|s| s.read().rarity == *rarity) {
+                                SkillLink { skill: *skill }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

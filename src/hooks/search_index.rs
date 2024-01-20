@@ -13,27 +13,28 @@ pub struct UseSearchSkill {
 
 pub fn use_search_skill(cx: &ScopeState) -> &UseSearchSkill {
     let db = use_read(cx, &DATABASE);
-    let index = use_atom_state(cx, &SEARCH_CATALOGS);
+    let catalog = use_atom_state(cx, &SEARCH_CATALOGS);
 
     let query = use_signal(cx, || String::new());
     let results = use_signal(cx, || Vec::<Signal<Skill>>::new());
 
-    dioxus_signals::use_effect_with_dependencies(cx, (db, index), move |(db, index)| {
-        let q = query.read().clone();
-        let indexes: Vec<SkillHash> = if q.is_empty() {
+    use_effect_with_dependencies(cx, (db, catalog), move |(db, catalog)| {
+        let hashes: Vec<SkillHash> = if query.read().is_empty() {
             db.skill.iter().map(|skill| skill.hash).collect()
         } else {
-            index.skill.search(&*q).iter().map(|hash| **hash).collect()
+            catalog
+                .skill
+                .search(&query.read())
+                .iter()
+                .map(|hash| **hash)
+                .collect()
         };
-        let items = indexes
+        let items = hashes
             .iter()
             .map(|hash| Signal::new(db.skill.get(hash).unwrap().clone()))
             .collect();
         results.set(items);
     });
 
-    cx.use_hook(|| UseSearchSkill {
-        query: query.clone(),
-        results: results.clone(),
-    })
+    cx.use_hook(|| UseSearchSkill { query, results })
 }

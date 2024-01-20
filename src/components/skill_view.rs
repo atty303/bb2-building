@@ -1,9 +1,7 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::Link;
 use dioxus_signals::{ReadOnlySignal, Signal};
-use fermi::use_read;
 
-use crate::atoms::DATABASE;
 use data::token::{Token, Tokens};
 
 use crate::components::Rarity;
@@ -12,8 +10,6 @@ use crate::pages::Route;
 
 #[component]
 pub fn SkillView<'a>(cx: Scope, skill: &'a data::skill::Skill) -> Element {
-    let db = use_read(cx, &DATABASE);
-
     render! {
         div {
             class: "flex flex-col border-solid border border-base-300 rounded-md my-2",
