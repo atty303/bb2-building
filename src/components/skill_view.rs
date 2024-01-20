@@ -27,7 +27,7 @@ pub fn SkillView<'a>(cx: Scope, skill: &'a data::skill::Skill) -> Element {
                     Rarity { rarity: skill.rarity }
                 }
             }
-            div { class: "flex flex-row gap-2 p-2",
+            div { class: "flex flex-row flex-wrap gap-2 p-2",
                 for mode in skill.modes.iter().filter(|_m| true) {
                     div { class: "flex-1",
                         SkillMode { mode: &mode }
