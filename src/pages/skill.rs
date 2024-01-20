@@ -1,8 +1,9 @@
+use std::collections::HashSet;
+
 use dioxus::prelude::*;
-use dioxus_router::prelude::{use_navigator, Link};
+use dioxus_router::prelude::Link;
 use dioxus_signals::{ReadOnlySignal, Signal};
 use fermi::use_read_rc;
-use std::collections::HashSet;
 
 use data::skill::Skill;
 
@@ -25,8 +26,7 @@ pub fn SkillListPage(cx: Scope) -> Element {
     rarities.sort_unstable();
 
     render! {
-        div {
-            class: "text-sm breadcrumbs",
+        div { class: "text-sm breadcrumbs",
             ul {
                 li { "Home" }
                 li { "Skill" }
@@ -34,8 +34,7 @@ pub fn SkillListPage(cx: Scope) -> Element {
         }
 
         div {
-            input {
-                class: "input input-bordered w-full max-w-xs",
+            input { class: "input input-bordered w-full max-w-xs",
                 r#type: "text",
                 placeholder: "Search",
                 oninput: move |e| {
@@ -93,8 +92,7 @@ pub fn SkillPage(cx: Scope, skill_id: String) -> Element {
         .find(|s| &s.id == skill_id)
         .map(|skill| {
             render! {
-                div {
-                    class: "text-sm breadcrumbs",
+                div { class: "text-sm breadcrumbs",
                     ul {
                         li { "Home" }
                         li { "Skill" }
@@ -112,11 +110,4 @@ pub fn SkillPage(cx: Scope, skill_id: String) -> Element {
                 }
             }
         })
-}
-
-#[component]
-pub fn SkillSearchPage<'a>(cx: Scope<'a>) -> Element {
-    let nav = use_navigator(cx);
-    nav.replace(Route::SkillListPage {});
-    None
 }

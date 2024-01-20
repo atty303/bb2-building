@@ -9,7 +9,7 @@ mod skill;
 use crate::components::Footer;
 use crate::components::NavBar;
 use home::Home;
-use skill::{SkillListPage, SkillPage, SkillSearchPage};
+use skill::{SkillListPage, SkillPage};
 
 /// An enum of all of the possible routes in the app.
 #[derive(Routable, Clone)]
@@ -19,11 +19,10 @@ pub enum Route {
     Home {},
     #[route("/skill")]
     SkillListPage {},
-    #[route("/skill/search")]
-    SkillSearchPage {},
     #[route("/skill/:skill_id")]
     SkillPage { skill_id: String },
-    //#[end_layout]
+    #[route("/:..route")]
+    PageNotFound { route: Vec<String> },
 }
 
 #[component]
@@ -36,5 +35,17 @@ fn MainLayout(cx: Scope) -> Element {
             Outlet::<Route> {}
         }
         Footer {}
+    }
+}
+
+#[component]
+fn PageNotFound(cx: Scope, route: Vec<String>) -> Element {
+    render! {
+        h1 { "Page not found" }
+        p { "We are terribly sorry, but the page you requested doesn't exist." }
+        pre {
+            color: "red",
+            "log:\nattemped to navigate to: {route:?}"
+        }
     }
 }
