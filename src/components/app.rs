@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 use dioxus::prelude::*;
 use dioxus_router::prelude::{Router, RouterConfig, RouterConfigFactory, WebHistory};
-use fermi::{use_atom_root, use_atom_state, use_init_atom_root, use_read, use_set};
+use fermi::{use_atom_state, use_init_atom_root};
 
 use data::{Database, LANGUAGES};
 
@@ -29,8 +29,6 @@ async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
         Err(anyhow!("unknown language: {}", lang))
     }
 }
-
-use fermi::Writable;
 
 #[component]
 pub fn App(cx: Scope) -> Element {

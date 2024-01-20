@@ -1,62 +1,24 @@
-mod search;
-
-use data::skill::Skill;
 use dioxus::prelude::*;
 use dioxus_router::prelude::{use_navigator, Link};
 use fermi::use_read_rc;
 
-use crate::atoms::DATABASE;
-use crate::components::{Rarity, SkillView, SpriteIcon};
-use crate::components::{Tab, TabGroup, TabList, TabPanel, TabPanels};
-use crate::pages::Route;
-
+use data::skill::Skill;
 pub use search::SkillSearchPage;
 
-#[component]
-fn LocalTab<'a>(cx: Scope<'a>, index: usize, children: Element<'a>) -> Element {
-    render! {
-        Tab {
-            index: *index,
-            render: move |attrs, children, selected| {
-                let active = if selected { "tab-active" } else { "" };
-                render! {
-                    button {
-                        class: "tab {active}",
-                        ..*attrs,
-                        {children}
-                    }
-                }
-            },
-            {children}
-        }
-    }
-}
+use crate::atoms::DATABASE;
+use crate::components::{Rarity, SkillView, SpriteIcon};
+use crate::hooks::use_search_skill;
+use crate::pages::Route;
 
-#[component]
-fn LocalTabPanel<'a>(cx: Scope<'a>, index: usize, children: Element<'a>) -> Element {
-    render! {
-        TabPanel {
-            index: *index,
-            render: move |attrs, children, selected| {
-                let active = if selected { "" } else { "" };
-                render! {
-                    div {
-                        class: "{active}",
-                        ..*attrs,
-                        {children}
-                    }
-                }
-            },
-            {children}
-        }
-    }
-}
+mod search;
 
 #[component]
 pub fn SkillListPage(cx: Scope, tab: String) -> Element {
     let nav = use_navigator(cx);
     let db = use_read_rc(cx, &DATABASE);
     let rarities = db.skill.rarity_range();
+
+    let search = use_search_skill(cx);
 
     render! {
         div {
@@ -67,69 +29,39 @@ pub fn SkillListPage(cx: Scope, tab: String) -> Element {
             }
         }
 
-        Link { class: "btn btn-primary btn-sm my-2",
-            to: Route::SkillSearchPage {},
-            "Search"
-        }
-
-        TabGroup {
-            render: move |children, _selected_index| {
-                render! {
-                    div {
-                        {children}
-                    }
-                }
-            },
-            TabList {
-                render: move |attrs, children, _selected_index| {
-                    render! {
-                        div {
-                            class: "tabs tabs-bordered tab-lg text-primary mb-2",
-                            ..*attrs,
-                            {children}
-                        }
-                    }
-                },
-                LocalTab {
-                    index: 0,
-                    "ALL",
-                }
-                LocalTab {
-                    index: 1,
-                    "RARITY",
+        div {
+            input {
+                class: "input input-bordered w-full max-w-xs",
+                r#type: "text",
+                placeholder: "Search",
+                oninput: move |e| {
+                    let q = e.data.value();
+                    search.query.set(q);
                 }
             }
-            TabPanels {
-                render: move |attrs, children, _selected_index| {
-                    render! {
-                        div {
-                            ..*attrs,
-                            {children}
+        }
+
+        if true {
+            div { class: "flex flex-wrap gap-2",
+                {search.results.read().iter().map(|hash| {
+            rsx! {
+                SkillView { skill_hash: *hash }
+            }
+        })}
+            }
+        } else {
+            div { class: "p-2 divide-y",
+                for rarity in rarities {
+                    div { class: "py-4",
+                        h2 { class: "mb-2",
+                            Rarity { rarity: rarity }
                         }
-                    }
-                },
-                LocalTabPanel {
-                    index: 0,
-                    div { class: "grid grid-cols-5 w-fit gap-2",
-                        for skill in db.skill.iter() {
-                            SkillLink { skill: &skill }
-                        }
-                    }
-                }
-                LocalTabPanel {
-                    index: 1,
-                    div { class: "p-2 divide-y",
-                        for rarity in rarities {
-                            div { class: "py-4",
-                                h2 { class: "mb-2",
-                                    Rarity { rarity: rarity }
+                        div { class: "flex flex-wrap w-fit gap-2",
+                            {search.results.read().iter()/*.filter(|s| s.rarity == rarity)*/.map(|hash| {
+                                rsx! {
+                                    SkillView { skill_hash: *hash }
                                 }
-                                div { class: "flex flex-wrap gap-2",
-                                    for skill in db.skill.iter().filter(|s| s.rarity == rarity) {
-                                        SkillLink { skill: &skill }
-                                    }
-                                }
-                            }
+                            })}
                         }
                     }
                 }
