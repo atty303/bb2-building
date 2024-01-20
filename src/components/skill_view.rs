@@ -29,7 +29,7 @@ pub fn SkillView<'a>(cx: Scope, skill: &'a data::skill::Skill) -> Element {
             }
             div { class: "flex flex-row gap-2 p-2",
                 for mode in skill.modes.iter().filter(|_m| true) {
-                    div {
+                    div { class: "flex-1",
                         SkillMode { mode: &mode }
                     }
                 }
