@@ -151,11 +151,15 @@ fn SkillLink(cx: Scope, skill: Signal<Skill>, selected: Signal<Option<Skill>>) -
         }
     }
 
-    let active = use_signal(cx, || false);
-
     render! {
         button { class: "inline-block",
-            onclick: move |_| selected.set(Some(skill.read().clone())),
+            onclick: move |_| {
+                if selected.read().as_ref().map(|s| s.hash) == Some(skill.read().hash) {
+                    selected.set(None);
+                } else {
+                    selected.set(Some(skill.read().clone()));
+                }
+            },
             SkillLinkInnerIcon { skill: skill.clone(), class: "inline-block md:hidden", size: 56 }
             SkillLinkInnerIcon { skill: skill.clone(), class: "hidden md:inline-block", size: 96 }
         }
