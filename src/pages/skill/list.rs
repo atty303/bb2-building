@@ -100,27 +100,7 @@ pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
                 span { class: "font-bold",
                     "{db.skill.iter().count()}"
                 }
-                span {
-                    "skills"
-                }
             }
-            // div { class: "flex items-center gap-2",
-            //     div {
-            //         "Grouping"
-            //     }
-            //     div { class: "join",
-            //         input { class: "join-item btn",
-            //             r#type: "radio",
-            //             name: "group",
-            //             aria_label: "None",
-            //         }
-            //         input { class: "join-item btn",
-            //             r#type: "radio",
-            //             name: "group",
-            //             aria_label: "Rarity",
-            //         }
-            //     }
-            // }
         }
 
         if true {
@@ -151,7 +131,12 @@ pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
 #[component]
 fn SkillLink(cx: Scope, skill: Signal<Skill>) -> Element {
     #[component]
-    fn SkillIcon<'a>(cx: Scope, skill: Signal<Skill>, class: &'a str, size: i32) -> Element {
+    fn SkillLinkInnerIcon<'a>(
+        cx: Scope,
+        skill: Signal<Skill>,
+        class: &'a str,
+        size: i32,
+    ) -> Element {
         render! {
             Link { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 {class}",
                 to: Route::SkillPage { skill_id: skill.read().id.clone() },
@@ -170,8 +155,8 @@ fn SkillLink(cx: Scope, skill: Signal<Skill>) -> Element {
 
     render! {
         span { class: "inline-block",
-            SkillIcon { skill: skill.clone(), class: "inline-block md:hidden", size: 56 }
-            SkillIcon { skill: skill.clone(), class: "hidden md:inline-block", size: 96 }
+            SkillLinkInnerIcon { skill: skill.clone(), class: "inline-block md:hidden", size: 56 }
+            SkillLinkInnerIcon { skill: skill.clone(), class: "hidden md:inline-block", size: 96 }
         }
     }
 }
