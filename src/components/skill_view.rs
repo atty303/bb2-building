@@ -65,7 +65,7 @@ pub fn SkillMode(cx: Scope, mode: Signal<data::skill::SkillMode>) -> Element {
                 //     }
                 // }
             }
-            div {
+            div { class: "bg-base-100 p-2",
                 Description { tokens: mode.read().format() }
             }
         }

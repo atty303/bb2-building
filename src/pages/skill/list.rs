@@ -111,7 +111,7 @@ pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
                     // TODO: Footer の高さの余白が出来てしまうので引く
                     height: "{bottom_height}px",
                 }
-                div { class: "fixed bottom-0 left-0 z-50 w-full h-2/3 sm:h-1/2 bg-base-100 border-t border-neutral overflow-y-auto shadow-inner",
+                div { class: "fixed bottom-0 left-0 z-50 w-full h-2/3 sm:h-1/2 bg-base-100 border-t border-neutral overflow-y-auto shadow-inner px-2",
                     onmounted: move |e| {
                         async move {
                             let  _ = e.data.get_client_rect().await.map(|rect| {
