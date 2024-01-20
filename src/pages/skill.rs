@@ -34,7 +34,7 @@ pub fn SkillListPage(cx: Scope) -> Element {
             }
         }
 
-        div { class: "flex flex-row items-center gap-2",
+        div { class: "flex flex-row items-center gap-4",
             input { class: "input input-bordered input-primary w-full",
                 r#type: "text",
                 placeholder: "Search skills...",
@@ -56,12 +56,28 @@ pub fn SkillListPage(cx: Scope) -> Element {
                 span {
                     "skills"
                 }
-
             }
+            // div { class: "flex items-center gap-2",
+            //     div {
+            //         "Grouping"
+            //     }
+            //     div { class: "join",
+            //         input { class: "join-item btn",
+            //             r#type: "radio",
+            //             name: "group",
+            //             aria_label: "None",
+            //         }
+            //         input { class: "join-item btn",
+            //             r#type: "radio",
+            //             name: "group",
+            //             aria_label: "Rarity",
+            //         }
+            //     }
+            // }
         }
 
-        if false {
-            div { class: "flex flex-wrap gap-2",
+        if true {
+            div { class: "flex flex-wrap gap-2 mt-2",
                 for skill in search.results.read().iter() {
                     SkillLink { skill: *skill }
                 }
