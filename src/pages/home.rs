@@ -6,9 +6,7 @@ use dioxus_router::hooks::use_navigator;
 pub fn Home(cx: Scope) -> Element {
     let nav = use_navigator(cx);
 
-    nav.replace(Route::SkillListPage {
-        tab: "".to_string(),
-    });
+    nav.replace(Route::SkillListPage {});
 
     render! {
         h1 { "BB2B" }

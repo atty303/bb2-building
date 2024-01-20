@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::marker::PhantomData;
 
 use dioxus::core::AttributeValue;
@@ -45,7 +46,7 @@ pub fn TabList<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, usize) -> Elem
 pub fn Tab<'a, F: Fn(&'a Vec<Attribute<'a>>, &'a Element<'a>, bool) -> Element<'a>>(
     cx: Scope<'a>,
     index: usize,
-    #[props(default = false)] disabled: bool,
+    #[props(default = false)] _disabled: bool,
     render: F,
     children: Element<'a>,
     #[props(default = PhantomData)] _phantom: PhantomData<&'a ()>,

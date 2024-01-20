@@ -17,8 +17,8 @@ pub enum Route {
     #[layout(MainLayout)]
     #[route("/")]
     Home {},
-    #[route("/skill?:tab")]
-    SkillListPage { tab: String },
+    #[route("/skill")]
+    SkillListPage {},
     #[route("/skill/search")]
     SkillSearchPage {},
     #[route("/skill/:skill_id")]

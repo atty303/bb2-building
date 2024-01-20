@@ -25,7 +25,7 @@ pub fn NavBar(cx: Scope) -> Element {
                     class: "divider divider-horizontal",
                 }
                 Link {
-                    to: Route::SkillListPage { tab: "".to_string() },
+                    to: Route::SkillListPage { },
                     "Skill"
                 }
             }

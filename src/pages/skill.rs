@@ -13,8 +13,7 @@ use crate::pages::Route;
 mod search;
 
 #[component]
-pub fn SkillListPage(cx: Scope, tab: String) -> Element {
-    let nav = use_navigator(cx);
+pub fn SkillListPage(cx: Scope) -> Element {
     let db = use_read_rc(cx, &DATABASE);
     let rarities = db.skill.rarity_range();
 
