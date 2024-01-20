@@ -1,17 +1,15 @@
-use std::collections::HashSet;
 use std::fmt::Display;
 use std::str::FromStr;
 
 use dioxus::prelude::*;
-use dioxus_router::prelude::Link;
-use dioxus_signals::Signal;
+use dioxus_signals::{use_signal, Signal};
 use fermi::use_read;
 use serde::{Deserialize, Serialize};
 
 use data::skill::Skill;
 
 use crate::atoms::DATABASE;
-use crate::components::{Rarity, SpriteIcon};
+use crate::components::{SkillView, SpriteIcon};
 use crate::hooks::use_search_skill;
 use crate::pages::Route;
 
@@ -46,14 +44,8 @@ pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
         search.query.set(query.query.peek().clone());
     }
 
-    let rarities = search
-        .results
-        .read()
-        .iter()
-        .map(|s| s.read().rarity)
-        .collect::<HashSet<_>>();
-    let mut rarities = rarities.iter().collect::<Vec<_>>();
-    rarities.sort_unstable();
+    let selected = use_signal(cx, || None::<Skill>);
+    let bottom_height = use_signal(cx, || 0);
 
     render! {
         div { class: "text-sm breadcrumbs",
@@ -90,7 +82,7 @@ pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
                 //     }
                 // }
             }
-            div { class: "badge badge-accent badge-lg gap-1",
+            div { class: "badge badge-accent badge-lg gap-1 text-xs",
                 span { class: "font-bold",
                     "{search.results.read().len()}"
                 }
@@ -103,24 +95,31 @@ pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
             }
         }
 
-        if true {
-            div { class: "flex flex-wrap gap-2 mt-4",
-                for skill in search.results.read().iter() {
-                    SkillLink { skill: *skill }
+        div { class: "flex flex-wrap gap-2 mt-4",
+            for skill in search.results.read().iter() {
+                SkillLink {
+                    skill: *skill,
+                    selected: selected.clone(),
                 }
             }
-        } else {
-            div { class: "p-2 divide-y",
-                for rarity in rarities {
-                    div { class: "py-4",
-                        h2 { class: "mb-2",
-                            Rarity { rarity: *rarity }
+        }
+
+        if selected.read().is_some() {
+            div {
+                div {
+                    // TODO: Footer の高さの余白が出来てしまうので引く
+                    height: "{bottom_height}px",
+                }
+                div { class: "fixed bottom-0 left-0 z-50 w-full h-2/3 sm:h-1/2 bg-base-100 border-t border-neutral overflow-y-auto shadow-inner",
+                    onmounted: move |e| {
+                        async move {
+                            let  _ = e.data.get_client_rect().await.map(|rect| {
+                                bottom_height.set(rect.size.height as i32);
+                            });
                         }
-                        div { class: "flex flex-wrap w-fit gap-2",
-                            for skill in search.results.read().iter().filter(|s| s.read().rarity == *rarity) {
-                                SkillLink { skill: *skill }
-                            }
-                        }
+                    },
+                    if let Some(skill) = selected.read().as_ref() {
+                        SkillView { skill: Signal::new(skill.clone()) }
                     }
                 }
             }
@@ -129,7 +128,7 @@ pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
 }
 
 #[component]
-fn SkillLink(cx: Scope, skill: Signal<Skill>) -> Element {
+fn SkillLink(cx: Scope, skill: Signal<Skill>, selected: Signal<Option<Skill>>) -> Element {
     #[component]
     fn SkillLinkInnerIcon<'a>(
         cx: Scope,
@@ -138,8 +137,7 @@ fn SkillLink(cx: Scope, skill: Signal<Skill>) -> Element {
         size: i32,
     ) -> Element {
         render! {
-            Link { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 {class}",
-                to: Route::SkillPage { skill_id: skill.read().id.clone() },
+            span { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 {class}",
                 span { class: "relative",
                     SpriteIcon { class: "rounded-md",
                         sprite: Signal::new(skill.read().modes[0].icon.clone()),
@@ -153,8 +151,11 @@ fn SkillLink(cx: Scope, skill: Signal<Skill>) -> Element {
         }
     }
 
+    let active = use_signal(cx, || false);
+
     render! {
-        span { class: "inline-block",
+        button { class: "inline-block",
+            onclick: move |_| selected.set(Some(skill.read().clone())),
             SkillLinkInnerIcon { skill: skill.clone(), class: "inline-block md:hidden", size: 56 }
             SkillLinkInnerIcon { skill: skill.clone(), class: "hidden md:inline-block", size: 96 }
         }

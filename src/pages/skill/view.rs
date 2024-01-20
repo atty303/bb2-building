@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_signals::Signal;
 use fermi::use_read;
 
 use crate::atoms::DATABASE;
@@ -21,7 +22,7 @@ pub fn SkillPage(cx: Scope, skill_id: String) -> Element {
                     }
                 }
 
-                SkillView { skill: skill }
+                SkillView { skill: Signal::new(skill.clone()) }
             }
         })
         .unwrap_or_else(|| {

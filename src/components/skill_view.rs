@@ -8,29 +8,29 @@ use crate::components::{Rarity, SpriteIcon};
 use crate::pages::Route;
 
 #[component]
-pub fn SkillView<'a>(cx: Scope, skill: &'a data::skill::Skill) -> Element {
+pub fn SkillView(cx: Scope, skill: Signal<data::skill::Skill>) -> Element {
     render! {
         div {
             class: "flex flex-col border-solid border border-base-300 rounded-md my-2",
             div {
                 class: "flex flex-row items-center gap-2 bg-base-300 text-base-content p-2",
-                SpriteIcon { class: "rounded-md", sprite: Signal::new(skill.modes[0].icon.clone()), size: 64 }
+                SpriteIcon { class: "rounded-md", sprite: Signal::new(skill.read().modes[0].icon.clone()), size: 48 }
                 span {
                     class: "flex-grow",
                     Link {
                         class: "text-primary hover:underline cursor-pointer",
-                        to: Route::SkillPage { skill_id: skill.id.clone() },
-                        "{skill.name}"
+                        to: Route::SkillPage { skill_id: skill.read().id.clone() },
+                        "{skill.read().name}"
                     }
                 }
                 span {
-                    Rarity { rarity: skill.rarity }
+                    Rarity { rarity: skill.read().rarity }
                 }
             }
             div { class: "flex flex-row flex-wrap gap-2 p-2",
-                for mode in skill.modes.iter().filter(|_m| true) {
-                    div { class: "flex-1 min-w-32",
-                        SkillMode { mode: &mode }
+                for mode in skill.read().modes.iter().filter(|_m| true) {
+                    div { class: "flex-1 min-w-48",
+                        SkillMode { mode: Signal::new(mode.clone()) }
                     }
                 }
             }
@@ -39,13 +39,13 @@ pub fn SkillView<'a>(cx: Scope, skill: &'a data::skill::Skill) -> Element {
 }
 
 #[component]
-pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element {
+pub fn SkillMode(cx: Scope, mode: Signal<data::skill::SkillMode>) -> Element {
     render! {
         div { class: "flex flex-col gap-2 bg-base-200 text-base-content rounded-md p-2",
             div { class: "flex flex-row items-center gap-2",
-                SpriteIcon { class: "rounded-md", sprite: Signal::new(mode.icon.clone()), size: 48 }
+                SpriteIcon { class: "rounded-md", sprite: Signal::new(mode.read().icon.clone()), size: 32 }
                 div { class: "flex-grow",
-                    "{mode.name}"
+                    "{mode.read().name}"
                 }
                 // div { class: "dropdown",
                 //     div { class: "btn btn-ghost btn-circle btn-sm",
@@ -66,7 +66,7 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
                 // }
             }
             div {
-                Description { tokens: mode.format() }
+                Description { tokens: mode.read().format() }
             }
         }
     }

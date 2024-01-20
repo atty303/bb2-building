@@ -16,7 +16,7 @@ pub fn Rarity(cx: Scope, rarity: i8) -> Element {
     //format!("{}", db.term().get(&format!("CLR-Star-Rarity-{}", rarity)));
     render! {
         span {
-            class: "bg-neutral m-2 px-2 rounded",
+            class: "bg-neutral m-2 px-2 rounded whitespace-nowrap",
             color: "#{color}",
             for _ in 0..*rarity {
                 Icon { class: "inline-block w-4 h-4",
