@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::{use_navigator, Link};
+use dioxus_signals::{ReadOnlySignal, Signal};
 use fermi::use_read_rc;
 
 use data::skill::Skill;
@@ -18,6 +19,7 @@ pub fn SkillListPage(cx: Scope) -> Element {
     let rarities = db.skill.rarity_range();
 
     let search = use_search_skill(cx);
+    let skills = search.results.read().iter();
 
     render! {
         div {
@@ -42,41 +44,40 @@ pub fn SkillListPage(cx: Scope) -> Element {
 
         if true {
             div { class: "flex flex-wrap gap-2",
-                {search.results.read().iter().map(|hash| {
-            rsx! {
-                SkillView { skill_hash: *hash }
-            }
-        })}
-            }
-        } else {
-            div { class: "p-2 divide-y",
-                for rarity in rarities {
-                    div { class: "py-4",
-                        h2 { class: "mb-2",
-                            Rarity { rarity: rarity }
-                        }
-                        div { class: "flex flex-wrap w-fit gap-2",
-                            {search.results.read().iter()/*.filter(|s| s.rarity == rarity)*/.map(|hash| {
-                                rsx! {
-                                    SkillView { skill_hash: *hash }
-                                }
-                            })}
-                        }
-                    }
+                for skill in search.results.read().iter() {
+                    SkillLink { skill: *skill }
                 }
             }
+        } else {
+            ""
+            // div { class: "p-2 divide-y",
+            //     for rarity in rarities {
+            //         div { class: "py-4",
+            //             h2 { class: "mb-2",
+            //                 Rarity { rarity: rarity }
+            //             }
+            //             div { class: "flex flex-wrap w-fit gap-2",
+            //                 {search.results.read().iter()/*.filter(|s| s.rarity == rarity)*/.map(|skill| {
+            //                     rsx! {
+            //                         SkillView { skill: skill }
+            //                     }
+            //                 })}
+            //             }
+            //         }
+            //     }
+            // }
         }
     }
 }
 
 #[component]
-fn SkillLink<'a>(cx: Scope, skill: &'a Skill) -> Element<'a> {
+fn SkillLink(cx: Scope, skill: Signal<Skill>) -> Element {
     render! {
         span { class: "inline-block",
-            title: "{skill.name}",
+            title: "{skill.read().name}",
             Link { class: "inline-block hover:bg-primary border-primary border-solid border-2 rounded-md p-1",
-                to: Route::SkillPage { skill_id: skill.id.clone() },
-                SpriteIcon { class: "rounded-md", sprite: &skill.modes[0].icon, size: 96 }
+                to: Route::SkillPage { skill_id: skill.read().id.clone() },
+                SpriteIcon { class: "rounded-md", sprite: ReadOnlySignal::new(Signal::new(skill.read().modes[0].icon.clone())), size: 96 }
             }
 
         }
@@ -101,7 +102,7 @@ pub fn SkillPage(cx: Scope, skill_id: String) -> Element {
                     }
                 }
 
-                SkillView { skill_hash: skill.hash }
+                SkillView { skill: skill }
             }
         })
         .unwrap_or_else(|| {

@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::Link;
+use dioxus_signals::{ReadOnlySignal, Signal};
 use fermi::use_read;
 
 use crate::atoms::DATABASE;
@@ -10,16 +11,15 @@ use crate::components::Sprite;
 use crate::pages::Route;
 
 #[component]
-pub fn SkillView(cx: Scope, skill_hash: data::skill::SkillHash) -> Element {
+pub fn SkillView<'a>(cx: Scope, skill: &'a data::skill::Skill) -> Element {
     let db = use_read(cx, &DATABASE);
-    let skill = db.skill.get(skill_hash).unwrap();
 
     render! {
         div {
             class: "flex flex-col border-solid border border-base-300 rounded-md my-2",
             div {
                 class: "flex flex-row items-center gap-2 bg-base-300 text-base-content p-2",
-                Sprite { sprite: &skill.modes[0].icon, scale: 0.5 }
+                Sprite { sprite: ReadOnlySignal::new(Signal::new(skill.modes[0].icon.clone())), scale: 0.5 }
                 span {
                     class: "flex-grow",
                     Link {
@@ -48,7 +48,7 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
     render! {
         div { class: "flex flex-col gap-2 bg-base-200 text-base-content rounded-md p-2",
             div { class: "flex flex-row items-center gap-2",
-                Sprite { sprite: &mode.icon, scale: 0.5 }
+                // Sprite { sprite: &mode.icon, scale: 0.5 }
                 div { class: "flex-grow",
                     "{mode.name}"
                 }

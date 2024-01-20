@@ -1,0 +1,11 @@
+[package]
+name = "sandbox"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dioxus = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "6126e02143932ed08fecdc43c99e277babb1c0e7" }
+dioxus-web = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "6126e02143932ed08fecdc43c99e277babb1c0e7" }
+dioxus-signals = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "6126e02143932ed08fecdc43c99e277babb1c0e7" }
