@@ -65,6 +65,7 @@ pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
                     oninput: move |e| {
                         let q = e.data.value();
                         search.query.set(q.clone());
+                        selected.set(None);
                         let router = dioxus_router::router();
                         router.replace(Route::SkillListPage {
                             query: SkillListQuery {

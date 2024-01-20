@@ -18,7 +18,7 @@ pub fn NavBar(cx: Scope) -> Element {
             div {
                 class: "navbar-start",
                 Link {
-                    class: "link link-hover text-lg px-4",
+                    class: "link link-hover text-lg px-2 font-['Pixelify_Sans']",
                     to: Route::Home {},
                     "BB2B"
                 }
