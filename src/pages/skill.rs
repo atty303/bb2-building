@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use data::skill::Skill;
 
 use crate::atoms::DATABASE;
-use crate::components::{Rarity, SkillView, SpriteIcon};
+use crate::components::{Icon, Rarity, SkillView, SpriteIcon};
 use crate::hooks::use_search_skill;
 use crate::pages::Route;
 
@@ -64,23 +64,31 @@ pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
         }
 
         div { class: "flex flex-row items-center gap-4",
-            input { class: "input input-bordered input-primary w-full",
-                r#type: "text",
-                placeholder: "Search skills...",
-                autofocus: true,
-                value: "{query.query}",
-                oninput: move |e| {
-                    let q = e.data.value();
-                    search.query.set(q.clone());
-                    // if q != *query.query.read() {
+            div { class: "relative flex-grow",
+                input { class: "input input-bordered input-primary w-full",
+                    r#type: "text",
+                    placeholder: "Search skills...",
+                    autofocus: true,
+                    value: "{query.query}",
+                    oninput: move |e| {
+                        let q = e.data.value();
+                        search.query.set(q.clone());
                         let router = dioxus_router::router();
                         router.replace(Route::SkillListPage {
                             query: SkillListQuery {
                                 query: Signal::new(q.clone()),
                             },
                         });
-                    // }
+                    }
                 }
+                // button { class: "absolute inset-y-0 right-0 flex items-center pr-2",
+                //     onclick: move |_| {
+                //         search.query.set("".to_string());
+                //     },
+                //     Icon {
+                //         svg: r#"<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>"#,
+                //     }
+                // }
             }
             div { class: "badge badge-accent badge-lg gap-1",
                 span { class: "font-bold",
