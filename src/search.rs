@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use indicium::simple::{Indexable, KString, SearchIndex, SearchIndexBuilder, Tokenizer};
+use ref_cast::RefCast;
 use wasm_bindgen::prelude::*;
 
 use data::skill::{Skill, SkillHash, SkillRepository};
@@ -30,6 +31,8 @@ impl<M: SearchMarker, T: Search<M>, R: Repository<T::Key, T::Item> + Default> De
     }
 }
 
+#[derive(RefCast)]
+#[repr(transparent)]
 pub struct SkillSearch(Skill);
 
 impl SearchMarker for SkillSearch {}
@@ -42,8 +45,8 @@ impl<'a> Search<SkillSearch> for SkillSearch {
 }
 
 impl ToSearchMaker<SkillSearch, SkillSearch> for SkillSearch {
-    fn to_search_marker(item: &Skill) -> SkillSearch {
-        SkillSearch(item.clone())
+    fn to_search_marker(item: &Skill) -> &SkillSearch {
+        SkillSearch::ref_cast(item)
     }
 }
 
@@ -77,6 +80,7 @@ impl Indexable for Document {
                 .flat_map(|mode| vec![mode.name.clone(), format!("{}", mode.format())])
                 .collect(),
         );
+        tracing::info!("strings: {:?}", strings);
         strings
     }
 }
@@ -114,7 +118,7 @@ where
         .build();
     for id in repository.iter() {
         let item = repository.get(id).unwrap();
-        index.insert(id, &N::to_search_marker(item));
+        index.insert(id, N::to_search_marker(item));
     }
 
     SearchCatalog {

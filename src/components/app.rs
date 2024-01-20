@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 use dioxus::prelude::*;
 use dioxus_router::prelude::{Router, RouterConfig, RouterConfigFactory, WebHistory};
-use fermi::{use_atom_state, use_init_atom_root, use_read, use_set};
+use fermi::{use_atom_root, use_atom_state, use_init_atom_root, use_read, use_set};
 
 use data::{Database, LANGUAGES};
 
@@ -30,6 +30,8 @@ async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
     }
 }
 
+use fermi::Writable;
+
 #[component]
 pub fn App(cx: Scope) -> Element {
     use_init_atom_root(cx);
@@ -56,18 +58,17 @@ pub fn App(cx: Scope) -> Element {
         }
     });
 
-    let set_database = use_set(cx, &DATABASE);
-    let get_database = use_atom_state(cx, &DATABASE);
+    let set_database = use_atom_state(cx, &DATABASE);
     let set_search_catalogs = use_atom_state(cx, &crate::atoms::SEARCH_CATALOGS);
     let database_future = use_future(cx, language, |_| {
-        to_owned![language, set_database, get_database, set_search_catalogs];
+        to_owned![language, set_database, set_search_catalogs];
         async move {
             if let Some(lang) = language.get() {
                 let mut db = fetch_database(lang).await;
                 match db {
                     Ok(ref mut v) => {
-                        set_database(v.clone());
-                        let db = &get_database.skill;
+                        set_database.set(v.clone());
+                        let db = &v.skill;
                         let catalogs = SearchCatalogs {
                             skill: crate::search::create_catalog::<
                                 SkillSearch,

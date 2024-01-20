@@ -26,8 +26,10 @@ tracing-web = "0.1"
 
 reqwest = "0.11"
 
-anyhow = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 
 indicium = { git = "https://github.com/atty303/indicium.git", rev = "a3c8c168e0c4f9167612b80eda194b2a179e5338" }
 getrandom = { version = "0.2", features = ["js"] }
+
+anyhow = "1.0"
+ref-cast = "1.0"

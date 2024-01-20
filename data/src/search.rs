@@ -1,4 +1,3 @@
-use skill::Target;
 use std::hash::Hash;
 
 pub trait SearchIndexable<K, M: SearchMarker, N: Search<M>> {
@@ -23,5 +22,5 @@ pub trait Repository<K, V> {
 pub trait SearchMarker: Sized {}
 
 pub trait ToSearchMaker<M: SearchMarker, S: Search<M>> {
-    fn to_search_marker(item: &S::Item) -> M;
+    fn to_search_marker(item: &S::Item) -> &M;
 }

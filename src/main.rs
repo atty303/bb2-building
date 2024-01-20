@@ -11,7 +11,7 @@ mod pages;
 mod search;
 
 fn main() {
-    if false {
+    if true {
         let fmt_layer = tracing_subscriber::fmt::layer()
             .with_ansi(true) // Only partially supported across browsers
             .without_time() // std::time is not available in browsers, see note below
