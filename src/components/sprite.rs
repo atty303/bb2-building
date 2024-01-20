@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
-use dioxus_signals::ReadOnlySignal;
+use dioxus_signals::Signal;
 
 #[component]
-pub fn Sprite(cx: Scope, sprite: ReadOnlySignal<data::Sprite>, scale: f64) -> Element {
+pub fn Sprite(cx: Scope, sprite: Signal<data::Sprite>, scale: f64) -> Element {
     render! {
         span {
             class: "inline-block sprite",
@@ -14,7 +14,7 @@ pub fn Sprite(cx: Scope, sprite: ReadOnlySignal<data::Sprite>, scale: f64) -> El
 #[component]
 pub fn SpriteIcon<'a>(
     cx: Scope<'a>,
-    sprite: ReadOnlySignal<data::Sprite>,
+    sprite: Signal<data::Sprite>,
     size: i32,
     class: &'a str,
 ) -> Element {

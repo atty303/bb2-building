@@ -1,11 +1,10 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::Link;
-use dioxus_signals::{ReadOnlySignal, Signal};
+use dioxus_signals::Signal;
 
 use data::token::{Token, Tokens};
 
-use crate::components::Rarity;
-use crate::components::Sprite;
+use crate::components::{Rarity, SpriteIcon};
 use crate::pages::Route;
 
 #[component]
@@ -15,7 +14,7 @@ pub fn SkillView<'a>(cx: Scope, skill: &'a data::skill::Skill) -> Element {
             class: "flex flex-col border-solid border border-base-300 rounded-md my-2",
             div {
                 class: "flex flex-row items-center gap-2 bg-base-300 text-base-content p-2",
-                Sprite { sprite: ReadOnlySignal::new(Signal::new(skill.modes[0].icon.clone())), scale: 0.5 }
+                SpriteIcon { class: "rounded-md", sprite: Signal::new(skill.modes[0].icon.clone()), size: 64 }
                 span {
                     class: "flex-grow",
                     Link {
@@ -44,7 +43,7 @@ pub fn SkillMode<'a>(cx: Scope<'a>, mode: &'a data::skill::SkillMode) -> Element
     render! {
         div { class: "flex flex-col gap-2 bg-base-200 text-base-content rounded-md p-2",
             div { class: "flex flex-row items-center gap-2",
-                // Sprite { sprite: &mode.icon, scale: 0.5 }
+                SpriteIcon { class: "rounded-md", sprite: Signal::new(mode.icon.clone()), size: 48 }
                 div { class: "flex-grow",
                     "{mode.name}"
                 }

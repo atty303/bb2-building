@@ -4,14 +4,14 @@ use std::str::FromStr;
 
 use dioxus::prelude::*;
 use dioxus_router::prelude::Link;
-use dioxus_signals::{ReadOnlySignal, Signal};
+use dioxus_signals::Signal;
 use fermi::{use_read, use_read_rc};
 use serde::{Deserialize, Serialize};
 
 use data::skill::Skill;
 
 use crate::atoms::DATABASE;
-use crate::components::{Icon, Rarity, SkillView, SpriteIcon};
+use crate::components::{Rarity, SkillView, SpriteIcon};
 use crate::hooks::use_search_skill;
 use crate::pages::Route;
 
@@ -155,8 +155,8 @@ fn SkillLink(cx: Scope, skill: Signal<Skill>) -> Element {
             Link { class: "inline-block hover:bg-primary border-primary border-solid border-2 rounded-md p-1",
                 to: Route::SkillPage { skill_id: skill.read().id.clone() },
                 span { class: "relative",
-                    SpriteIcon { class: "rounded-md", sprite: ReadOnlySignal::new(Signal::new(skill.read().modes[0].icon.clone())), size: 96 }
-                    span { class: "absolute right-0 bg-black/50 text-white text-xs px-1",
+                    SpriteIcon { class: "rounded-md", sprite: Signal::new(skill.read().modes[0].icon.clone()), size: 96 }
+                    span { class: "absolute right-0 bg-black/50 text-white text-xs px-1 text-right",
                         "{skill.read().name}"
                     }
                 }
