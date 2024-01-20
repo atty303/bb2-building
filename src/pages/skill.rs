@@ -150,18 +150,28 @@ pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
 
 #[component]
 fn SkillLink(cx: Scope, skill: Signal<Skill>) -> Element {
-    render! {
-        span { class: "inline-block",
-            Link { class: "inline-block hover:bg-primary border-primary border-solid border-2 rounded-md p-1",
+    #[component]
+    fn SkillIcon<'a>(cx: Scope, skill: Signal<Skill>, class: &'a str, size: i32) -> Element {
+        render! {
+            Link { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 {class}",
                 to: Route::SkillPage { skill_id: skill.read().id.clone() },
                 span { class: "relative",
-                    SpriteIcon { class: "rounded-md", sprite: Signal::new(skill.read().modes[0].icon.clone()), size: 96 }
+                    SpriteIcon { class: "rounded-md",
+                        sprite: Signal::new(skill.read().modes[0].icon.clone()),
+                        size: *size,
+                    }
                     span { class: "absolute right-0 bg-black/50 text-white text-xs px-1 text-right",
                         "{skill.read().name}"
                     }
                 }
             }
+        }
+    }
 
+    render! {
+        span { class: "inline-block",
+            SkillIcon { skill: skill.clone(), class: "inline-block md:hidden", size: 56 }
+            SkillIcon { skill: skill.clone(), class: "hidden md:inline-block", size: 96 }
         }
     }
 }

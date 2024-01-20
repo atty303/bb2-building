@@ -1,5 +1,3 @@
-var segmenter = undefined;
-
 export class IntlTokenizer {
     constructor(locale) {
         this.segmenter = new Intl.Segmenter(locale, {granularity: "word"});
