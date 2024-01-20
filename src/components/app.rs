@@ -72,7 +72,7 @@ pub fn App(cx: Scope) -> Element {
                                 SkillSearch,
                                 SkillSearch,
                                 SkillSearch,
-                            >(db.clone()),
+                            >(db.clone(), lang.clone()),
                         };
                         set_search_catalogs.set(catalogs);
                     }

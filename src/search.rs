@@ -7,7 +7,7 @@ use ref_cast::RefCast;
 use wasm_bindgen::prelude::*;
 
 use data::skill::{Skill, SkillHash, SkillRepository};
-use data::{Repository, Search, SearchIndexable, SearchMarker, ToSearchMaker};
+use data::{Repository, Search, SearchIndexable, SearchMarker, ToSearchMaker, LANGUAGES};
 
 use std::hash::Hasher;
 
@@ -110,12 +110,15 @@ impl<'a> Indexable for SkillSearch {
 
 pub fn create_catalog<'a, M: SearchMarker + Indexable, T: Search<M>, N: ToSearchMaker<M, T>>(
     repository: Rc<T::Repository>,
+    language: String,
 ) -> SearchCatalog<M, T, T::Repository>
 where
     <T as Search<M>>::Repository: Default,
 {
+    let lang = LANGUAGES.iter().find(|l| *l == &language).unwrap();
+
     let tokenizer: Tokenizer = Rc::new(Box::new(|string| {
-        let intl = IntlTokenizer::new("ja-JP".to_string());
+        let intl = IntlTokenizer::new(lang.to_string());
         intl.tokenize(string.to_string())
             .into_iter()
             .map(|s| KString::from_string(s))
