@@ -7,6 +7,7 @@ use fermi::use_set;
 use data::LANGUAGES;
 
 use crate::hooks::use_persistent;
+use crate::pages::skill::SkillListQuery;
 use crate::pages::Route;
 
 #[component]
@@ -25,7 +26,7 @@ pub fn NavBar(cx: Scope) -> Element {
                     class: "divider divider-horizontal",
                 }
                 Link {
-                    to: Route::SkillListPage { },
+                    to: Route::SkillListPage { query: SkillListQuery::default() },
                     "Skill"
                 }
             }

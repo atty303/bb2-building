@@ -12,7 +12,7 @@ data = { path = "./data" }
 dioxus = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "6126e02143932ed08fecdc43c99e277babb1c0e7" }
 dioxus-web = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "6126e02143932ed08fecdc43c99e277babb1c0e7" }
 dioxus-router = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "6126e02143932ed08fecdc43c99e277babb1c0e7" }
-dioxus-signals = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "6126e02143932ed08fecdc43c99e277babb1c0e7" }
+dioxus-signals = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "6126e02143932ed08fecdc43c99e277babb1c0e7", features = ["serde"] }
 fermi = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "6126e02143932ed08fecdc43c99e277babb1c0e7" }
 
 wasm-bindgen = "0.2"
@@ -28,6 +28,7 @@ tracing-web = "0.1"
 reqwest = "0.11"
 
 serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 
 indicium = { git = "https://github.com/atty303/indicium.git", rev = "a3c8c168e0c4f9167612b80eda194b2a179e5338" }
 getrandom = { version = "0.2", features = ["js"] }

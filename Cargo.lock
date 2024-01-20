@@ -638,6 +638,7 @@ source = "git+https://github.com/DioxusLabs/dioxus.git?rev=6126e02143932ed08fecd
 dependencies = [
  "dioxus-core",
  "generational-box",
+ "serde",
  "simple_logger",
  "tracing",
 ]
@@ -2470,6 +2471,7 @@ dependencies = [
  "ref-cast",
  "reqwest",
  "serde",
+ "serde_json",
  "tracing",
  "tracing-subscriber",
  "tracing-web",

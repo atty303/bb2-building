@@ -6,6 +6,7 @@ use data::skill::{Skill, SkillHash};
 
 use crate::atoms::{DATABASE, SEARCH_CATALOGS};
 
+#[derive(PartialEq, Clone)]
 pub struct UseSearchSkill {
     pub query: Signal<String>,
     pub results: Signal<Vec<Signal<Skill>>>,

@@ -4,10 +4,11 @@ use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 
 mod home;
-mod skill;
+pub mod skill;
 
 use crate::components::Footer;
 use crate::components::NavBar;
+use crate::pages::skill::SkillListQuery;
 use home::Home;
 use skill::{SkillListPage, SkillPage};
 
@@ -17,8 +18,8 @@ pub enum Route {
     #[layout(MainLayout)]
     #[route("/")]
     Home {},
-    #[route("/skill")]
-    SkillListPage {},
+    #[route("/skill?:query")]
+    SkillListPage { query: SkillListQuery },
     #[route("/skill/:skill_id")]
     SkillPage { skill_id: String },
     #[route("/:..route")]
