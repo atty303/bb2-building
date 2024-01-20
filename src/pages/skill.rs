@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use dioxus::prelude::*;
 use dioxus_router::prelude::Link;
 use dioxus_signals::{ReadOnlySignal, Signal};
-use fermi::use_read_rc;
+use fermi::{use_read, use_read_rc};
 
 use data::skill::Skill;
 
@@ -14,6 +14,7 @@ use crate::pages::Route;
 
 #[component]
 pub fn SkillListPage(cx: Scope) -> Element {
+    let db = use_read(cx, &DATABASE);
     let search = use_search_skill(cx);
 
     let rarities = search
@@ -33,14 +34,29 @@ pub fn SkillListPage(cx: Scope) -> Element {
             }
         }
 
-        div {
-            input { class: "input input-bordered w-full max-w-xs",
+        div { class: "flex flex-row items-center gap-2",
+            input { class: "input input-bordered input-primary w-full",
                 r#type: "text",
-                placeholder: "Search",
+                placeholder: "Search skills...",
                 oninput: move |e| {
                     let q = e.data.value();
                     search.query.set(q);
                 }
+            }
+            div { class: "badge badge-accent badge-lg gap-1",
+                span { class: "font-bold",
+                    "{search.results.read().len()}"
+                }
+                span {
+                    "of"
+                }
+                span { class: "font-bold",
+                    "{db.skill.iter().count()}"
+                }
+                span {
+                    "skills"
+                }
+
             }
         }
 
