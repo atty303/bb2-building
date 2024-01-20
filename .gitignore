@@ -2,6 +2,7 @@
 /dump
 node_modules/
 target/
+public/tailwind.css
 
 .idea
 *.iml

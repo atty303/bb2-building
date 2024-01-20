@@ -6,6 +6,6 @@ dist = "dist"
 watch = ["src", "public", "index.html", "data"]
 
 [[hooks]]
-stage = "build"
+stage = "pre_build"
 command = "npm"
 command_arguments = ["run", "build"]
