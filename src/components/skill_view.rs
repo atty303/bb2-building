@@ -229,7 +229,9 @@ pub fn Tooltip<'a>(cx: Scope<'a>, name: String, children: Element<'a>) -> Elemen
                     }
                 },
                 div { class: "card-body",
-                    Description { tokens: title }
+                    span { class: "font-bold",
+                        Description { tokens: title }
+                    }
                     Description { tokens: body }
                 }
             }

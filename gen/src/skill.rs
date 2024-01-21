@@ -154,9 +154,9 @@ fn process_skill_mode(
         });
 
     let tail = if skill_row.is_free {
-        terms.get("NM-TIPS_FreeSkill")
+        terms.get_tips("NM-TIPS_FreeSkill", "FreeSkill")
     } else {
-        let mut tail = terms.get("WD-Cooldown");
+        let mut tail = terms.get_tips("WD-Cooldown", "Cooldown");
         let out = &mut tail;
 
         Token::Text(format!(": {}", mode_row.cooldown)).write(out);
@@ -166,12 +166,14 @@ fn process_skill_mode(
         }
         Token::NewLine.write(out);
 
-        terms.get("WD-SkillPossRemain").write(out);
+        terms
+            .get_tips("WD-SkillPossRemain", "SkillPossRemain")
+            .write(out);
         Token::Text(format!(": -{}/{}", mode_row.use_num, skill_row.poss_num)).write(out);
 
         if mode_row.use_init {
             Token::NewLine.write(out);
-            terms.get("NM-TIPS_UseInit").write(out);
+            terms.get_tips("WD_UseInit", "UseInit").write(out);
         }
 
         tail
@@ -447,7 +449,7 @@ fn act_node_formatter(
                     // };
                     let name = format!("NM-{}", state.id);
                     if let Some(text) = terms.try_get(&name) {
-                        Token::TermStart(name.clone(), Some(name.clone())).write(out);
+                        Token::TermStart(name.clone(), Some(state.id.clone())).write(out);
                         text.write(out);
                         Token::TermEnd.write(out);
                     } else {
