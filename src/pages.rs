@@ -7,8 +7,8 @@ mod home;
 pub mod rune;
 pub mod skill;
 
-use crate::components::Footer;
 use crate::components::NavBar;
+use crate::components::{Footer, SideMenu};
 use crate::pages::rune::RuneListQuery;
 use crate::pages::skill::SkillListQuery;
 use home::Home;
@@ -43,13 +43,29 @@ pub enum Route {
 #[component]
 fn MainLayout(cx: Scope) -> Element {
     render! {
-        header { class: "sticky top-0 z-50 shadow-lg",
-            NavBar {}
+        div { class: "drawer",
+            input { class: "drawer-toggle",
+                r#type: "checkbox",
+                id: "main-drawer-toggle",
+            }
+            div { class: "drawer-content",
+                header { class: "sticky top-0 z-50 shadow-lg",
+                    NavBar {}
+                }
+                main { class: "container my-4 mx-auto",
+                    Outlet::<Route> {}
+                }
+                Footer {}
+            }
+            div { class: "drawer-side",
+                label {
+                    r#for: "main-drawer-toggle",
+                    aria_label: "close sidebar",
+                    class: "drawer-overlay",
+                }
+                SideMenu {}
+            }
         }
-        main { class: "container my-4 mx-auto",
-            Outlet::<Route> {}
-        }
-        Footer {}
     }
 }
 

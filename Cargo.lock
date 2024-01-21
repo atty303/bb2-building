@@ -494,6 +494,7 @@ dependencies = [
  "bumpalo",
  "futures-channel",
  "futures-util",
+ "log",
  "longest-increasing-subsequence",
  "rustc-hash",
  "serde",
