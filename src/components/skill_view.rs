@@ -36,7 +36,7 @@ pub fn SkillView(
             }
             div { class: "flex flex-row flex-wrap gap-2 p-2",
                 for mode in skill.read().modes.iter().filter(|_m| true) {
-                    div { class: "flex-1 min-w-48",
+                    div { class: "flex-1 min-w-64",
                         SkillMode { mode: Signal::new(mode.clone()), debug: *debug }
                     }
                 }
