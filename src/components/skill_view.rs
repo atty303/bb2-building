@@ -126,7 +126,7 @@ fn to_nodes(tokens: &Tokens) -> Vec<Node> {
 }
 
 #[component]
-fn RenderNode(cx: Scope, node: Node, #[props(default = false)] debug: bool) -> Element {
+fn RenderNode(cx: Scope, node: Node, #[props(default = true)] debug: bool) -> Element {
     match node {
         Node::Text(text) => render! { "{text}" },
         Node::NewLine => render! { br {} },
@@ -195,8 +195,8 @@ pub fn Description(cx: Scope, tokens: Tokens) -> Element {
 pub fn Tooltip<'a>(cx: Scope<'a>, name: String, children: Element<'a>) -> Element {
     let db = use_read(cx, &DATABASE);
 
-    let title = db.term.get(&format!("NM-TIPS_{}", name));
-    let body = db.term.get(&format!("DC-TIPS_{}", name));
+    let title = db.term.get(&format!("NM-{}", name));
+    let body = db.term.get(&format!("DC-{}", name));
 
     // let open = use_signal(cx, || false);
     let popover_position = use_signal(cx, || None::<Rect<f64, f64>>);

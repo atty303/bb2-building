@@ -154,26 +154,26 @@ fn process_skill_mode(
         });
 
     let tail = if skill_row.is_free {
-        terms.get_tips("NM-TIPS_FreeSkill", "FreeSkill")
+        terms.get_tips("NM-TIPS_FreeSkill", "TIPS_FreeSkill")
     } else {
-        let mut tail = terms.get_tips("WD-Cooldown", "Cooldown");
+        let mut tail = terms.get_tips("WD-Cooldown", "TIPS_Cooldown");
         let out = &mut tail;
 
         Token::Text(format!(": {}", mode_row.cooldown)).write(out);
         if mode_row.is_quick {
             Token::Text(" ".to_string()).write(out);
-            terms.get_tips("WD-SkillQuick", "Quick").write(out);
+            terms.get_tips("WD-SkillQuick", "TIPS_Quick").write(out);
         }
         Token::NewLine.write(out);
 
         terms
-            .get_tips("WD-SkillPossRemain", "SkillPossRemain")
+            .get_tips("WD-SkillPossRemain", "TIPS_SkillPossRemain")
             .write(out);
         Token::Text(format!(": -{}/{}", mode_row.use_num, skill_row.poss_num)).write(out);
 
         if mode_row.use_init {
             Token::NewLine.write(out);
-            terms.get_tips("WD_UseInit", "UseInit").write(out);
+            terms.get_tips("WD_UseInit", "TIPS_UseInit").write(out);
         }
 
         tail
@@ -265,19 +265,18 @@ fn act_node_formatter(
                 .get(&format!("DC-SkillNodeDesc-TargetSkill-{}", key))
                 .write(out),
         },
-        "dr" => terms.get("WD-DamageType-Direct").write(out),
+        "dr" => terms
+            .get_tips("WD-DamageType-Direct", "TIPS_DamageDirect")
+            .write(out),
         "accu" => match row.avoid_type.as_str() {
-            "" | "LastHit" => {
+            s @ "" | s @ "LastHit" | s @ "A" | s @ "C" => {
                 Token::Indent.write(out);
-                terms.get("DC-SkillNodeDesc-AvoidType-").write(out);
-            }
-            "A" => {
-                Token::Indent.write(out);
-                terms.get("DC-SkillNodeDesc-AvoidType-A").write(out);
-            }
-            "C" => {
-                Token::Indent.write(out);
-                terms.get("DC-SkillNodeDesc-AvoidType-C").write(out);
+                terms
+                    .get_tips(
+                        &format!("DC-SkillNodeDesc-AvoidType-{}", s),
+                        &format!("TIPS_HitCalc{}", s),
+                    )
+                    .write(out);
             }
             _ => {
                 Token::Panic(format!("invalid avoid_type: {}", row.avoid_type)).write(out);
@@ -301,7 +300,10 @@ fn act_node_formatter(
             "P" | "M" | "V" => {
                 Token::Indent.write(out);
                 terms
-                    .get(&format!("DC-SkillNodeDesc-Reduce-{}", row.reduce))
+                    .get_tips(
+                        &format!("DC-SkillNodeDesc-Reduce-{}", row.reduce),
+                        &format!("TIPS_Element{}", row.reduce),
+                    )
                     .write(out);
             }
             _ => Token::Panic(format!("invalid reduce: {}", row.reduce)).write(out),
@@ -325,7 +327,9 @@ fn act_node_formatter(
             //let pair = row.inc_relate.split(':').collect::<Vec<_>>();
             let key = &row.inc_relate;
             match terms.try_get(&format!("NM-{}", key)) {
-                Some(s) => s.write(out),
+                Some(s) => terms
+                    .get_tips(&format!("NM-{}", key), &format!("{}", key))
+                    .write(out),
                 None => match terms.try_get(&format!("DC-SkillNodeDesc-Relate-{}", key)) {
                     Some(s) => s.write(out),
                     _ => Token::Error(format!("irf[{}]", key)).write(out),
@@ -354,7 +358,7 @@ fn act_node_formatter(
                     .iter()
                     .map(|s| {
                         let n = &s[3..4];
-                        terms.get(&format!("NM-MainParam:{}", n))
+                        terms.get_tips(&format!("NM-MainParam:{}", n), &format!("MainParam:{}", n))
                     })
                     .collect::<Vec<_>>();
                 or[0].write(out);
@@ -366,7 +370,7 @@ fn act_node_formatter(
                     .iter()
                     .map(|s| {
                         let n = &s[3..4];
-                        terms.get(&format!("NM-MainParam:{}", n))
+                        terms.get_tips(&format!("NM-MainParam:{}", n), &format!("MainParam:{}", n))
                     })
                     .collect::<Vec<_>>();
                 or[0].write(out);
@@ -374,7 +378,9 @@ fn act_node_formatter(
                 or[1].clone().write(out);
             } else if row.relate.starts_with("Aff") {
                 let n = &row.relate[3..4];
-                terms.get(&format!("NM-MainParam:{}", n)).write(out);
+                terms
+                    .get_tips(&format!("NM-MainParam:{}", n), &format!("MainParam:{}", n))
+                    .write(out);
             } else {
                 let r = terms
                     .try_get(&format!("DC-SkillNodeDesc-Relate-{}", row.relate))
