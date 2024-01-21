@@ -7,7 +7,10 @@ use ref_cast::RefCast;
 use wasm_bindgen::prelude::*;
 
 use data::skill::{Skill, SkillHash, SkillRepository};
-use data::{Repository, Search, SearchIndexable, SearchMarker, ToSearchMaker, LANGUAGES};
+use data::{
+    Repository, Rune, RuneHash, RuneRepository, Search, SearchIndexable, SearchMarker,
+    ToSearchMaker, LANGUAGES,
+};
 
 use std::hash::Hasher;
 
@@ -68,9 +71,41 @@ impl ToSearchMaker<SkillSearch, SkillSearch> for SkillSearch {
     }
 }
 
+impl<'a> Indexable for SkillSearch {
+    fn strings(&self) -> Vec<String> {
+        <Skill as SearchIndexable<SkillHash, SkillSearch, SkillSearch>>::strings(&self.0)
+    }
+}
+
+#[derive(RefCast)]
+#[repr(transparent)]
+pub struct RuneSearch(Rune);
+
+impl SearchMarker for RuneSearch {}
+
+impl<'a> Search<RuneSearch> for RuneSearch {
+    type Key = RuneHash;
+    type Item = Rune;
+    type Repository = RuneRepository;
+    type Marker = RuneSearch;
+}
+
+impl ToSearchMaker<RuneSearch, RuneSearch> for RuneSearch {
+    fn to_search_marker(item: &Rune) -> &RuneSearch {
+        RuneSearch::ref_cast(item)
+    }
+}
+
+impl<'a> Indexable for RuneSearch {
+    fn strings(&self) -> Vec<String> {
+        <Rune as SearchIndexable<RuneHash, RuneSearch, RuneSearch>>::strings(&self.0)
+    }
+}
+
 #[derive(Default, PartialEq)]
 pub struct SearchCatalogs {
     pub skill: SearchCatalog<SkillSearch, SkillSearch, SkillRepository>,
+    pub rune: SearchCatalog<RuneSearch, RuneSearch, RuneRepository>,
 }
 
 #[wasm_bindgen(module = "/src/tokenizer.js")]
@@ -99,12 +134,6 @@ impl Indexable for Document {
                 .collect(),
         );
         strings
-    }
-}
-
-impl<'a> Indexable for SkillSearch {
-    fn strings(&self) -> Vec<String> {
-        <Skill as SearchIndexable<SkillHash, SkillSearch, SkillSearch>>::strings(&self.0)
     }
 }
 

@@ -4,12 +4,15 @@ use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 
 mod home;
+pub mod rune;
 pub mod skill;
 
 use crate::components::Footer;
 use crate::components::NavBar;
+use crate::pages::rune::RuneListQuery;
 use crate::pages::skill::SkillListQuery;
 use home::Home;
+use rune::{RuneDebugPage, RuneListPage, RunePage};
 use skill::{SkillDebugPage, SkillListPage, SkillPage};
 
 /// An enum of all of the possible routes in the app.
@@ -18,12 +21,21 @@ pub enum Route {
     #[layout(MainLayout)]
     #[route("/")]
     Home {},
+
     #[route("/skill?:query")]
     SkillListPage { query: SkillListQuery },
     #[route("/skill/_debug")]
     SkillDebugPage {},
     #[route("/skill/:skill_id")]
     SkillPage { skill_id: String },
+
+    #[route("/rune?:query")]
+    RuneListPage { query: RuneListQuery },
+    #[route("/rune/_debug")]
+    RuneDebugPage {},
+    #[route("/rune/:rune_id")]
+    RunePage { rune_id: String },
+
     #[route("/:..route")]
     PageNotFound { route: Vec<String> },
 }

@@ -15,6 +15,7 @@ use state::state_repository_from_dump;
 use table::act::ActTable;
 use table::act_node::ActNodeTable;
 use table::enemy::EnemyTable;
+use table::rune::RuneTable;
 use table::skill::SkillTable;
 use table::skill_mode::SkillModeTable;
 use table::sm_act::SmActTable;
@@ -23,6 +24,7 @@ use table::{Table, UnknownTable};
 
 mod global;
 mod idhash;
+mod rune;
 mod skill;
 mod sprite;
 mod state;
@@ -79,6 +81,7 @@ fn run_database(lang: String, write: bool) {
     let mut sm_act_table: Option<Table<SmActTable>> = None;
     let mut state_table: Option<Table<StateTable>> = None;
     let mut enemy_table: Option<Table<EnemyTable>> = None;
+    let mut rune_table: Option<Table<RuneTable>> = None;
 
     let db = read_db();
     for meta in db["Metas"].members() {
@@ -91,6 +94,7 @@ fn run_database(lang: String, write: bool) {
             "sm_act" => sm_act_table = Some(Table::new(meta.to_owned())),
             "state" => state_table = Some(Table::new(meta.to_owned())),
             "enemy" => enemy_table = Some(Table::new(meta.to_owned())),
+            "rune" => rune_table = Some(Table::new(meta.to_owned())),
             _ => (),
         }
     }
@@ -101,6 +105,7 @@ fn run_database(lang: String, write: bool) {
     let act_table = act_table.unwrap();
     let act_node_table = act_node_table.unwrap();
     let enemy_table = enemy_table.unwrap();
+    let rune_table = rune_table.unwrap();
 
     let states = state_repository_from_dump(&state_table.unwrap());
     let terms_i18n = terms::term_repository_from_dump();
@@ -124,10 +129,13 @@ fn run_database(lang: String, write: bool) {
             terms,
             &states,
         );
+        let rune = rune::process_rune(&rune_table, terms);
+
         let database = data::Database {
             global,
             term: Rc::new(terms.clone()),
             skill: Rc::new(skill),
+            rune: Rc::new(rune),
         };
 
         if write {

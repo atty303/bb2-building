@@ -3,32 +3,32 @@ use dioxus_signals::Signal;
 use fermi::use_read;
 
 use crate::atoms::DATABASE;
-use crate::components::SkillView;
+use crate::components::RuneView;
 
 #[component]
-pub fn SkillPage(cx: Scope, skill_id: String) -> Element {
+pub fn RunePage(cx: Scope, rune_id: String) -> Element {
     let db = use_read(cx, &DATABASE);
 
-    db.skill
+    db.rune
         .iter()
-        .find(|s| &s.id == skill_id)
-        .map(|skill| {
+        .find(|s| &s.id == rune_id)
+        .map(|rune| {
             render! {
                 div { class: "text-sm breadcrumbs",
                     ul {
                         li { "Home" }
-                        li { "Skill" }
-                        li { "{skill.name}" }
+                        li { "Rune" }
+                        li { "{rune.name}" }
                     }
                 }
 
-                SkillView { skill: Signal::new(skill.clone()) }
+                RuneView { rune: Signal::new(rune.clone()) }
             }
         })
         .unwrap_or_else(|| {
             render! {
                 div {
-                    "Skill not found"
+                    "Rune not found"
                 }
             }
         })

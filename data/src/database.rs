@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use serde::{Deserialize, Serialize};
 
-use term;
+use {rune, term};
 use {skill, GlobalRepository};
 
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -11,6 +11,7 @@ pub struct Database {
     pub global: GlobalRepository,
     pub term: Rc<term::TermRepository>,
     pub skill: Rc<skill::SkillRepository>,
+    pub rune: Rc<rune::RuneRepository>,
 }
 
 impl Database {

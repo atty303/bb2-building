@@ -7,6 +7,7 @@ use fermi::use_set;
 use data::LANGUAGES;
 
 use crate::hooks::use_persistent;
+use crate::pages::rune::RuneListQuery;
 use crate::pages::skill::SkillListQuery;
 use crate::pages::Route;
 
@@ -16,7 +17,7 @@ pub fn NavBar(cx: Scope) -> Element {
         div {
             class: "navbar shadow-lg bg-neutral text-neutral-content",
             div {
-                class: "navbar-start",
+                class: "navbar-start gap-2",
                 Link {
                     class: "link link-hover text-lg px-2 font-['Pixelify_Sans']",
                     to: Route::Home {},
@@ -28,6 +29,10 @@ pub fn NavBar(cx: Scope) -> Element {
                 Link {
                     to: Route::SkillListPage { query: SkillListQuery::default() },
                     "Skill"
+                }
+                Link {
+                    to: Route::RuneListPage { query: RuneListQuery::default() },
+                    "Rune"
                 }
             }
             div {

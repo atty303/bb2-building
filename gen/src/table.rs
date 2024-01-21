@@ -7,6 +7,7 @@ use json::JsonValue;
 pub mod act;
 pub mod act_node;
 pub mod enemy;
+pub mod rune;
 pub mod skill;
 pub mod skill_mode;
 pub mod sm_act;
