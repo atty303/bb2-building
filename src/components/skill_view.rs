@@ -1,6 +1,8 @@
+use dioxus::html::geometry::euclid::Rect;
 use dioxus::prelude::*;
 use dioxus_router::prelude::Link;
-use dioxus_signals::{use_signal, Signal};
+use dioxus_signals::{use_selector, use_signal, Signal};
+use dioxus_web::WebEventExt;
 use fermi::use_read;
 
 use crate::atoms::DATABASE;
@@ -196,23 +198,39 @@ pub fn Tooltip<'a>(cx: Scope<'a>, name: String, children: Element<'a>) -> Elemen
     let title = db.term.get(&format!("NM-TIPS_{}", name));
     let body = db.term.get(&format!("DC-TIPS_{}", name));
 
-    let open = use_signal(cx, || false);
+    // let open = use_signal(cx, || false);
+    let popover_position = use_signal(cx, || None::<Rect<f64, f64>>);
+    let popover_style = use_selector(cx, move || {
+        if let Some(r) = *popover_position.read() {
+            if r.origin.x < 0.0 {
+                format!("position: absolute; right: {}px;", r.origin.x)
+            } else {
+                "".to_string()
+            }
+        } else {
+            "".to_string()
+        }
+    });
 
     render! {
-        div { class: "dropdown dropdown-hover",
-            onmouseenter: move |_| open.set(true),
-            onmouseleave: move |_| open.set(false),
+        div { class: "dropdown dropdown-end",
             div { class: "",
                 tabindex: 0,
+                role: "button",
                 {children}
             }
-            if *open.read() {
-                div { class: "dropdown-content z-[1] card card-compact card-bordered border-base-300 shadow-lg shadow-black/50 bg-base-100 text-base-content min-w-96",
-                    tabindex: 0,
-                    div { class: "card-body",
-                        Description { tokens: title }
-                        Description { tokens: body }
+            div { class: "dropdown-content z-[1] card card-compact card-bordered border-base-300 shadow-lg shadow-black/50 bg-base-100 text-base-content min-w-64 max-w-full",
+                tabindex: 0,
+                style: "{popover_style}",
+                onmounted: move |e| {
+                    async move {
+                        let r = e.data.get_client_rect().await;
+                        popover_position.set(Some(r.unwrap()));
                     }
+                },
+                div { class: "card-body",
+                    Description { tokens: title }
+                    Description { tokens: body }
                 }
             }
         }
