@@ -12,7 +12,7 @@
     --w: 0px;
     --h: 0px;
 
-    background-image: url("image/a50549b8827f09843841d13f031f165f.png");
+    background-image: url("https://bb2b-assets.atty303.ninja/sactx-0-8192x4096-Uncompressed-IconAtlas-eaf9cd50.webp");
     width: calc(var(--w) * var(--s));
     min-width: calc(var(--w) * var(--s));
     height: calc(var(--h) * var(--s));

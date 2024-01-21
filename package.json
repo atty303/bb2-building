@@ -7,14 +7,16 @@
         "build": "run-script-os",
         "build:win32": "tailwindcss -m -i public\\input.css -o %TRUNK_SOURCE_DIR%\\public\\tailwind.css",
         "build:default": "tailwindcss -m -i public/input.css -o $TRUNK_SOURCE_DIR/public/tailwind.css",
-        "serve": "trunk serve"
+        "serve": "trunk serve",
+        "image": "squoosh-cli --webp '{\"quality\": 75}' --quant --output-dir public/images dump/asset/ExportedProject/Assets/Texture2D/sactx-0-8192x4096-Uncompressed-IconAtlas-eaf9cd50.png"
     },
     "author": "",
     "license": "ISC",
     "dependencies": {
         "daisyui": "^4.6.0",
         "tailwindcss": "^3.4.1",
-        "@tailwindcss/typography": "^0.5.10"
+        "@tailwindcss/typography": "^0.5.10",
+        "@squoosh/cli": "^0.7.3"
     },
     "devDependencies": {
         "run-script-os": "^1.1.6"
