@@ -138,7 +138,7 @@ fn SkillLink(cx: Scope, skill: Signal<Skill>, selected: Signal<Option<Skill>>) -
         size: i32,
     ) -> Element {
         render! {
-            span { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 {class}",
+            span { class: "hover:bg-primary focus:bg-primary border-primary border-solid border-2 rounded-md p-1 {class}",
                 span { class: "relative",
                     SpriteIcon { class: "rounded-md",
                         sprite: Signal::new(skill.read().modes[0].icon.clone()),

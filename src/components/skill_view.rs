@@ -72,28 +72,107 @@ pub fn SkillMode(cx: Scope, mode: Signal<data::skill::SkillMode>) -> Element {
     }
 }
 
-#[component]
-pub fn Description(cx: Scope, tokens: Tokens) -> Element {
-    render! {
-        for token in &tokens.vec() {
-            match token {
-                Token::Text(text) => rsx! { "{text}" },
-                Token::NewLine => rsx! { br {} },
-                Token::Empty => rsx! { "" },
-                Token::Var(name) => rsx! {
-                    span { class: "text-error", "[{name}]" }
-                },
-                Token::Error(text) => rsx! {
-                    span { class: "text-error font-bold", "{text}" }
-                },
-                Token::Indent => rsx! {
-                    br {}
-                    "　"
-                },
-                Token::Panic(text) => rsx! {
-                    span { class: "text-error font-bold", "{text}" }
-                },
+#[derive(Debug, Clone, PartialEq)]
+enum Node {
+    Text(String),
+    NewLine,
+    Var(String),
+    Error(String),
+    Indent,
+    Term(String, Vec<Node>),
+}
+
+fn to_nodes(tokens: &Tokens) -> Vec<Node> {
+    let mut stack = vec![("".to_string(), vec![])];
+    for token in tokens.vec() {
+        let node = match token {
+            Token::Text(text) => Some(Node::Text(text.clone())),
+            Token::NewLine => Some(Node::NewLine),
+            Token::Empty => None,
+            Token::Var(name) => Some(Node::Var(name.clone())),
+            Token::Error(text) => Some(Node::Error(text.clone())),
+            Token::Indent => Some(Node::Indent),
+            Token::Panic(text) => Some(Node::Error(text.clone())),
+            Token::TermStart(name) => {
+                stack.push((name.clone(), vec![]));
+                None
             }
+            Token::TermEnd => {
+                let (name, last) = stack.pop().unwrap();
+                Some(Node::Term(name.clone(), last))
+            }
+        };
+        if node.is_some() {
+            stack.last_mut().unwrap().1.push(node.unwrap());
         }
     }
+    stack.pop().unwrap().1
+}
+
+#[component]
+fn RenderNode(cx: Scope, node: Node) -> Element {
+    match node {
+        Node::Text(text) => render! { "{text}" },
+        Node::NewLine => render! { br {} },
+        Node::Var(name) => render! {
+            span { class: "text-error", "[{name}]" }
+        },
+        Node::Error(text) => render! {
+            span { class: "text-error font-bold", "{text}" }
+        },
+        Node::Indent => render! {
+            br {}
+            "　"
+        },
+        Node::Term(name, nodes) => render! {
+            span { class: "border border-secondary rounded inline-block p-1 m-1",
+                span {
+                    title: "{name}",
+                    for node in &nodes {
+                        RenderNode { node: node.clone() }
+                    }
+                }
+            }
+        },
+    }
+}
+
+#[component]
+pub fn Description(cx: Scope, tokens: Tokens) -> Element {
+    let nodes = to_nodes(tokens);
+
+    render! {
+        for node in &nodes {
+            RenderNode { node: node.clone() }
+        }
+    }
+
+    // render! {
+    //     for token in &tokens.vec() {
+    //         match token {
+    //             Token::Text(text) => rsx! { "{text}" },
+    //             Token::NewLine => rsx! { br {} },
+    //             Token::Empty => rsx! { "" },
+    //             Token::Var(name) => rsx! {
+    //                 span { class: "text-error", "[{name}]" }
+    //             },
+    //             Token::Error(text) => rsx! {
+    //                 span { class: "text-error font-bold", "{text}" }
+    //             },
+    //             Token::Indent => rsx! {
+    //                 br {}
+    //                 "　"
+    //             },
+    //             Token::Panic(text) => rsx! {
+    //                 span { class: "text-error font-bold", "{text}" }
+    //             },
+    //             Token::TermStart(name) => rsx! {
+    //                 "{name}"
+    //             },
+    //             Token::TermEnd => rsx!{
+    //                 ""
+    //             },
+    //         }
+    //     }
+    // }
 }

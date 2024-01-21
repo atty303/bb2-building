@@ -445,8 +445,11 @@ fn act_node_formatter(
                     //     "ConsumeNum-" => "ConsumeNum+",
                     //     id => id,
                     // };
-                    if let Some(text) = terms.try_get(&format!("NM-{}", state.id)) {
+                    let name = format!("NM-{}", state.id);
+                    if let Some(text) = terms.try_get(&name) {
+                        Token::TermStart(name).write(out);
                         text.write(out);
+                        Token::TermEnd.write(out);
                     } else {
                         Token::Text(state.name.clone()).write(out);
                         //Token::Error(format!("state[{}]", state.id)).write(out);

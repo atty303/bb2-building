@@ -26,10 +26,14 @@ impl<'a> TermRepository {
     }
 
     pub fn get(&'a self, key: &str) -> Tokens {
+        let mut out = Tokens::from_vec(vec![Token::TermStart(key.to_string())]);
         match self.inner.get(key) {
             Some(v) => v.tokens.clone(),
             None => Tokens::from_vec(vec![Token::Error(key.to_string())]),
         }
+        .write(&mut out);
+        Token::TermEnd.write(&mut out);
+        out
     }
 
     pub fn try_get(&'a self, key: &str) -> Option<Tokens> {

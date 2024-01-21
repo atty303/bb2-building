@@ -12,6 +12,8 @@ pub enum Token {
     Empty,
     Error(String),
     Panic(String),
+    TermStart(String),
+    TermEnd,
 }
 
 impl Token {
@@ -145,6 +147,8 @@ impl Display for Tokens {
                 Token::Error(s) => write!(f, "!{}!", s)?,
                 Token::Indent => write!(f, "\n  ")?,
                 Token::Panic(s) => write!(f, "!{}!", s)?,
+                Token::TermStart(_) => {}
+                Token::TermEnd => {}
             }
         }
         Ok(())

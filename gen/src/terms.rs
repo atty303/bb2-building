@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
-use regex::Regex;
+use regex::{Captures, Regex};
 use yaml_rust::YamlLoader;
 
 use data::term::{Term, TermRepository};
@@ -49,29 +49,28 @@ pub fn term_repository_from_dump() -> HashMap<&'static str, TermRepository> {
 
         let mut new_out = Vec::<(String, String)>::new();
         for (key, value) in out.iter() {
-            if let Some(m) = re.captures(value) {
-                let key_ref = &m[1].to_string();
-                let substitute = &out.iter().find(|t| t.0 == key_ref.as_str());
+            let n = re.replace_all(value, |r: &Captures| {
+                let key_ref = &r[1];
+                let substitute = &out.iter().find(|t| t.0 == key_ref);
                 if let Some(&ref s) = substitute {
-                    new_out.push(s.clone());
+                    s.1.clone()
                 } else {
                     println!("{}: '{}' not found", lang, key_ref);
-                    new_out.push((key.clone(), value.clone()));
+                    value.to_string()
                 }
-            } else {
-                new_out.push((key.clone(), value.clone()));
-            }
+            });
+            new_out.push((key.clone(), n.to_string()));
         }
 
-        // {
-        //     let file_writer = std::io::BufWriter::new(
-        //         std::fs::File::create(format!("dump/{}.csv", lang)).unwrap(),
-        //     );
-        //     let mut csv_writer = csv::Writer::from_writer(file_writer);
-        //     for (key, value) in new_out.iter() {
-        //         csv_writer.write_record(&[key, &value]).unwrap();
-        //     }
-        // }
+        {
+            let file_writer = std::io::BufWriter::new(
+                std::fs::File::create(format!("dump/{}.csv", lang)).unwrap(),
+            );
+            let mut csv_writer = csv::Writer::from_writer(file_writer);
+            for (key, value) in new_out.iter() {
+                csv_writer.write_record(&[key, &value]).unwrap();
+            }
+        }
 
         let nodes = new_out
             .iter()
