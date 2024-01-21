@@ -173,7 +173,7 @@ fn process_skill_mode(
 
         if mode_row.use_init {
             Token::NewLine.write(out);
-            terms.get_tips("WD_UseInit", "TIPS_UseInit").write(out);
+            terms.get_tips("NM-TIPS_UseInit", "TIPS_UseInit").write(out);
         }
 
         tail
@@ -289,7 +289,7 @@ fn act_node_formatter(
             } else {
                 Token::Indent.write(out);
                 terms
-                    .get("DC-SkillNodeDesc-CritRate")
+                    .get_tips("DC-SkillNodeDesc-CritRate", "TIPS_SCritRate")
                     .map_var_1(|out| Token::Text(row.crit_rate.to_string()).write(out))
                     .write(out);
             }
@@ -327,7 +327,7 @@ fn act_node_formatter(
             //let pair = row.inc_relate.split(':').collect::<Vec<_>>();
             let key = &row.inc_relate;
             match terms.try_get(&format!("NM-{}", key)) {
-                Some(s) => terms
+                Some(_) => terms
                     .get_tips(&format!("NM-{}", key), &format!("{}", key))
                     .write(out),
                 None => match terms.try_get(&format!("DC-SkillNodeDesc-Relate-{}", key)) {

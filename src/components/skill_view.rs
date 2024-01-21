@@ -2,17 +2,20 @@ use dioxus::html::geometry::euclid::Rect;
 use dioxus::prelude::*;
 use dioxus_router::prelude::Link;
 use dioxus_signals::{use_selector, use_signal, Signal};
-use dioxus_web::WebEventExt;
 use fermi::use_read;
 
-use crate::atoms::DATABASE;
 use data::token::{Token, Tokens};
 
+use crate::atoms::DATABASE;
 use crate::components::{Rarity, SpriteIcon};
 use crate::pages::Route;
 
 #[component]
-pub fn SkillView(cx: Scope, skill: Signal<data::skill::Skill>) -> Element {
+pub fn SkillView(
+    cx: Scope,
+    skill: Signal<data::skill::Skill>,
+    #[props(default = false)] debug: bool,
+) -> Element {
     render! {
         div {
             class: "flex flex-col border-solid border border-base-300 rounded-md my-2",
@@ -34,7 +37,7 @@ pub fn SkillView(cx: Scope, skill: Signal<data::skill::Skill>) -> Element {
             div { class: "flex flex-row flex-wrap gap-2 p-2",
                 for mode in skill.read().modes.iter().filter(|_m| true) {
                     div { class: "flex-1 min-w-48",
-                        SkillMode { mode: Signal::new(mode.clone()) }
+                        SkillMode { mode: Signal::new(mode.clone()), debug: *debug }
                     }
                 }
             }
@@ -43,7 +46,11 @@ pub fn SkillView(cx: Scope, skill: Signal<data::skill::Skill>) -> Element {
 }
 
 #[component]
-pub fn SkillMode(cx: Scope, mode: Signal<data::skill::SkillMode>) -> Element {
+pub fn SkillMode(
+    cx: Scope,
+    mode: Signal<data::skill::SkillMode>,
+    #[props(default = false)] debug: bool,
+) -> Element {
     render! {
         div { class: "flex flex-col gap-2 bg-base-200 text-base-content rounded-md p-2",
             div { class: "flex flex-row items-center gap-2",
@@ -51,26 +58,9 @@ pub fn SkillMode(cx: Scope, mode: Signal<data::skill::SkillMode>) -> Element {
                 div { class: "flex-grow",
                     "{mode.read().name}"
                 }
-                // div { class: "dropdown",
-                //     div { class: "btn btn-ghost btn-circle btn-sm",
-                //         tabindex: 0,
-                //         role: "button",
-                //         dangerous_inner_html: r#"<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>"#,
-                //     }
-                //     ul { class: "menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52",
-                //         tabindex: 0,
-                //         li {
-                //             button {
-                //                 class: "btn btn-ghost btn-sm justify-start",
-                //                 onclick: move |_| log::info!("{:#?}", mode),
-                //                 "Dump"
-                //             }
-                //         }
-                //     }
-                // }
             }
             div { class: "bg-base-100 p-2",
-                Description { tokens: mode.read().format() }
+                Description { tokens: mode.read().format(), debug: *debug }
             }
         }
     }
@@ -126,7 +116,7 @@ fn to_nodes(tokens: &Tokens) -> Vec<Node> {
 }
 
 #[component]
-fn RenderNode(cx: Scope, node: Node, #[props(default = true)] debug: bool) -> Element {
+fn RenderNode(cx: Scope, node: Node, #[props(default = false)] debug: bool) -> Element {
     match node {
         Node::Text(text) => render! { "{text}" },
         Node::NewLine => render! { br {} },
@@ -158,7 +148,7 @@ fn RenderNode(cx: Scope, node: Node, #[props(default = true)] debug: bool) -> El
                             span { class: "text-primary",
                                 title: "{title}",
                                 for node in &children {
-                                    RenderNode { node: node.clone() }
+                                    RenderNode { node: node.clone(), debug: *debug }
                                 }
                             }
                         }
@@ -181,18 +171,23 @@ fn RenderNode(cx: Scope, node: Node, #[props(default = true)] debug: bool) -> El
 }
 
 #[component]
-pub fn Description(cx: Scope, tokens: Tokens) -> Element {
+pub fn Description(cx: Scope, tokens: Tokens, #[props(default = false)] debug: bool) -> Element {
     let nodes = to_nodes(tokens);
 
     render! {
         for node in &nodes {
-            RenderNode { node: node.clone() }
+            RenderNode { node: node.clone(), debug: *debug }
         }
     }
 }
 
 #[component]
-pub fn Tooltip<'a>(cx: Scope<'a>, name: String, children: Element<'a>) -> Element {
+pub fn Tooltip<'a>(
+    cx: Scope<'a>,
+    name: String,
+    #[props(default = false)] debug: bool,
+    children: Element<'a>,
+) -> Element {
     let db = use_read(cx, &DATABASE);
 
     let title = db.term.get(&format!("NM-{}", name));
@@ -230,9 +225,9 @@ pub fn Tooltip<'a>(cx: Scope<'a>, name: String, children: Element<'a>) -> Elemen
                 },
                 div { class: "card-body",
                     span { class: "font-bold",
-                        Description { tokens: title }
+                        Description { tokens: title, debug: *debug }
                     }
-                    Description { tokens: body }
+                    Description { tokens: body, debug: *debug }
                 }
             }
         }

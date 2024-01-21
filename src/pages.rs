@@ -10,7 +10,7 @@ use crate::components::Footer;
 use crate::components::NavBar;
 use crate::pages::skill::SkillListQuery;
 use home::Home;
-use skill::{SkillListPage, SkillPage};
+use skill::{SkillDebugPage, SkillListPage, SkillPage};
 
 /// An enum of all of the possible routes in the app.
 #[derive(Routable, Clone)]
@@ -20,6 +20,8 @@ pub enum Route {
     Home {},
     #[route("/skill?:query")]
     SkillListPage { query: SkillListQuery },
+    #[route("/skill/_debug")]
+    SkillDebugPage {},
     #[route("/skill/:skill_id")]
     SkillPage { skill_id: String },
     #[route("/:..route")]
