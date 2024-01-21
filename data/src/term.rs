@@ -11,7 +11,7 @@ pub struct Term {
     pub tokens: Tokens,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct TermRepository {
     inner: HashMap<String, Term>,
 }
@@ -25,8 +25,8 @@ impl<'a> TermRepository {
         Self { inner }
     }
 
-    pub fn get(&'a self, key: &str) -> Tokens {
-        let mut out = Tokens::from_vec(vec![Token::TermStart(key.to_string())]);
+    pub fn get_inner(&'a self, key: &str, tips: Option<String>) -> Tokens {
+        let mut out = Tokens::from_vec(vec![Token::TermStart(key.to_string(), tips)]);
         match self.inner.get(key) {
             Some(v) => v.tokens.clone(),
             None => Tokens::from_vec(vec![Token::Error(key.to_string())]),
@@ -34,6 +34,14 @@ impl<'a> TermRepository {
         .write(&mut out);
         Token::TermEnd.write(&mut out);
         out
+    }
+
+    pub fn get(&'a self, key: &str) -> Tokens {
+        self.get_inner(key, None)
+    }
+
+    pub fn get_tips(&'a self, key: &str, tips: &str) -> Tokens {
+        self.get_inner(key, Some(tips.to_string()))
     }
 
     pub fn try_get(&'a self, key: &str) -> Option<Tokens> {

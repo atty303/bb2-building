@@ -1,7 +1,9 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::Link;
-use dioxus_signals::Signal;
+use dioxus_signals::{use_signal, Signal};
+use fermi::use_read;
 
+use crate::atoms::DATABASE;
 use data::token::{Token, Tokens};
 
 use crate::components::{Rarity, SpriteIcon};
@@ -79,11 +81,15 @@ enum Node {
     Var(String),
     Error(String),
     Indent,
-    Term(String, Vec<Node>),
+    Term {
+        name: String,
+        tips: Option<String>,
+        children: Vec<Node>,
+    },
 }
 
 fn to_nodes(tokens: &Tokens) -> Vec<Node> {
-    let mut stack = vec![("".to_string(), vec![])];
+    let mut stack = vec![(None, vec![])];
     for token in tokens.vec() {
         let node = match token {
             Token::Text(text) => Some(Node::Text(text.clone())),
@@ -93,13 +99,21 @@ fn to_nodes(tokens: &Tokens) -> Vec<Node> {
             Token::Error(text) => Some(Node::Error(text.clone())),
             Token::Indent => Some(Node::Indent),
             Token::Panic(text) => Some(Node::Error(text.clone())),
-            Token::TermStart(name) => {
-                stack.push((name.clone(), vec![]));
+            n @ Token::TermStart(_, _) => {
+                stack.push((Some(n.clone()), vec![]));
                 None
             }
             Token::TermEnd => {
-                let (name, last) = stack.pop().unwrap();
-                Some(Node::Term(name.clone(), last))
+                let (n, last) = stack.pop().unwrap();
+                if let Token::TermStart(name, tips) = n.unwrap() {
+                    Some(Node::Term {
+                        name: name.clone(),
+                        tips: tips.clone(),
+                        children: last,
+                    })
+                } else {
+                    None
+                }
             }
         };
         if node.is_some() {
@@ -110,7 +124,7 @@ fn to_nodes(tokens: &Tokens) -> Vec<Node> {
 }
 
 #[component]
-fn RenderNode(cx: Scope, node: Node) -> Element {
+fn RenderNode(cx: Scope, node: Node, #[props(default = false)] debug: bool) -> Element {
     match node {
         Node::Text(text) => render! { "{text}" },
         Node::NewLine => render! { br {} },
@@ -124,16 +138,43 @@ fn RenderNode(cx: Scope, node: Node) -> Element {
             br {}
             "　"
         },
-        Node::Term(name, nodes) => render! {
-            span { class: "border border-secondary rounded inline-block p-1 m-1",
-                span {
-                    title: "{name}",
-                    for node in &nodes {
-                        RenderNode { node: node.clone() }
+        Node::Term {
+            name,
+            tips,
+            children,
+        } => {
+            let debug_class = if *debug {
+                "border border-secondary rounded p-1 m-1"
+            } else {
+                ""
+            };
+            let title = if *debug { name.clone() } else { "".to_string() };
+            if let Some(tips) = tips {
+                render! {
+                    span { class: "{debug_class} inline-block border-b-2 border-primary border-dotted",
+                        Tooltip { name: tips.clone(),
+                            span { class: "text-primary",
+                                title: "{title}",
+                                for node in &children {
+                                    RenderNode { node: node.clone() }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                render! {
+                    span { class: "{debug_class} inline-block",
+                        span {
+                            title: "{title}",
+                            for node in &children {
+                                RenderNode { node: node.clone() }
+                            }
+                        }
                     }
                 }
             }
-        },
+        }
     }
 }
 
@@ -146,33 +187,34 @@ pub fn Description(cx: Scope, tokens: Tokens) -> Element {
             RenderNode { node: node.clone() }
         }
     }
+}
 
-    // render! {
-    //     for token in &tokens.vec() {
-    //         match token {
-    //             Token::Text(text) => rsx! { "{text}" },
-    //             Token::NewLine => rsx! { br {} },
-    //             Token::Empty => rsx! { "" },
-    //             Token::Var(name) => rsx! {
-    //                 span { class: "text-error", "[{name}]" }
-    //             },
-    //             Token::Error(text) => rsx! {
-    //                 span { class: "text-error font-bold", "{text}" }
-    //             },
-    //             Token::Indent => rsx! {
-    //                 br {}
-    //                 "　"
-    //             },
-    //             Token::Panic(text) => rsx! {
-    //                 span { class: "text-error font-bold", "{text}" }
-    //             },
-    //             Token::TermStart(name) => rsx! {
-    //                 "{name}"
-    //             },
-    //             Token::TermEnd => rsx!{
-    //                 ""
-    //             },
-    //         }
-    //     }
-    // }
+#[component]
+pub fn Tooltip<'a>(cx: Scope<'a>, name: String, children: Element<'a>) -> Element {
+    let db = use_read(cx, &DATABASE);
+
+    let title = db.term.get(&format!("NM-TIPS_{}", name));
+    let body = db.term.get(&format!("DC-TIPS_{}", name));
+
+    let open = use_signal(cx, || false);
+
+    render! {
+        div { class: "dropdown dropdown-hover",
+            onmouseenter: move |_| open.set(true),
+            onmouseleave: move |_| open.set(false),
+            div { class: "",
+                tabindex: 0,
+                {children}
+            }
+            if *open.read() {
+                div { class: "dropdown-content z-[1] card card-compact card-bordered border-base-300 shadow-lg shadow-black/50 bg-base-100 text-base-content min-w-96",
+                    tabindex: 0,
+                    div { class: "card-body",
+                        Description { tokens: title }
+                        Description { tokens: body }
+                    }
+                }
+            }
+        }
+    }
 }

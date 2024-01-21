@@ -162,7 +162,7 @@ fn process_skill_mode(
         Token::Text(format!(": {}", mode_row.cooldown)).write(out);
         if mode_row.is_quick {
             Token::Text(" ".to_string()).write(out);
-            terms.get("WD-SkillQuick").write(out);
+            terms.get_tips("WD-SkillQuick", "Quick").write(out);
         }
         Token::NewLine.write(out);
 
@@ -447,7 +447,7 @@ fn act_node_formatter(
                     // };
                     let name = format!("NM-{}", state.id);
                     if let Some(text) = terms.try_get(&name) {
-                        Token::TermStart(name).write(out);
+                        Token::TermStart(name.clone(), Some(name.clone())).write(out);
                         text.write(out);
                         Token::TermEnd.write(out);
                     } else {

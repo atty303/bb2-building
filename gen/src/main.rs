@@ -126,6 +126,7 @@ fn run_database(lang: String, write: bool) {
         );
         let database = data::Database {
             global,
+            term: Rc::new(terms.clone()),
             skill: Rc::new(skill),
         };
 
