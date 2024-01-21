@@ -10,7 +10,7 @@ pub fn parse_icon(name: &str) -> Sprite {
     let texture = &doc["Sprite"]["m_RD"]["texture"];
     assert_eq!(
         texture["guid"].as_str().unwrap(),
-        "a50549b8827f09843841d13f031f165f"
+        "b3a2aba3281ff374598e3fd614662456"
     );
     let texture_height = 4096;
     let rect = &doc["Sprite"]["m_Rect"];
