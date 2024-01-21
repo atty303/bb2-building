@@ -54,7 +54,7 @@ pub fn RuneListPage(cx: Scope, query: RuneListQuery) -> Element {
             div { class: "relative flex-grow",
                 input { class: "input input-bordered input-primary w-full",
                     r#type: "text",
-                    placeholder: "Search skills...",
+                    placeholder: "Search runes...",
                     autofocus: true,
                     value: "{query.query}",
                     oninput: move |e| {
