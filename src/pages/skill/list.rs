@@ -37,16 +37,6 @@ impl Display for SkillListQuery {
 
 #[component]
 pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
-    let db = use_read(cx, &DATABASE);
-
-    let search = use_search_skill(cx);
-    if *search.query.peek() != *query.query.peek() {
-        search.query.set(query.query.peek().clone());
-    }
-
-    let selected = use_signal(cx, || None::<Skill>);
-    let bottom_height = use_signal(cx, || 0);
-
     render! {
         div { class: "text-sm breadcrumbs",
             ul {
@@ -55,23 +45,49 @@ pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
             }
         }
 
+        SkillList {
+            query: query.query,
+            on_search: move |q: String| {
+                let router = dioxus_router::router();
+                router.replace(Route::SkillListPage {
+                    query: SkillListQuery {
+                        query: Signal::new(q.clone()),
+                    },
+                });
+            },
+        }
+    }
+}
+
+#[component]
+pub fn SkillList<'a>(
+    cx: Scope<'a>,
+    query: Signal<String>,
+    on_search: EventHandler<'a, String>,
+) -> Element {
+    let db = use_read(cx, &DATABASE);
+
+    let search = use_search_skill(cx);
+    if *search.query.peek() != *query.peek() {
+        search.query.set(query.peek().clone());
+    }
+
+    let selected = use_signal(cx, || None::<Skill>);
+    let bottom_height = use_signal(cx, || 0);
+
+    render! {
         div { class: "flex flex-row items-center gap-4",
             div { class: "relative flex-grow",
                 input { class: "input input-bordered input-primary w-full",
                     r#type: "text",
                     placeholder: "Search skills...",
                     autofocus: true,
-                    value: "{query.query}",
+                    value: "{query}",
                     oninput: move |e| {
                         let q = e.data.value();
                         search.query.set(q.clone());
                         selected.set(None);
-                        let router = dioxus_router::router();
-                        router.replace(Route::SkillListPage {
-                            query: SkillListQuery {
-                                query: Signal::new(q.clone()),
-                            },
-                        });
+                        on_search.call(q.clone());
                     }
                 }
                 // button { class: "absolute inset-y-0 right-0 flex items-center pr-2",
