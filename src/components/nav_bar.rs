@@ -8,6 +8,7 @@ use crate::components::Icon;
 use data::LANGUAGES;
 
 use crate::hooks::use_persistent;
+use crate::pages::planner::PlannerState;
 use crate::pages::rune::RuneListQuery;
 use crate::pages::skill::SkillListQuery;
 use crate::pages::Route;
@@ -36,6 +37,12 @@ pub fn NavBar(cx: Scope) -> Element {
                 }
                 div { class: "hidden lg:block",
                     ul { class: "menu menu-horizontal",
+                        li {
+                            Link {
+                                to: Route::PlannerPage { state: PlannerState::default() },
+                                "Planner"
+                            }
+                        }
                         li {
                             Link {
                                 to: Route::SkillListPage { query: SkillListQuery::default() },
@@ -69,6 +76,12 @@ pub fn NavBar(cx: Scope) -> Element {
 pub fn SideMenu(cx: Scope) -> Element {
     render! {
         ul { class: "menu p-4 w-40 min-h-full bg-neutral text-neutral-content mt-16",
+            li {
+                Link {
+                    to: Route::PlannerPage { state: PlannerState::default() },
+                    "Planner"
+                }
+            }
             li {
                 Link {
                     to: Route::SkillListPage { query: SkillListQuery::default() },

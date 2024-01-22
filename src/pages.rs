@@ -4,14 +4,17 @@ use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 
 mod home;
+pub mod planner;
 pub mod rune;
 pub mod skill;
 
 use crate::components::NavBar;
 use crate::components::{Footer, SideMenu};
+use crate::pages::planner::PlannerState;
 use crate::pages::rune::RuneListQuery;
 use crate::pages::skill::SkillListQuery;
 use home::Home;
+use planner::PlannerPage;
 use rune::{RuneDebugPage, RuneListPage, RunePage};
 use skill::{SkillDebugPage, SkillListPage, SkillPage};
 
@@ -21,6 +24,9 @@ pub enum Route {
     #[layout(MainLayout)]
     #[route("/")]
     Home {},
+
+    #[route("/planner?:state")]
+    PlannerPage { state: PlannerState },
 
     #[route("/skill?:query")]
     SkillListPage { query: SkillListQuery },
