@@ -2,16 +2,19 @@
 
 use dioxus::core::DynamicNode;
 use dioxus::prelude::*;
+use dioxus_signals::{use_signal, Signal};
 use dioxus_web::WebEventExt;
 use wasm_bindgen::JsCast;
 
-pub fn use_modal<T: 'static>(cx: &ScopeState, box_class: String) -> &UseModal<T> {
+pub fn use_modal<P: 'static, T: 'static>(cx: &ScopeState, box_class: String) -> &UseModal<P, T> {
     let modal_ref: &UseRef<Option<web_sys::HtmlDialogElement>> = use_ref(cx, || None);
+    let props = use_signal(cx, || None::<Signal<P>>);
     let done = use_ref(cx, || None);
 
     cx.use_hook(move || UseModal {
         modal_ref: modal_ref.clone(),
         box_class: box_class.clone(),
+        props: props.clone(),
         done: done.clone(),
         component: |cx| render! {
             dialog {
@@ -26,7 +29,7 @@ pub fn use_modal<T: 'static>(cx: &ScopeState, box_class: String) -> &UseModal<T>
                     cx.props.modal_ref.write().replace(el.clone());
                 },
                 div {
-                    class: "modal-box relative {cx.props.box_class}",
+                    class: "modal-box {cx.props.box_class}",
                     button {
                         class: "btn btn-xs btn-circle btn-ghost absolute right-1 top-1",
                         tabindex: -1,
@@ -51,9 +54,10 @@ pub fn use_modal<T: 'static>(cx: &ScopeState, box_class: String) -> &UseModal<T>
     })
 }
 
-pub struct UseModal<T: 'static> {
+pub struct UseModal<P: 'static, T: 'static> {
     pub modal_ref: UseRef<Option<web_sys::HtmlDialogElement>>,
     pub box_class: String,
+    pub props: Signal<Option<Signal<P>>>,
     pub done: UseRef<Option<Box<dyn Fn(T)>>>,
     pub component: for<'a> fn(Scope<'a, ModalProps<'a>>) -> Element<'a>,
 }
@@ -66,15 +70,16 @@ pub struct ModalProps<'a> {
 }
 
 #[derive(Props)]
-pub struct ModalDialogProps<'a, T: 'static> {
+pub struct ModalDialogProps<'a, P: 'static, T: 'static> {
+    pub props: Signal<Option<Signal<P>>>,
     pub on_result: EventHandler<'a, T>,
 }
 
-impl<T> UseModal<T> {
+impl<P, T> UseModal<P, T> {
     pub fn component<'a>(
         &self,
         cx: &'a ScopeState,
-        child: fn(Scope<'a, ModalDialogProps<'a, T>>) -> Element<'a>,
+        child: fn(Scope<'a, ModalDialogProps<'a, P, T>>) -> Element<'a>,
     ) -> DynamicNode<'a> {
         let modal_ref = self.modal_ref.clone();
         let done = self.done.clone();
@@ -82,6 +87,7 @@ impl<T> UseModal<T> {
         let child_component = cx.component(
             child,
             ModalDialogProps {
+                props: self.props,
                 on_result: cx.event_handler(move |e| {
                     if let Some(d) = done.read().as_ref() {
                         d(e);
@@ -104,8 +110,9 @@ impl<T> UseModal<T> {
         )
     }
 
-    pub fn show_modal(&self, done: impl Fn(T) + 'static) {
+    pub fn show_modal(&self, props: Signal<P>, done: impl Fn(T) + 'static) {
         *self.done.write() = Some(Box::new(done));
+        *self.props.write() = Some(props.clone());
 
         if let Some(el) = self.modal_ref.read().as_ref() {
             el.show_modal().expect("show_modal failed");
