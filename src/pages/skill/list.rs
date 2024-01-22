@@ -37,6 +37,7 @@ impl Display for SkillListQuery {
 
 #[component]
 pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
+    let selected = use_signal(cx, || None);
     render! {
         div { class: "text-sm breadcrumbs",
             ul {
@@ -55,6 +56,7 @@ pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
                     },
                 });
             },
+            selected: selected,
         }
     }
 }
@@ -64,6 +66,7 @@ pub fn SkillList<'a>(
     cx: Scope<'a>,
     query: Signal<String>,
     on_search: EventHandler<'a, String>,
+    selected: Signal<Option<Signal<Skill>>>,
 ) -> Element {
     let db = use_read(cx, &DATABASE);
 
@@ -117,6 +120,7 @@ pub fn SkillList<'a>(
                     SkillLink {
                         skill: *skill,
                         on_click: move |skill| {
+                            selected.set(Some(skill));
                             detail_modal.show_modal(skill, move |_| {});
                         },
                     }

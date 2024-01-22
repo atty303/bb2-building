@@ -1,8 +1,9 @@
 use crate::components::Icon;
 use crate::hooks::{use_modal, ModalDialogProps};
 use crate::pages::skill::SkillList;
+use data::skill::Skill;
 use dioxus::prelude::*;
-use dioxus_signals::Signal;
+use dioxus_signals::{use_signal, Signal};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::str::FromStr;
@@ -50,11 +51,26 @@ pub fn PlannerPage(cx: Scope, state: PlannerState) -> Element {
 }
 
 pub fn SkillModal<'a>(cx: Scope<'a, ModalDialogProps<'a, (), i32>>) -> Element {
+    let query = use_signal(cx, || "".to_string());
+    let selected = use_signal(cx, || None::<Signal<Skill>>);
     render! {
+        div { class: "sticky top-0 bg-base-300 p-2 z-10 mb-2",
+            if let Some(skill) = *selected.read() {
+                button { class: "btn btn-primary",
+                    "Select {skill().name}"
+                }
+            } else {
+                button { class: "btn btn-primary btn-disabled",
+                    "Select"
+                }
+            }
+        }
         SkillList {
-            query: Signal::new("".to_string()),
+            query: query.clone(),
             on_search: move |q: String| {
+                query.set(q);
             },
+            selected: selected,
         }
     }
 }
