@@ -39,7 +39,7 @@ pub fn PlannerPage(cx: Scope, state: PlannerState) -> Element {
             button {
                 class: "btn btn-primary",
                 onclick: move |_| {
-                    skill_modal.show_modal(move |e| {
+                    skill_modal.show_modal(Signal::new(()), move |e| {
                         tracing::debug!("Skill modal result: {:?}", e);
                     });
                 },
@@ -51,7 +51,7 @@ pub fn PlannerPage(cx: Scope, state: PlannerState) -> Element {
     }
 }
 
-pub fn SkillModal<'a>(cx: Scope<'a, ModalDialogProps<'a, i32>>) -> Element {
+pub fn SkillModal<'a>(cx: Scope<'a, ModalDialogProps<'a, (), i32>>) -> Element {
     render! {
         SkillList {
             query: Signal::new("".to_string()),
