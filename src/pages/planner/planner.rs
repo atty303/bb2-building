@@ -34,16 +34,14 @@ pub fn PlannerPage(cx: Scope, state: PlannerState) -> Element {
     render! {
         div { class: "flex flex-col gap-4",
             for i in 0..5 {
-                PlannerSlot { index: i }
-            }
-            button {
-                class: "btn btn-primary",
-                onclick: move |_| {
-                    skill_modal.show_modal(Signal::new(()), move |e| {
-                        tracing::debug!("Skill modal result: {:?}", e);
-                    });
-                },
-                "Add Skill"
+                PlannerSlot {
+                    index: i,
+                    on_click: move |_| {
+                        skill_modal.show_modal(Signal::new(()), move |e| {
+                            tracing::debug!("Skill modal result: {:?}", e);
+                        });
+                    }
+                }
             }
         }
 
@@ -62,11 +60,14 @@ pub fn SkillModal<'a>(cx: Scope<'a, ModalDialogProps<'a, (), i32>>) -> Element {
 }
 
 #[component]
-pub fn PlannerSlot(cx: Scope, index: i32) -> Element {
+pub fn PlannerSlot<'a>(cx: Scope<'a>, index: i32, on_click: EventHandler<'a, ()>) -> Element {
     render! {
         div { class: "bg-base-300 rounded p-4",
+            onclick: move |_| on_click.call(()),
+            span { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 inline-block",
+                onclick: move |_| {
 
-            span { class: "hover:bg-primary focus:bg-primary border-primary border-solid border-2 rounded-md p-1 inline-block",
+                },
                 span { class: "relative",
                     span { class: "inline-block align-middle overflow-hidden",
                         width: "48px",
