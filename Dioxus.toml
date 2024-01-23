@@ -1,0 +1,18 @@
+[application]
+name = "bb2b"
+default_platform = "web"
+
+[web.app]
+title = "BB2B"
+
+[web.watcher]
+reload_html = false
+watch_path = ["src", "public"]
+index_on_404 = true
+
+[web.resource]
+style = [
+    "./tailwind.css"
+]
+
+[web.resource.dev]
