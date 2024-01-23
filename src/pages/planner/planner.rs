@@ -109,7 +109,7 @@ pub fn SkillModal<'a>(cx: Scope<'a, ModalDialogProps<'a, (), SkillHash>>) -> Ele
 }
 
 #[component]
-pub fn PlannerSlot<'a>(
+fn PlannerSlot<'a>(
     cx: Scope<'a>,
     index: i32,
     state: SlotState,
