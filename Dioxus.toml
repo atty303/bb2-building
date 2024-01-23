@@ -7,7 +7,7 @@ title = "BB2B"
 
 [web.watcher]
 reload_html = false
-watch_path = ["src", "public"]
+watch_path = ["src", "public", "data"]
 index_on_404 = true
 
 [web.resource]
