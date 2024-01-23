@@ -1,4 +1,4 @@
-use crate::components::{Icon, SpriteIcon};
+use crate::components::{Icon, SkillView, SpriteIcon};
 use crate::hooks::{use_modal, ModalDialogProps};
 use crate::pages::skill::SkillList;
 use crate::pages::Route;
@@ -84,14 +84,14 @@ pub fn SkillModal<'a>(cx: Scope<'a, ModalDialogProps<'a, (), SkillHash>>) -> Ele
     render! {
         div { class: "sticky top-0 bg-base-300 p-2 z-10 mb-2",
             if let Some(skill) = *selected.read() {
-                button { class: "btn btn-primary",
+                button { class: "btn btn-primary btn-sm",
                     onclick: move |_| {
                         cx.props.on_result.call(skill().hash);
                     },
                     "Select {skill().name}"
                 }
             } else {
-                button { class: "btn btn-primary btn-disabled",
+                button { class: "btn btn-primary btn-sm btn-disabled",
                     "Select"
                 }
             }
@@ -122,34 +122,45 @@ pub fn PlannerSlot<'a>(
         .map(|s| Signal::new(s.clone()));
 
     render! {
-        div { class: "bg-base-300 rounded p-4",
-            if let Some(skill) = maybe_skill {
-                span { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 inline-block",
-                    onclick: move |_| on_click.call(()),
-                    span { class: "relative",
-                        SpriteIcon { class: "rounded-md",
-                            sprite: Signal::new(skill.read().modes[0].icon.clone()),
-                            size: 48,
-                        }
-                    }
+        div { class: "collapse collapse-arrow",
+            tabindex: "{index}",
+            div { class: "collapse-title px-2 py-0",
+                span { class: "badge badge-neutral mr-2",
+                    "{index + 1}"
                 }
-                span {
-                    "{skill().name}"
-                }
-            } else {
-                span { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 inline-block",
-                    onclick: move |_| on_click.call(()),
-                    span { class: "relative",
-                        span { class: "inline-block align-middle overflow-hidden",
-                            width: "48px",
-                            height: "48px",
-                            line_height: "48px",
-                            Icon {
-                                class: "text-primary",
-                                svg: r#"<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>"#,
+                if let Some(skill) = maybe_skill {
+                    span { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 inline-block",
+                        onclick: move |_| on_click.call(()),
+                        span { class: "relative",
+                            SpriteIcon { class: "rounded-md",
+                                sprite: Signal::new(skill.read().modes[0].icon.clone()),
+                                size: 48,
                             }
                         }
                     }
+                    span { class: "ml-2",
+                        "{skill().name}"
+                    }
+                } else {
+                    span { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 inline-block",
+                        onclick: move |_| on_click.call(()),
+                        span { class: "relative",
+                            span { class: "inline-block align-middle overflow-hidden",
+                                width: "48px",
+                                height: "48px",
+                                line_height: "48px",
+                                Icon {
+                                    class: "text-primary",
+                                    svg: r#"<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>"#,
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            div { class: "collapse-content",
+                if let Some(skill) = maybe_skill {
+                    SkillView { skill: skill }
                 }
             }
         }
