@@ -78,8 +78,7 @@ pub fn SkillList<'a>(
     }
 
     render! {
-        // https://codepen.io/waterplea/pen/JjjMXzR
-        div { class: "relative",
+        div {
             div { class: "flex flex-row items-center gap-4",
                 div { class: "relative flex-grow",
                     input { class: "input input-bordered input-primary w-full",

@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use crate::components::Icon;
 use dioxus::core::DynamicNode;
 use dioxus::prelude::*;
 use dioxus_signals::{use_signal, Signal};
@@ -20,27 +21,25 @@ pub fn use_modal<P: 'static, T: 'static>(cx: &ScopeState, box_class: String) -> 
             dialog {
                 class: "modal backdrop:backdrop-blur",
                 onmounted: move |e| {
-                    let el = e
-                    .web_event()
-                        // .get_raw_element().expect("expecting raw element")
-                        // .downcast_ref::<web_sys::Element>().expect("expecting Element")
-                        .dyn_ref::<web_sys::HtmlDialogElement>().expect("expecting HtmlDialogElement");
-
+                    let el = e.web_event().dyn_ref::<web_sys::HtmlDialogElement>().expect("expecting HtmlDialogElement");
                     cx.props.modal_ref.write().replace(el.clone());
                 },
                 div {
                     class: "modal-box {cx.props.box_class}",
-                    button {
-                        class: "btn btn-xs btn-circle btn-ghost absolute right-1 top-1",
-                        tabindex: -1,
-                        onclick: move |_| {
-                            if let Some(el) = cx.props.modal_ref.read().as_ref() {
-                                el.close();
-                            };
-                        },
-                        // OutlineIcon {
-                        //     icon: Shape::XMark,
-                        // }
+                    div {
+                        class: "sticky block top-0 right-0 left-0 w-full h-0 z-50",
+                        button {
+                            class: "btn btn-sm btn-circle btn-neutral absolute right-2 top-2",
+                            tabindex: -1,
+                            onclick: move |_| {
+                                if let Some(el) = cx.props.modal_ref.read().as_ref() {
+                                    el.close();
+                                };
+                            },
+                            Icon {
+                                svg: r#"<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>"#,
+                            }
+                        }
                     }
                     {&cx.props.children}
                 }

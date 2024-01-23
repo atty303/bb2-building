@@ -46,7 +46,7 @@ impl Display for PlannerState {
 
 #[component]
 pub fn PlannerPage(cx: Scope, state: PlannerState) -> Element {
-    let skill_modal = use_modal(cx, "max-w-full h-full".to_string());
+    let skill_modal = use_modal(cx, "max-w-full h-full p-0".to_string());
 
     tracing::info!("state: {:?}", state);
 
@@ -96,12 +96,14 @@ pub fn SkillModal<'a>(cx: Scope<'a, ModalDialogProps<'a, (), SkillHash>>) -> Ele
                 }
             }
         }
-        SkillList {
-            query: query.clone(),
-            on_search: move |q: String| {
-                query.set(q);
-            },
-            selected: selected,
+        div { class: "p-4",
+            SkillList {
+                query: query.clone(),
+                on_search: move |q: String| {
+                    query.set(q);
+                },
+                selected: selected,
+            }
         }
     }
 }
