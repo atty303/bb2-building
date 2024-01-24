@@ -1,11 +1,14 @@
-mod components;
-
-use crate::components::App;
 use tracing_subscriber::fmt::format::Pretty;
 use tracing_subscriber::prelude::*;
 use tracing_web::{performance_layer, MakeWebConsoleWriter};
 
-use dioxus::prelude::*;
+use crate::components::App;
+
+mod atoms;
+mod components;
+mod hooks;
+mod pages;
+mod search;
 
 fn main() {
     let fmt_layer = tracing_subscriber::fmt::layer()
@@ -20,5 +23,5 @@ fn main() {
         .with(perf_layer)
         .init();
 
-    launch(App);
+    dioxus_web::launch(App);
 }

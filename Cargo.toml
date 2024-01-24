@@ -9,11 +9,7 @@ edition = "2021"
 [dependencies]
 data = { path = "./data" }
 
-dioxus = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "20241d8f2097add7f0db1c0387e9aab8f7d89275" }
-dioxus-web = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "20241d8f2097add7f0db1c0387e9aab8f7d89275" }
-dioxus-router = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "20241d8f2097add7f0db1c0387e9aab8f7d89275" }
-dioxus-signals = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "20241d8f2097add7f0db1c0387e9aab8f7d89275", features = ["serde"] }
-fermi = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "20241d8f2097add7f0db1c0387e9aab8f7d89275" }
+dioxus = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "87dc409837f1294952a2552068db99dc17d701db", features = ["router", "web"] }
 
 wasm-bindgen = "0.2"
 web-sys = { version = "0.3", features = ["Window", "History", "Location", "HtmlDialogElement"] }
