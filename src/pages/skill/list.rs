@@ -70,7 +70,7 @@ pub fn SkillList<'a>(
 ) -> Element {
     let db = use_read(cx, &DATABASE);
 
-    let detail_modal = use_modal(cx, "max-w-full h-full".to_string());
+    let detail_modal = use_modal(cx, "max-w-full h-full p-0".to_string());
 
     let search = use_search_skill(cx);
     if *search.query.peek() != *query.peek() {
@@ -134,7 +134,9 @@ pub fn SkillList<'a>(
 pub fn DetailModal<'a>(cx: Scope<'a, ModalDialogProps<'a, Skill, i32>>) -> Element {
     if let Some(skill) = *cx.props.props.read() {
         render! {
-            SkillView { skill: skill }
+            div { class: "mt-12",
+                SkillView { skill: skill }
+            }
         }
     } else {
         None
