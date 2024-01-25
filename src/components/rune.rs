@@ -1,5 +1,5 @@
 use crate::pages::Route;
-use crate::ui::SpriteIcon;
+use crate::ui::{Description, Rarity, SpriteIcon};
 use dioxus::prelude::*;
 use dioxus_router::prelude::Link;
 
@@ -16,11 +16,11 @@ pub fn RuneView(rune: Signal<data::Rune>, #[props(default = false)] debug: bool)
                     }
                 }
                 span {
-                    // Rarity { rarity: rune.read().rarity }
+                    Rarity { rarity: rune().rarity }
                 }
             }
             div { class: "flex flex-row flex-wrap gap-2 p-2",
-                // Description { tokens: rune.read().format(), debug: *debug }
+                Description { tokens: rune().format(), debug }
             }
         }
     }
