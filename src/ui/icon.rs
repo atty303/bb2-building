@@ -1,10 +1,10 @@
 use dioxus::prelude::*;
 
 #[component]
-pub fn Icon<'a>(cx: Scope, class: Option<&'a str>, svg: &'a str) -> Element<'a> {
+pub fn Icon(class: Option<&'static str>, svg: &'static str) -> Element {
     let class = class.unwrap_or("");
-    render! {
-        span { class: "{class}",
+    rsx! {
+        span { class,
             dangerous_inner_html: "{svg}"
         }
     }

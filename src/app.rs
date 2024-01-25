@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 use dioxus::prelude::*;
 use dioxus_router::prelude::{Router, RouterConfig, RouterConfigFactory, WebHistory};
 
-use crate::global::{DATABASE, LANGUAGE, SEARCH_CATALOGS};
+use crate::global::{DATABASE, LANGUAGE, SEARCH_CATALOGS, THEME};
 use crate::hooks::{use_on_create, use_persistent};
 use crate::pages::Route;
 use data::{Database, LANGUAGES};
@@ -34,7 +34,20 @@ async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
 
 #[component]
 pub fn App() -> Element {
-    // TODO: use_config
+    let theme_persistent = use_persistent("theme", || "dark".to_string());
+    use_on_create(|| {
+        to_owned![theme_persistent];
+        async move {
+            *THEME.write() = theme_persistent.get();
+        }
+    });
+    use_effect(move || {
+        theme_persistent.set(THEME());
+        gloo_utils::document_element()
+            .set_attribute("data-theme", &THEME())
+            .unwrap();
+    });
+
     let language_persistent = use_persistent("language", || "en".to_string());
     use_on_create(|| {
         to_owned![language_persistent];
