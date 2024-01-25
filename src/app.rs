@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 use dioxus::prelude::*;
 use dioxus_router::prelude::{Router, RouterConfig, RouterConfigFactory, WebHistory};
 
-use crate::global::LANGUAGE;
+use crate::global::{DATABASE, LANGUAGE, SEARCH_CATALOGS};
 use crate::hooks::{use_on_create, use_persistent};
 use data::{Database, LANGUAGES};
 
@@ -35,7 +35,6 @@ async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
 pub fn App() -> Element {
     // TODO: use_config
     let language_persistent = use_persistent("language", || "en".to_string());
-
     use_on_create(|| {
         to_owned![language_persistent];
         async move {
@@ -46,7 +45,6 @@ pub fn App() -> Element {
             }
         }
     });
-
     use_effect(move || {
         if let Some(lang) = LANGUAGE() {
             language_persistent.set(lang.clone());
@@ -56,18 +54,65 @@ pub fn App() -> Element {
         }
     });
 
-    rsx! {
-        div { class: "w-full h-full",
-            button { class: "btn btn-primary",
-                onclick: move |_| {
-                    tracing::info!("clicked");
-                },
-                "Click me!"
+    let database_future = use_resource(|| async move {
+        if let Some(lang) = LANGUAGE() {
+            let mut db = fetch_database(&lang).await;
+            match db {
+                Ok(v) => {
+                    let skill = &v.skill;
+                    let rune = &v.rune;
+                    let catalogs = SearchCatalogs {
+                        skill: crate::search::create_catalog::<SkillSearch, SkillSearch, SkillSearch>(
+                            skill.clone(),
+                            lang.clone(),
+                        ),
+                        rune: crate::search::create_catalog::<RuneSearch, RuneSearch, RuneSearch>(
+                            rune.clone(),
+                            lang.clone(),
+                        ),
+                    };
+
+                    *SEARCH_CATALOGS.write() = catalogs;
+                    *DATABASE.write() = v;
+                    Some(Ok(()))
+                }
+                Err(e) => Some(Err(e)),
+            }
+        } else {
+            None
+        }
+    });
+
+    match *database_future.value().read() {
+        Some(Some(Ok(_))) => {
+            rsx! {
+                    // Router::<Route> {
+                    //     config: RouterConfigFactory::from(|| RouterConfig::default().history(WebHistory::<Route>::default())),
+                    // }
+            div { class: "w-full h-full",
+                button { class: "btn btn-primary",
+                    onclick: move |_| {
+                        tracing::info!("clicked");
+                    },
+                    "Click me!"
+                }
+            }
+            DaisyDialog {
+                div { class: "font-bold",
+                    "Hello world!"
+                }
+            }
+                }
+        }
+        Some(Some(Err(ref err))) => {
+            rsx! {
+                "An error occurred while fetching database: {err}"
             }
         }
-        DaisyDialog {
-            div { class: "font-bold",
-                "Hello world!"
+        Some(None) | None => {
+            // While loading database
+            rsx! {
+                ""
             }
         }
     }
