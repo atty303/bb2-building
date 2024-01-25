@@ -856,6 +856,7 @@ dependencies = [
  "once_cell",
  "parking_lot",
  "rustc-hash",
+ "serde",
  "tracing",
 ]
 
@@ -2843,6 +2844,7 @@ dependencies = [
  "anyhow",
  "data",
  "dioxus 0.4.3 (git+https://github.com/DioxusLabs/dioxus.git?rev=458c13fb7424be424271b4ee0b6d7a7e5d95bd0b)",
+ "dioxus-signals 0.4.3 (git+https://github.com/DioxusLabs/dioxus.git?rev=458c13fb7424be424271b4ee0b6d7a7e5d95bd0b)",
  "getrandom",
  "gloo-storage 0.3.0",
  "gloo-utils 0.2.0",

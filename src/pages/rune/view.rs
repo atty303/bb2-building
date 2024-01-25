@@ -1,19 +1,16 @@
-use dioxus::prelude::*;
-use dioxus_signals::Signal;
-use fermi::use_read;
-
-use crate::atoms::DATABASE;
 use crate::components::RuneView;
+use dioxus::prelude::*;
+
+use crate::global::DATABASE;
 
 #[component]
-pub fn RunePage(cx: Scope, rune_id: String) -> Element {
-    let db = use_read(cx, &DATABASE);
-
-    db.rune
+pub fn RunePage(rune_id: String) -> Element {
+    DATABASE()
+        .rune
         .iter()
-        .find(|s| &s.id == rune_id)
+        .find(|s| s.id == rune_id)
         .map(|rune| {
-            render! {
+            rsx! {
                 div { class: "text-sm breadcrumbs",
                     ul {
                         li { "Home" }
@@ -26,7 +23,7 @@ pub fn RunePage(cx: Scope, rune_id: String) -> Element {
             }
         })
         .unwrap_or_else(|| {
-            render! {
+            rsx! {
                 div {
                     "Rune not found"
                 }

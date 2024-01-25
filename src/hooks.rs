@@ -3,8 +3,10 @@ use std::future::Future;
 use dioxus::prelude::{current_scope_id, use_signal, Writable};
 
 pub use persistent::*;
+pub use search_rune::*;
 
 mod persistent;
+mod search_rune;
 
 pub fn use_on_create<T, F>(future: impl FnOnce() -> F)
 where

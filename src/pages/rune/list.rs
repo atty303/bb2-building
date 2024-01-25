@@ -2,21 +2,20 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 use dioxus::prelude::*;
-use dioxus_signals::Signal;
-use fermi::use_read;
+use dioxus::router::router;
 use serde::{Deserialize, Serialize};
 
-use crate::atoms::DATABASE;
 use crate::components::RuneView;
+use crate::global::DATABASE;
 use crate::hooks::use_search_rune;
 use crate::pages::Route;
 
 #[derive(Default, PartialEq, Clone, Serialize, Deserialize)]
-pub struct RuneListQuery {
+pub struct RuneListState {
     query: Signal<String>,
 }
 
-impl FromStr for RuneListQuery {
+impl FromStr for RuneListState {
     type Err = serde_json::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -24,7 +23,7 @@ impl FromStr for RuneListQuery {
     }
 }
 
-impl Display for RuneListQuery {
+impl Display for RuneListState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match serde_json::to_string(self) {
             Ok(s) => f.write_str(&s),
@@ -34,15 +33,13 @@ impl Display for RuneListQuery {
 }
 
 #[component]
-pub fn RuneListPage(cx: Scope, query: RuneListQuery) -> Element {
-    let db = use_read(cx, &DATABASE);
-
-    let search = use_search_rune(cx);
-    if *search.query.peek() != *query.query.peek() {
-        search.query.set(query.query.peek().clone());
+pub fn RuneListPage(state: RuneListState) -> Element {
+    let search = use_search_rune();
+    if *search.query.peek() != *state.query.peek() {
+        *search.query.write() = state.query.peek().clone();
     }
 
-    render! {
+    rsx! {
         div { class: "text-sm breadcrumbs",
             ul {
                 li { "Home" }
@@ -56,13 +53,12 @@ pub fn RuneListPage(cx: Scope, query: RuneListQuery) -> Element {
                     r#type: "text",
                     placeholder: "Search runes...",
                     autofocus: true,
-                    value: "{query.query}",
+                    value: "{state.query}",
                     oninput: move |e| {
                         let q = e.data.value();
-                        search.query.set(q.clone());
-                        let router = dioxus_router::router();
-                        router.replace(Route::RuneListPage {
-                            query: RuneListQuery {
+                        *search.query.write() = q.clone();
+                        router().replace(Route::RuneListPage {
+                            state: RuneListState {
                                 query: Signal::new(q.clone()),
                             },
                         });
@@ -77,7 +73,7 @@ pub fn RuneListPage(cx: Scope, query: RuneListQuery) -> Element {
                     "of"
                 }
                 span { class: "font-bold",
-                    "{db.rune.iter().count()}"
+                    "{DATABASE().rune.iter().count()}"
                 }
             }
         }

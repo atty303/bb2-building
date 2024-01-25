@@ -1,14 +1,17 @@
 #![allow(non_snake_case)]
 
 mod home;
+mod rune;
 
 use data::LANGUAGES;
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 
 use crate::global::{LANGUAGE, THEME};
+use crate::pages::rune::RuneListState;
 use crate::ui::Icon;
 use home::Home;
+use rune::{RuneDebugPage, RuneListPage, RunePage};
 
 #[derive(Routable, Clone)]
 pub enum Route {
@@ -25,13 +28,13 @@ pub enum Route {
     // SkillDebugPage {},
     // #[route("/skill/:skill_id")]
     // SkillPage { skill_id: String },
-    //
-    // #[route("/rune?:query")]
-    // RuneListPage { query: RuneListQuery },
-    // #[route("/rune/_debug")]
-    // RuneDebugPage {},
-    // #[route("/rune/:rune_id")]
-    // RunePage { rune_id: String },
+    #[route("/rune?:state")]
+    RuneListPage { state: RuneListState },
+    #[route("/rune/_debug")]
+    RuneDebugPage {},
+    #[route("/rune/:rune_id")]
+    RunePage { rune_id: String },
+
     #[route("/:..route")]
     PageNotFound { route: Vec<String> },
 }
@@ -141,10 +144,10 @@ fn NavMenu() -> Element {
             // }
         }
         li {
-            // Link {
-            //     to: Route::RuneListPage { query: RuneListQuery::default() },
-            //     "Rune"
-            // }
+            Link {
+                to: Route::RuneListPage { state: RuneListState::default() },
+                "Rune"
+            }
         }
     }
 }
