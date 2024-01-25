@@ -1,4 +1,6 @@
+use crate::pages::Route;
 use dioxus::prelude::*;
+use dioxus::router::prelude::Link;
 
 use crate::ui::{Description, Rarity, SpriteIcon};
 
@@ -9,10 +11,10 @@ pub fn SkillView(skill: Signal<data::Skill>, #[props(default = false)] debug: bo
             div { class: "flex flex-row items-center gap-2 bg-base-300 text-base-content p-2",
                 SpriteIcon { class: "rounded-md", sprite: Signal::new(skill().modes[0].icon.clone()), size: 48 }
                 span { class: "flex-grow",
-                    // Link { class: "text-primary hover:underline cursor-pointer",
-                    //     to: Route::SkillPage { skill_id: skill.read().id.clone() },
-                    //     "{skill().name}"
-                    // }
+                    Link { class: "text-primary hover:underline cursor-pointer",
+                        to: Route::SkillPage { skill_id: skill().id.clone() },
+                        "{skill().name}"
+                    }
                 }
                 span {
                     Rarity { rarity: skill().rarity }
