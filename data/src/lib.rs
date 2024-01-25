@@ -6,6 +6,7 @@ pub use database::*;
 pub use global::*;
 pub use rune::*;
 pub use search::*;
+pub use skill::*;
 pub use sprite::*;
 
 mod database;

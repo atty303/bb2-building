@@ -4,9 +4,11 @@ use dioxus::prelude::{current_scope_id, use_signal, Writable};
 
 pub use persistent::*;
 pub use search_rune::*;
+pub use search_skill::*;
 
 mod persistent;
 mod search_rune;
+mod search_skill;
 
 pub fn use_on_create<T, F>(future: impl FnOnce() -> F)
 where
