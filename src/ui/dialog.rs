@@ -1,11 +1,10 @@
+use dioxus::dioxus_core::AttributeValue;
 use std::cell::RefCell;
 use std::rc::Rc;
 
 use dioxus::prelude::*;
-
-struct DialogState {
-    open: bool,
-}
+use dioxus::web::WebEventExt;
+use wasm_bindgen::JsCast;
 
 pub struct RenderFn<T = ()> {
     pub(super) callback: Rc<RefCell<Option<RenderCallback<T>>>>,
@@ -44,6 +43,11 @@ impl<T> RenderFn<T> {
 
 type RenderCallback<T> = Box<dyn FnMut(T) -> Element>;
 
+struct DialogState {
+    open: Signal<bool>,
+    dialog: Signal<Option<web_sys::HtmlDialogElement>>,
+}
+
 pub struct DialogRenderArgs {
     pub attrs: Vec<Attribute>,
     pub children: Element,
@@ -60,10 +64,47 @@ pub fn Dialog(
     render: Option<RenderFn<DialogRenderArgs>>,
     children: Element,
 ) -> Element {
-    let state = use_signal(|| DialogState { open });
+    let state = use_signal(|| DialogState {
+        open: Signal::new(open),
+        dialog: Signal::new(None),
+    });
     let _ = use_context_provider(|| state);
+    // let dialog = use_signal(|| None);
 
-    let mut attrs = Vec::new();
+    use_effect(move || {
+        if let Some(dialog) = state.read().dialog.read().as_ref() {
+            if *state.read().open.read() {
+                if !dialog.has_attribute("open") {
+                    dialog.show_modal().unwrap();
+                }
+            } else {
+                if dialog.has_attribute("open") {
+                    dialog.close();
+                }
+            }
+        }
+    });
+
+    let mut attrs = vec![
+        Attribute::new(
+            "onmounted",
+            AttributeValue::listener(move |e: MountedEvent| {
+                let el = e
+                    .web_event()
+                    .dyn_ref::<web_sys::HtmlDialogElement>()
+                    .expect("expecting HtmlDialogElement");
+                *state.read().dialog.write() = Some(el.clone());
+            }),
+            None,
+            false,
+        ),
+        Attribute::new(
+            "role",
+            AttributeValue::Text("dialog".to_string()),
+            None,
+            false,
+        ),
+    ];
 
     if let Some(render) = render {
         render.call(DialogRenderArgs {

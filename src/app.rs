@@ -1,6 +1,5 @@
 use anyhow::anyhow;
 use dioxus::prelude::*;
-use dioxus::prelude::*;
 use dioxus_router::prelude::{Router, RouterConfig, RouterConfigFactory, WebHistory};
 
 use crate::global::{DATABASE, LANGUAGE, SEARCH_CATALOGS, THEME};
@@ -9,8 +8,6 @@ use crate::pages::Route;
 use data::{Database, LANGUAGES};
 
 use crate::search::{RuneSearch, SearchCatalogs, SkillSearch};
-
-use crate::ui::{Dialog, DialogPanel};
 
 async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
     if let Some(_) = LANGUAGES.iter().find(|l| *l == &lang) {
@@ -70,7 +67,7 @@ pub fn App() -> Element {
 
     let database_future = use_resource(|| async move {
         if let Some(lang) = LANGUAGE() {
-            let mut db = fetch_database(&lang).await;
+            let db = fetch_database(&lang).await;
             match db {
                 Ok(v) => {
                     let skill = &v.skill;
@@ -114,31 +111,6 @@ pub fn App() -> Element {
             // While loading database
             rsx! {
                 ""
-            }
-        }
-    }
-}
-
-#[component]
-fn DaisyDialog(children: Element) -> Element {
-    let mut open = use_signal(|| true);
-
-    rsx! {
-        Dialog {
-            open: open(),
-            on_close: move |_| {
-                open.set(false);
-            },
-            // render: RenderFn::new(|args: DialogRenderArgs| {
-            //     rsx! {
-            //         dialog {
-            //             ..args.attrs,
-            //             {args.children}
-            //         }
-            //     }
-            // }),
-            DialogPanel {
-                {children}
             }
         }
     }

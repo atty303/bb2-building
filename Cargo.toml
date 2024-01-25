@@ -8,6 +8,7 @@ edition = "2021"
 
 [dependencies]
 data = { path = "./data" }
+dioxus-headlessui = { path = "../dioxus-headlessui" }
 
 dioxus = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "458c13fb7424be424271b4ee0b6d7a7e5d95bd0b", features = ["router", "web"] }
 dioxus-signals = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "458c13fb7424be424271b4ee0b6d7a7e5d95bd0b", features = ["serde"] }
@@ -17,7 +18,6 @@ web-sys = { version = "0.3", features = ["Window", "History", "Location", "HtmlD
 gloo-utils = "0.2"
 gloo-storage = "0.3"
 
-log = "0.4"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-web = "0.1"

@@ -1,5 +1,4 @@
 use dioxus::prelude::*;
-use tracing::instrument::WithSubscriber;
 use tracing_subscriber::fmt::format::Pretty;
 use tracing_subscriber::prelude::*;
 use tracing_subscriber::EnvFilter;

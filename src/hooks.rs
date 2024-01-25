@@ -15,7 +15,7 @@ where
     T: 'static,
     F: Future<Output = T> + 'static,
 {
-    let mut needs_regen = use_signal(|| true);
+    let needs_regen = use_signal(|| true);
 
     if needs_regen() {
         // We don't need regen anymore

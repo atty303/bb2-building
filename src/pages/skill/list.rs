@@ -3,11 +3,12 @@ use std::str::FromStr;
 
 use dioxus::prelude::*;
 use dioxus::router::router;
+use dioxus_headlessui::dialog::{Dialog, DialogPanel};
 use serde::{Deserialize, Serialize};
 
+use crate::components::SkillView;
 use data::skill::Skill;
 
-use crate::components::SkillView;
 use crate::global::DATABASE;
 use crate::hooks::use_search_skill;
 use crate::pages::Route;
@@ -61,6 +62,8 @@ pub fn SkillListPage(state: SkillListState) -> Element {
 #[component]
 pub fn SkillList(query: Signal<String>, on_search: EventHandler<String>) -> Element {
     // let detail_modal = use_modal(cx, "max-w-full h-full p-0".to_string());
+    let detail_open = use_signal(|| false);
+    let detail_skill = use_signal(|| None);
 
     let search = use_search_skill();
     if *search.query.peek() != *query.peek() {
@@ -108,29 +111,39 @@ pub fn SkillList(query: Signal<String>, on_search: EventHandler<String>) -> Elem
                 for skill in search.results.read().iter() {
                     SkillLink {
                         skill: *skill,
-                        on_click: move |skill| {
-                            // detail_modal.show_modal(skill, move |_| {});
+                        on_click: move |skill: Signal<Skill>| {
+                            *detail_open.write() = true;
+                            *detail_skill.write() = Some(skill.clone());
                         },
                     }
                 }
             }
-
         }
-        // {detail_modal.component(cx, DetailModal)}
+
+        DetailDialog {
+            open: detail_open,
+            skill: detail_skill,
+        }
     }
 }
 
-// pub fn DetailModal<'a>(cx: Scope<'a, ModalDialogProps<'a, Skill, i32>>) -> Element {
-//     if let Some(skill) = *cx.props.props.read() {
-//         render! {
-//             div { class: "mt-12",
-//                 SkillView { skill: skill }
-//             }
-//         }
-//     } else {
-//         None
-//     }
-// }
+#[component]
+pub fn DetailDialog(open: Signal<bool>, skill: Signal<Option<Signal<Skill>>>) -> Element {
+    if let Some(skill) = skill() {
+        rsx! {
+            Dialog {
+                open: open(),
+                // DialogPanel {
+                //     div { class: "mt-12",
+                //         SkillView { skill }
+                //     }
+                // }
+            }
+        }
+    } else {
+        None
+    }
+}
 
 #[component]
 fn SkillLink(skill: Signal<Skill>, on_click: EventHandler<Signal<Skill>>) -> Element {
