@@ -5,6 +5,7 @@ use dioxus_router::prelude::{Router, RouterConfig, RouterConfigFactory, WebHisto
 
 use crate::global::{DATABASE, LANGUAGE, SEARCH_CATALOGS};
 use crate::hooks::{use_on_create, use_persistent};
+use crate::pages::Route;
 use data::{Database, LANGUAGES};
 
 use crate::search::{RuneSearch, SearchCatalogs, SkillSearch};
@@ -86,23 +87,10 @@ pub fn App() -> Element {
     match *database_future.value().read() {
         Some(Some(Ok(_))) => {
             rsx! {
-                    // Router::<Route> {
-                    //     config: RouterConfigFactory::from(|| RouterConfig::default().history(WebHistory::<Route>::default())),
-                    // }
-            div { class: "w-full h-full",
-                button { class: "btn btn-primary",
-                    onclick: move |_| {
-                        tracing::info!("clicked");
-                    },
-                    "Click me!"
+                Router::<Route> {
+                    config: RouterConfigFactory::from(|| RouterConfig::default().history(WebHistory::<Route>::default())),
                 }
             }
-            DaisyDialog {
-                div { class: "font-bold",
-                    "Hello world!"
-                }
-            }
-                }
         }
         Some(Some(Err(ref err))) => {
             rsx! {
