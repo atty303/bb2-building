@@ -1,11 +1,13 @@
-mod components;
-
-use crate::components::App;
+use dioxus::prelude::*;
 use tracing_subscriber::fmt::format::Pretty;
 use tracing_subscriber::prelude::*;
 use tracing_web::{performance_layer, MakeWebConsoleWriter};
 
-use dioxus::prelude::*;
+use crate::app::App;
+
+mod app;
+mod components;
+mod ui;
 
 fn main() {
     let fmt_layer = tracing_subscriber::fmt::layer()
