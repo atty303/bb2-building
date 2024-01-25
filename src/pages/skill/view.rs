@@ -1,19 +1,16 @@
 use dioxus::prelude::*;
-use dioxus_signals::Signal;
-use fermi::use_read;
 
-use crate::atoms::DATABASE;
 use crate::components::SkillView;
+use crate::global::DATABASE;
 
 #[component]
-pub fn SkillPage(cx: Scope, skill_id: String) -> Element {
-    let db = use_read(cx, &DATABASE);
-
-    db.skill
+pub fn SkillPage(skill_id: String) -> Element {
+    DATABASE()
+        .skill
         .iter()
-        .find(|s| &s.id == skill_id)
+        .find(|s| s.id == skill_id)
         .map(|skill| {
-            render! {
+            rsx! {
                 div { class: "text-sm breadcrumbs",
                     ul {
                         li { "Home" }
@@ -26,7 +23,7 @@ pub fn SkillPage(cx: Scope, skill_id: String) -> Element {
             }
         })
         .unwrap_or_else(|| {
-            render! {
+            rsx! {
                 div {
                     "Skill not found"
                 }

@@ -1,17 +1,21 @@
 #![allow(non_snake_case)]
 
-mod home;
-mod rune;
-
-use data::LANGUAGES;
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 
-use crate::global::{LANGUAGE, THEME};
-use crate::pages::rune::RuneListState;
-use crate::ui::Icon;
+use data::LANGUAGES;
 use home::Home;
 use rune::{RuneDebugPage, RuneListPage, RunePage};
+use skill::{SkillDebugPage, SkillListPage, SkillPage};
+
+use crate::global::{LANGUAGE, THEME};
+use crate::pages::rune::RuneListState;
+use crate::pages::skill::SkillListState;
+use crate::ui::Icon;
+
+mod home;
+mod rune;
+mod skill;
 
 #[derive(Routable, Clone)]
 pub enum Route {
@@ -22,12 +26,13 @@ pub enum Route {
     // #[route("/planner?:state")]
     // PlannerPage { state: PlannerState },
     //
-    // #[route("/skill?:query")]
-    // SkillListPage { query: SkillListQuery },
-    // #[route("/skill/_debug")]
-    // SkillDebugPage {},
-    // #[route("/skill/:skill_id")]
-    // SkillPage { skill_id: String },
+    #[route("/skill?:state")]
+    SkillListPage { state: SkillListState },
+    #[route("/skill/_debug")]
+    SkillDebugPage {},
+    #[route("/skill/:skill_id")]
+    SkillPage { skill_id: String },
+
     #[route("/rune?:state")]
     RuneListPage { state: RuneListState },
     #[route("/rune/_debug")]
@@ -97,7 +102,6 @@ fn MainLayout() -> Element {
                             }
                         }
                     }
-
                 }
                 main { class: "container my-4 mx-auto",
                     Outlet::<Route> {}
@@ -138,10 +142,10 @@ fn NavMenu() -> Element {
             // }
         }
         li {
-            // Link {
-            //     to: Route::SkillListPage { query: SkillListQuery::default() },
-            //     "Skill"
-            // }
+            Link {
+                to: Route::SkillListPage { state: SkillListState::default() },
+                "Skill"
+            }
         }
         li {
             Link {

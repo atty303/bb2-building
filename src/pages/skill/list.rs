@@ -2,23 +2,23 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 use dioxus::prelude::*;
-use dioxus_signals::{use_signal, Signal};
-use fermi::use_read;
+use dioxus::router::router;
 use serde::{Deserialize, Serialize};
 
 use data::skill::Skill;
 
-use crate::atoms::DATABASE;
-use crate::components::{SkillView, SpriteIcon};
-use crate::hooks::{use_modal, use_search_skill, ModalDialogProps};
+use crate::components::SkillView;
+use crate::global::DATABASE;
+use crate::hooks::use_search_skill;
 use crate::pages::Route;
+use crate::ui::SpriteIcon;
 
 #[derive(Default, PartialEq, Clone, Serialize, Deserialize)]
-pub struct SkillListQuery {
+pub struct SkillListState {
     query: Signal<String>,
 }
 
-impl FromStr for SkillListQuery {
+impl FromStr for SkillListState {
     type Err = serde_json::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -26,7 +26,7 @@ impl FromStr for SkillListQuery {
     }
 }
 
-impl Display for SkillListQuery {
+impl Display for SkillListState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match serde_json::to_string(self) {
             Ok(s) => f.write_str(&s),
@@ -36,9 +36,8 @@ impl Display for SkillListQuery {
 }
 
 #[component]
-pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
-    let selected = use_signal(cx, || None);
-    render! {
+pub fn SkillListPage(state: SkillListState) -> Element {
+    rsx! {
         div { class: "text-sm breadcrumbs",
             ul {
                 li { "Home" }
@@ -47,37 +46,28 @@ pub fn SkillListPage(cx: Scope, query: SkillListQuery) -> Element {
         }
 
         SkillList {
-            query: query.query,
+            query: state.query,
             on_search: move |q: String| {
-                let router = dioxus_router::router();
-                router.replace(Route::SkillListPage {
-                    query: SkillListQuery {
+                router().replace(Route::SkillListPage {
+                    state: SkillListState {
                         query: Signal::new(q.clone()),
                     },
                 });
             },
-            selected: selected,
         }
     }
 }
 
 #[component]
-pub fn SkillList<'a>(
-    cx: Scope<'a>,
-    query: Signal<String>,
-    on_search: EventHandler<'a, String>,
-    selected: Signal<Option<Signal<Skill>>>,
-) -> Element {
-    let db = use_read(cx, &DATABASE);
+pub fn SkillList(query: Signal<String>, on_search: EventHandler<String>) -> Element {
+    // let detail_modal = use_modal(cx, "max-w-full h-full p-0".to_string());
 
-    let detail_modal = use_modal(cx, "max-w-full h-full p-0".to_string());
-
-    let search = use_search_skill(cx);
+    let search = use_search_skill();
     if *search.query.peek() != *query.peek() {
-        search.query.set(query.peek().clone());
+        *search.query.write() = query.peek().clone();
     }
 
-    render! {
+    rsx! {
         div {
             div { class: "flex flex-row items-center gap-4",
                 div { class: "relative flex-grow",
@@ -88,7 +78,7 @@ pub fn SkillList<'a>(
                         value: "{query}",
                         oninput: move |e| {
                             let q = e.data.value();
-                            search.query.set(q.clone());
+                            *search.query.write() = q.clone();
                             on_search.call(q.clone());
                         }
                     }
@@ -109,7 +99,7 @@ pub fn SkillList<'a>(
                         "of"
                     }
                     span { class: "font-bold",
-                        "{db.skill.iter().count()}"
+                        "{DATABASE().skill.iter().count()}"
                     }
                 }
             }
@@ -119,62 +109,57 @@ pub fn SkillList<'a>(
                     SkillLink {
                         skill: *skill,
                         on_click: move |skill| {
-                            selected.set(Some(skill));
-                            detail_modal.show_modal(skill, move |_| {});
+                            // detail_modal.show_modal(skill, move |_| {});
                         },
                     }
                 }
             }
 
         }
-        {detail_modal.component(cx, DetailModal)}
+        // {detail_modal.component(cx, DetailModal)}
     }
 }
 
-pub fn DetailModal<'a>(cx: Scope<'a, ModalDialogProps<'a, Skill, i32>>) -> Element {
-    if let Some(skill) = *cx.props.props.read() {
-        render! {
-            div { class: "mt-12",
-                SkillView { skill: skill }
-            }
-        }
-    } else {
-        None
-    }
-}
+// pub fn DetailModal<'a>(cx: Scope<'a, ModalDialogProps<'a, Skill, i32>>) -> Element {
+//     if let Some(skill) = *cx.props.props.read() {
+//         render! {
+//             div { class: "mt-12",
+//                 SkillView { skill: skill }
+//             }
+//         }
+//     } else {
+//         None
+//     }
+// }
 
 #[component]
-fn SkillLink<'a>(
-    cx: Scope<'a>,
-    skill: Signal<Skill>,
-    on_click: EventHandler<'a, Signal<Skill>>,
-) -> Element {
+fn SkillLink(skill: Signal<Skill>, on_click: EventHandler<Signal<Skill>>) -> Element {
     #[component]
-    fn SkillLinkInnerIcon<'a>(
-        cx: Scope,
+    fn SkillLinkInnerIcon(
         skill: Signal<Skill>,
-        class: &'a str,
+        class: &'static str,
         size: i32,
-        on_click: EventHandler<'a, Signal<Skill>>,
+        on_click: EventHandler<Signal<Skill>>,
     ) -> Element {
-        render! {
+        rsx! {
             button { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 {class}",
                 onclick: move |_| on_click.call(skill.clone()),
                 span { class: "relative",
                     SpriteIcon { class: "rounded-md",
-                        sprite: Signal::new(skill.read().modes[0].icon.clone()),
-                        size: *size,
+                        sprite: Signal::new(skill().modes[0].icon.clone()),
+                        size,
                     }
                     span { class: "absolute right-0 bg-black/50 text-white text-xs px-1 text-right",
-                        "{skill.read().name}"
+                        "{skill().name}"
                     }
                 }
             }
         }
     }
 
-    render! {
-        SkillLinkInnerIcon { skill: skill.clone(), class: "inline-block md:hidden", size: 56, on_click: move |e| on_click.call(e) }
-        SkillLinkInnerIcon { skill: skill.clone(), class: "hidden md:inline-block", size: 96, on_click: move |e| on_click.call(e) }
+    let on_click2 = on_click.clone();
+    rsx! {
+        SkillLinkInnerIcon { skill, class: "inline-block md:hidden", size: 56, on_click: move |e| on_click.call(e) }
+        SkillLinkInnerIcon { skill, class: "hidden md:inline-block", size: 96, on_click: move |e| on_click2.call(e) }
     }
 }
