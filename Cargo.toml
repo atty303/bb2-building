@@ -9,7 +9,7 @@ edition = "2021"
 [dependencies]
 data = { path = "./data" }
 
-dioxus = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "87dc409837f1294952a2552068db99dc17d701db", features = ["router", "web"] }
+dioxus = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "458c13fb7424be424271b4ee0b6d7a7e5d95bd0b", features = ["router", "web"] }
 
 wasm-bindgen = "0.2"
 web-sys = { version = "0.3", features = ["Window", "History", "Location", "HtmlDialogElement"] }

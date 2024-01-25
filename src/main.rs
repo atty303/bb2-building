@@ -7,6 +7,9 @@ use crate::app::App;
 
 mod app;
 mod components;
+mod global;
+mod hooks;
+mod search;
 mod ui;
 
 fn main() {

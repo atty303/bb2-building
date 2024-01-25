@@ -4,15 +4,14 @@ use serde::{de::DeserializeOwned, Serialize};
 
 /// A persistent storage hook that can be used to store data across application reloads.
 #[allow(clippy::needless_return)]
-pub fn use_persistent<T: Serialize + DeserializeOwned + Default + 'static>(
-    cx: &ScopeState,
+pub fn use_persistent<T: Serialize + DeserializeOwned + Default + Clone + 'static>(
     // A unique key for the storage entry
     key: impl ToString,
     // A function that returns the initial value if the storage entry is empty
     init: impl FnOnce() -> T,
-) -> &UsePersistent<T> {
+) -> UsePersistent<T> {
     // Use the use_ref hook to create a mutable state for the storage entry
-    let state = use_ref(cx, move || {
+    let state = use_signal(|| {
         // This closure will run when the hook is created
         let key = key.to_string();
         let value = LocalStorage::get(key.as_str()).ok().unwrap_or_else(init);
@@ -21,7 +20,7 @@ pub fn use_persistent<T: Serialize + DeserializeOwned + Default + 'static>(
 
     // Wrap the state in a new struct with a custom API
     // Note: We use use_hook here so that this hook is easier to use in closures in the rsx. Any values with the same lifetime as the ScopeState can be used in the closure without cloning.
-    cx.use_hook(|| UsePersistent {
+    use_hook(|| UsePersistent {
         inner: state.clone(),
     })
 }
@@ -34,7 +33,7 @@ struct StorageEntry<T> {
 /// Storage that persists across application reloads
 #[derive(Clone)]
 pub struct UsePersistent<T: 'static> {
-    inner: UseRef<StorageEntry<T>>,
+    inner: Signal<StorageEntry<T>>,
 }
 
 impl<T: Serialize + DeserializeOwned + Clone + 'static> UsePersistent<T> {

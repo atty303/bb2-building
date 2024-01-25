@@ -52,7 +52,6 @@ pub struct DialogRenderArgs {
 
 /// The main Dialog component.
 #[component]
-// pub fn Dialog<F: FnOnce(&mut Vec<Attribute>, &Element, bool) -> Element + Clone + 'static>(
 pub fn Dialog(
     /// Whether the Dialog is open or not.
     open: bool,
