@@ -157,7 +157,10 @@ pub fn Tooltip(name: String, #[props(default = false)] debug: bool, children: El
                         let parent = dropdown.offset_parent().unwrap();
                         let offset_x = parent.get_bounding_client_rect().x();
 
-                        *popover_offset.write() = Some(x - offset_x - 16.0); // 16 = card-body's padding
+                        tracing::info!("x: {}, offset_x: {}", x, offset_x);
+                        if x < offset_x {
+                            *popover_offset.write() = Some(x - offset_x - 16.0); // 16 = card-body's padding
+                        }
                     }
                 },
                 div { class: "card-body",
