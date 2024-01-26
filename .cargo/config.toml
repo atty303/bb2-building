@@ -1,2 +1,0 @@
-[patch.'https://github.com/atty303/dioxus-headlessui.git']
-dioxus-headlessui = { path = "../dioxus-headlessui" }
