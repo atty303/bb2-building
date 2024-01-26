@@ -1,16 +1,13 @@
 #![allow(non_snake_case)]
 
+use data::LANGUAGES;
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
-
-use data::LANGUAGES;
 use home::Home;
-use rune::{RuneDebugPage, RuneListPage, RunePage};
-use skill::{SkillDebugPage, SkillListPage, SkillPage};
+use rune::{RuneDebugPage, RuneListPage, RuneListState, RunePage};
+use skill::{SkillDebugPage, SkillListPage, SkillListState, SkillPage};
 
 use crate::global::{LANGUAGE, THEME};
-use crate::pages::rune::RuneListState;
-use crate::pages::skill::SkillListState;
 use crate::ui::Icon;
 
 mod home;
