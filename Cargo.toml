@@ -10,8 +10,8 @@ edition = "2021"
 data = { path = "./data" }
 dioxus-headlessui = { git = "https://github.com/atty303/dioxus-headlessui.git" }
 
-dioxus = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "458c13fb7424be424271b4ee0b6d7a7e5d95bd0b", features = ["router", "web"] }
-dioxus-signals = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "458c13fb7424be424271b4ee0b6d7a7e5d95bd0b", features = ["serde"] }
+dioxus = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "c3edf99b6367f6b21989ed9c453790be74a1ff76", features = ["router", "web"] }
+dioxus-signals = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "c3edf99b6367f6b21989ed9c453790be74a1ff76", features = ["serde"] }
 
 wasm-bindgen = "0.2"
 web-sys = { version = "0.3", features = ["Window", "History", "Location", "HtmlDialogElement"] }

@@ -1,8 +1,10 @@
-use dioxus::html::geometry::euclid::Rect;
 use dioxus::prelude::*;
+use dioxus::web::WebEventExt;
+use wasm_bindgen::JsCast;
+
+use data::token::{Token, Tokens};
 
 use crate::global::DATABASE;
-use data::token::{Token, Tokens};
 
 #[component]
 pub fn Description(tokens: Tokens, #[props(default = false)] debug: bool) -> Element {
@@ -125,14 +127,10 @@ pub fn Tooltip(name: String, #[props(default = false)] debug: bool, children: El
     let title = DATABASE().term.get(&format!("NM-{}", name));
     let body = DATABASE().term.get(&format!("DC-{}", name));
 
-    let popover_position = use_signal(|| None::<Rect<f64, f64>>);
+    let popover_offset = use_signal(|| None::<f64>);
     let popover_style = use_memo(move || {
-        if let Some(r) = popover_position() {
-            if r.origin.x < 0.0 {
-                format!("position: absolute; right: {}px;", r.origin.x)
-            } else {
-                String::default()
-            }
+        if let Some(offset) = popover_offset() {
+            format!("right: {}px;", offset)
         } else {
             String::default()
         }
@@ -140,7 +138,7 @@ pub fn Tooltip(name: String, #[props(default = false)] debug: bool, children: El
 
     rsx! {
         div { class: "dropdown dropdown-end",
-            div { class: "",
+            div {
                 tabindex: 0,
                 role: "button",
                 {children}
@@ -151,7 +149,15 @@ pub fn Tooltip(name: String, #[props(default = false)] debug: bool, children: El
                 onmounted: move |e| {
                     async move {
                         let r = e.data.get_client_rect().await;
-                        *popover_position.write() = Some(r.unwrap());
+                        let x = r.unwrap().origin.x;
+
+                        let el = e.web_event().dyn_ref::<web_sys::HtmlElement>().unwrap();
+                        let dropdown = el.offset_parent().unwrap();
+                        let dropdown = dropdown.dyn_ref::<web_sys::HtmlElement>().unwrap();
+                        let parent = dropdown.offset_parent().unwrap();
+                        let offset_x = parent.get_bounding_client_rect().x();
+
+                        *popover_offset.write() = Some(x - offset_x - 16.0); // 16 = card-body's padding
                     }
                 },
                 div { class: "card-body",
