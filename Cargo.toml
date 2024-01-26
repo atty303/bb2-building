@@ -8,7 +8,7 @@ edition = "2021"
 
 [dependencies]
 data = { path = "./data" }
-dioxus-headlessui = { path = "../dioxus-headlessui" }
+dioxus-headlessui = { git = "https://github.com/atty303/dioxus-headlessui.git" }
 
 dioxus = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "458c13fb7424be424271b4ee0b6d7a7e5d95bd0b", features = ["router", "web"] }
 dioxus-signals = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "458c13fb7424be424271b4ee0b6d7a7e5d95bd0b", features = ["serde"] }

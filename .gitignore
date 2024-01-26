@@ -1,5 +1,6 @@
 /dist
 /dump
+.cargo/
 node_modules/
 target/
 public/tailwind.css

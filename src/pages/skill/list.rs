@@ -61,7 +61,6 @@ pub fn SkillListPage(state: SkillListState) -> Element {
 
 #[component]
 pub fn SkillList(query: Signal<String>, on_search: EventHandler<String>) -> Element {
-    // let detail_modal = use_modal(cx, "max-w-full h-full p-0".to_string());
     let detail_open = use_signal(|| false);
     let detail_skill = use_signal(|| None);
 
@@ -122,22 +121,26 @@ pub fn SkillList(query: Signal<String>, on_search: EventHandler<String>) -> Elem
 
         DetailDialog {
             open: detail_open,
-            skill: detail_skill,
+            maybe_skill: detail_skill,
         }
     }
 }
 
 #[component]
-pub fn DetailDialog(open: Signal<bool>, skill: Signal<Option<Signal<Skill>>>) -> Element {
-    if let Some(skill) = skill() {
+pub fn DetailDialog(open: Signal<bool>, maybe_skill: Signal<Option<Signal<Skill>>>) -> Element {
+    if let Some(skill) = maybe_skill() {
         rsx! {
-            Dialog {
+            Dialog { class: "modal backdrop:backdrop-blur",
                 open: open(),
-                // DialogPanel {
-                //     div { class: "mt-12",
-                //         SkillView { skill }
-                //     }
-                // }
+                on_close: move |_| {
+                    *open.write() = false;
+                    *maybe_skill.write() = None;
+                },
+                DialogPanel { class: "modal-box max-w-full h-full p-0",
+                    div { class: "mt-12",
+                        SkillView { skill }
+                    }
+                }
             }
         }
     } else {
