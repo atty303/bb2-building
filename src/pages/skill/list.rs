@@ -3,7 +3,6 @@ use std::str::FromStr;
 
 use dioxus::prelude::*;
 use dioxus::router::router;
-use dioxus_headlessui::dialog::{Dialog, DialogPanel};
 use serde::{Deserialize, Serialize};
 
 use crate::components::SkillView;
@@ -12,7 +11,7 @@ use data::skill::Skill;
 use crate::global::DATABASE;
 use crate::hooks::use_search_skill;
 use crate::pages::Route;
-use crate::ui::{Icon, SpriteIcon};
+use crate::ui::{Dialog, SpriteIcon};
 
 #[derive(Default, PartialEq, Clone, Serialize, Deserialize)]
 pub struct SkillListState {
@@ -130,29 +129,13 @@ pub fn SkillList(query: Signal<String>, on_search: EventHandler<String>) -> Elem
 pub fn DetailDialog(open: Signal<bool>, maybe_skill: Signal<Option<Signal<Skill>>>) -> Element {
     if let Some(skill) = maybe_skill() {
         rsx! {
-            Dialog { class: "modal backdrop:backdrop-blur",
-                open: open(),
+            Dialog {
+                open,
                 on_close: move |_| {
                     *open.write() = false;
                     *maybe_skill.write() = None;
                 },
-                DialogPanel { class: "modal-box max-w-full h-full p-0",
-                    div { class: "sticky block top-0 right-0 left-0 w-full h-0 z-50",
-                        button { class: "btn btn-sm btn-circle btn-neutral absolute right-2 top-2",
-                            tabindex: -1,
-                            onclick: move |_| {
-                                *open.write() = false;
-                                *maybe_skill.write() = None;
-                            },
-                            Icon {
-                                svg: r#"<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>"#,
-                            }
-                        }
-                    }
-                    div { class: "mt-12",
-                        SkillView { skill }
-                    }
-                }
+                SkillView { skill }
             }
         }
     } else {

@@ -4,13 +4,16 @@ use data::LANGUAGES;
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 use home::Home;
+use planner::PlannerPage;
 use rune::{RuneDebugPage, RuneListPage, RuneListState, RunePage};
 use skill::{SkillDebugPage, SkillListPage, SkillListState, SkillPage};
 
 use crate::global::{LANGUAGE, THEME};
+use crate::pages::planner::PlannerState;
 use crate::ui::Icon;
 
 mod home;
+mod planner;
 mod rune;
 mod skill;
 
@@ -20,9 +23,9 @@ pub enum Route {
     #[route("/")]
     Home {},
 
-    // #[route("/planner?:state")]
-    // PlannerPage { state: PlannerState },
-    //
+    #[route("/planner?:state")]
+    PlannerPage { state: PlannerState },
+
     #[route("/skill?:state")]
     SkillListPage { state: SkillListState },
     #[route("/skill/_debug")]
@@ -71,14 +74,12 @@ fn MainLayout() -> Element {
                                 label { class: "btn btn-square btn-ghost",
                                     r#for: "main-drawer-toggle",
                                     aria_label: "open sidebar",
-                                    Icon {
-                                        class: "w-6 h-6",
+                                    Icon { class: "w-6 h-6",
                                         svg: r#"<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" /></svg>"#,
                                     }
                                 }
                             }
-                            Link {
-                                class: "link link-hover text-lg px-2 font-['Pixelify_Sans']",
+                            Link { class: "link link-hover text-lg px-2 font-['Pixelify_Sans']",
                                 to: Route::Home {},
                                 "BB2B"
                             }
@@ -88,8 +89,7 @@ fn MainLayout() -> Element {
                                 }
                             }
                         }
-                        div {
-                            class: "navbar-end",
+                        div { class: "navbar-end",
                             ThemeSelect {}
                             LanguageSelect {}
                             a { class: "btn btn-ghost btn-sm rounded-btn",
@@ -132,10 +132,10 @@ fn MainLayout() -> Element {
 fn NavMenu() -> Element {
     rsx! {
         li {
-            // Link {
-            //     to: Route::PlannerPage { state: PlannerState::default() },
-            //     "Planner"
-            // }
+            Link {
+                to: Route::PlannerPage { state: PlannerState::default() },
+                "Planner"
+            }
         }
         li {
             Link {
