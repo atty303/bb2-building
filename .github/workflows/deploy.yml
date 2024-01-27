@@ -20,7 +20,7 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
 
-      - name: Install trunk
+      - name: Install dx
         uses: baptiste0928/cargo-install@v2
         with:
           crate: dioxus-cli
