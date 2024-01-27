@@ -1,6 +1,9 @@
+use base64::prelude::BASE64_URL_SAFE_NO_PAD;
+use base64::Engine;
 use std::fmt::Display;
 use std::str::FromStr;
 
+use serde::de::Error;
 use serde::{Deserialize, Serialize};
 
 use data::{RuneHash, SkillHash};
@@ -26,17 +29,23 @@ struct SlotState {
 }
 
 impl FromStr for PlannerState {
-    type Err = serde_json::Error;
+    type Err = rmp_serde::decode::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        serde_json::from_str(s)
+        let bytes = BASE64_URL_SAFE_NO_PAD
+            .decode(s.as_bytes())
+            .map_err(|_| rmp_serde::decode::Error::custom("invalid base64"))?;
+        rmp_serde::decode::from_slice(&bytes)
     }
 }
 
 impl Display for PlannerState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match serde_json::to_string(self) {
-            Ok(s) => f.write_str(&s),
+        match rmp_serde::to_vec(self) {
+            Ok(bytes) => {
+                let s = BASE64_URL_SAFE_NO_PAD.encode(&bytes);
+                f.write_str(&s)
+            }
             Err(_) => Err(std::fmt::Error),
         }
     }

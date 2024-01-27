@@ -7,14 +7,14 @@ A build planner for BB2 game.
 ### Setup
 
 ```bash
-cargo install trunk
+cargo install dioxus-cli
 npm ci
 ```
 
 ### Serve local server
 
 ```bash
-trunk serve
+npm run serve
 ```
 
 ### Build

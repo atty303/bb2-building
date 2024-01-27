@@ -62,13 +62,13 @@ fn PlannerSlot(index: i32, state: SlotState, on_click: EventHandler<()>) -> Elem
         .and_then(|hash| DATABASE().skill.get(&hash).map(|s| Signal::new(s.clone())));
 
     rsx! {
-        div { class: "collapse collapse-arrow",
-            tabindex: "{index}",
-            div { class: "collapse-title px-2 py-1",
-                span { class: "badge badge-neutral mr-2",
-                    "{index + 1}"
-                }
-                if let Some(skill) = maybe_skill {
+        if let Some(skill) = maybe_skill {
+            div { class: "collapse collapse-arrow",
+                tabindex: "{index}",
+                div { class: "collapse-title px-2 py-1",
+                    span { class: "badge badge-neutral mr-2",
+                        "{index + 1}"
+                    }
                     span { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 inline-block",
                         onclick: move |_| on_click.call(()),
                         span { class: "relative",
@@ -81,16 +81,25 @@ fn PlannerSlot(index: i32, state: SlotState, on_click: EventHandler<()>) -> Elem
                     span { class: "ml-2",
                         "{skill().name}"
                     }
-                } else {
-                    button { class: "ml-2 btn btn-primary btn-wide",
-                        onclick: move |_| on_click.call(()),
-                        "Click to select skill"
-                    }
+                }
+                div { class: "collapse-content",
+                    SkillView { skill: skill }
+
+                    // for i in 0..5 {
+                    //     button { class: "ml-2 btn btn-primary btn-wide",
+                    //         "Click to select rune"
+                    //     }
+                    // }
                 }
             }
-            div { class: "collapse-content",
-                if let Some(skill) = maybe_skill {
-                    SkillView { skill: skill }
+        } else {
+            div { class: "px-2 py-1",
+                span { class: "badge badge-neutral mr-2",
+                    "{index + 1}"
+                }
+                button { class: "ml-2 btn btn-primary btn-wide",
+                    onclick: move |_| on_click.call(()),
+                    "Click to select skill"
                 }
             }
         }

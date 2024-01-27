@@ -2851,6 +2851,7 @@ name = "web"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "base64",
  "data",
  "dioxus 0.4.3 (git+https://github.com/DioxusLabs/dioxus.git?rev=c3edf99b6367f6b21989ed9c453790be74a1ff76)",
  "dioxus-headlessui",
@@ -2861,6 +2862,7 @@ dependencies = [
  "indicium",
  "ref-cast",
  "reqwest",
+ "rmp-serde",
  "serde",
  "serde_json",
  "tracing",
