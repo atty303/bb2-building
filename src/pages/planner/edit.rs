@@ -64,7 +64,7 @@ fn PlannerSlot(index: i32, state: SlotState, on_click: EventHandler<()>) -> Elem
     rsx! {
         div { class: "collapse collapse-arrow",
             tabindex: "{index}",
-            div { class: "collapse-title px-2 py-0",
+            div { class: "collapse-title px-2 py-1",
                 span { class: "badge badge-neutral mr-2",
                     "{index + 1}"
                 }
@@ -82,18 +82,9 @@ fn PlannerSlot(index: i32, state: SlotState, on_click: EventHandler<()>) -> Elem
                         "{skill().name}"
                     }
                 } else {
-                    span { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 inline-block",
+                    button { class: "ml-2 btn btn-primary btn-wide",
                         onclick: move |_| on_click.call(()),
-                        span { class: "relative",
-                            span { class: "inline-block align-middle overflow-hidden",
-                                width: "48px",
-                                height: "48px",
-                                line_height: "48px",
-                                Icon { class: "text-primary",
-                                    svg: r#"<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>"#,
-                                }
-                            }
-                        }
+                        "Click to select skill"
                     }
                 }
             }
