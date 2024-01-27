@@ -4,12 +4,11 @@ use data::LANGUAGES;
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 use home::Home;
-use planner::PlannerPage;
+use planner::{PlannerEditSlotPage, PlannerPage, PlannerState};
 use rune::{RuneDebugPage, RuneListPage, RuneListState, RunePage};
 use skill::{SkillDebugPage, SkillListPage, SkillListState, SkillPage};
 
 use crate::global::{LANGUAGE, THEME};
-use crate::pages::planner::PlannerState;
 use crate::ui::Icon;
 
 mod home;
@@ -25,6 +24,8 @@ pub enum Route {
 
     #[route("/planner?:state")]
     PlannerPage { state: PlannerState },
+    #[route("/planner/:index?:state")]
+    PlannerEditSlotPage { index: i32, state: PlannerState },
 
     #[route("/skill?:state")]
     SkillListPage { state: SkillListState },

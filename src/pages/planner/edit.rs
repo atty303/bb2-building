@@ -1,9 +1,12 @@
 use dioxus::prelude::*;
+use dioxus::router::router;
 use dioxus_signals::Signal;
 
 use crate::components::SkillView;
 use crate::global::DATABASE;
 use crate::pages::planner::{PlannerState, SlotState};
+use crate::pages::skill::SkillList;
+use crate::pages::Route;
 use crate::ui::{Icon, SpriteIcon};
 
 #[component]
@@ -18,14 +21,10 @@ pub fn PlannerPage(state: PlannerState) -> Element {
                         let state = state.clone();
                         move |_| {
                             let state = state.clone();
-                            // skill_modal.show_modal(Signal::new(()), move |e| {
-                            //     let mut state = state.clone();
-                            //     state.build.slots[i as usize].skill = Some(e);
-                            //     let router = dioxus_router::router();
-                            //     router.replace(Route::PlannerPage {
-                            //         state: state,
-                            //     });
-                            // });
+                            router().replace(Route::PlannerEditSlotPage {
+                                state,
+                                index: i,
+                            });
                         }
                     }
                 }
@@ -34,35 +33,27 @@ pub fn PlannerPage(state: PlannerState) -> Element {
     }
 }
 
-// pub fn SkillModal(cx: Scope<'a, ModalDialogProps<'a, (), SkillHash>>) -> Element {
-//     let query = use_signal(|| "".to_string());
-//     let selected = use_signal(|| None::<Signal<Skill>>);
-//     render! {
-//         div { class: "sticky top-0 bg-base-300 p-2 z-10 mb-2",
-//             if let Some(skill) = *selected.read() {
-//                 button { class: "btn btn-primary btn-sm",
-//                     onclick: move |_| {
-//                         cx.props.on_result.call(skill().hash);
-//                     },
-//                     "Select {skill().name}"
-//                 }
-//             } else {
-//                 button { class: "btn btn-primary btn-sm btn-disabled",
-//                     "Select"
-//                 }
-//             }
-//         }
-//         div { class: "p-4",
-//             SkillList {
-//                 query: query.clone(),
-//                 on_search: move |q: String| {
-//                     query.set(q);
-//                 },
-//                 selected: selected,
-//             }
-//         }
-//     }
-// }
+#[component]
+pub fn PlannerEditSlotPage(state: PlannerState, index: i32) -> Element {
+    let query = use_signal(|| String::default());
+
+    rsx! {
+        SkillList {
+            query,
+            on_search: move |q: String| {
+                *query.write() = q;
+            },
+            on_select: move |hash| {
+                let mut state = state.clone();
+                state.build.slots[index as usize].skill = Some(hash);
+                let router = dioxus_router::router();
+                router.replace(Route::PlannerPage {
+                    state: state,
+                });
+            },
+        }
+    }
+}
 
 #[component]
 fn PlannerSlot(index: i32, state: SlotState, on_click: EventHandler<()>) -> Element {

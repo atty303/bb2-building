@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::components::SkillView;
 use data::skill::Skill;
+use data::SkillHash;
 
 use crate::global::DATABASE;
 use crate::hooks::use_search_skill;
@@ -59,7 +60,11 @@ pub fn SkillListPage(state: SkillListState) -> Element {
 }
 
 #[component]
-pub fn SkillList(query: Signal<String>, on_search: EventHandler<String>) -> Element {
+pub fn SkillList(
+    query: Signal<String>,
+    on_search: EventHandler<String>,
+    on_select: Option<EventHandler<SkillHash>>,
+) -> Element {
     let detail_open = use_signal(|| false);
     let detail_skill = use_signal(|| None);
 
@@ -121,12 +126,19 @@ pub fn SkillList(query: Signal<String>, on_search: EventHandler<String>) -> Elem
         DetailDialog {
             open: detail_open,
             maybe_skill: detail_skill,
+            selectable: on_select.is_some(),
+            on_select: move |e| on_select.clone().map_or((), |h| h.call(e)),
         }
     }
 }
 
 #[component]
-pub fn DetailDialog(open: Signal<bool>, maybe_skill: Signal<Option<Signal<Skill>>>) -> Element {
+pub fn DetailDialog(
+    open: Signal<bool>,
+    maybe_skill: Signal<Option<Signal<Skill>>>,
+    selectable: bool,
+    on_select: EventHandler<SkillHash>,
+) -> Element {
     if let Some(skill) = maybe_skill() {
         rsx! {
             Dialog {
@@ -135,7 +147,21 @@ pub fn DetailDialog(open: Signal<bool>, maybe_skill: Signal<Option<Signal<Skill>
                     *open.write() = false;
                     *maybe_skill.write() = None;
                 },
-                SkillView { skill }
+                if selectable {
+                    div { class: "sticky top-0 h-0 p-2",
+                        button { class: "btn btn-primary btn-sm",
+                            onclick: move |_| {
+                                on_select.call(skill().hash.clone());
+                                *open.write() = false;
+                                *maybe_skill.write() = None;
+                            },
+                            "Select"
+                        }
+                    }
+                }
+                div { class: "mt-12",
+                    SkillView { skill }
+                }
             }
         }
     } else {

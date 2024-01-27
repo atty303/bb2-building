@@ -17,7 +17,7 @@ pub fn Dialog(
                 on_close.as_ref().map(|h| h.call(()));
             },
             dioxus_headlessui::dialog::DialogPanel { class: "modal-box max-w-full h-full p-0",
-                div { class: "sticky block top-0 right-0 left-0 w-full h-0 z-50",
+                div { class: "sticky top-0 right-0 left-0 w-full h-0 z-50",
                     button { class: "btn btn-sm btn-circle btn-neutral absolute right-2 top-2",
                         tabindex: -1,
                         onclick: move |_| {
@@ -29,9 +29,7 @@ pub fn Dialog(
                         }
                     }
                 }
-                div { class: "mt-12",
-                    {children}
-                }
+                {children}
             }
         }
     }
