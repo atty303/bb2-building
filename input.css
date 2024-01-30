@@ -11,11 +11,22 @@
     --w: 0px;
     --h: 0px;
 
-    background-image: url("https://bb2b-assets.atty303.ninja/sactx-0-8192x4096-Uncompressed-IconAtlas-eaf9cd50.1.webp");
     width: calc(var(--w) * var(--s));
     min-width: calc(var(--w) * var(--s));
     height: calc(var(--h) * var(--s));
     min-height: calc(var(--h) * var(--s));
     background-position: calc(0px - var(--x) * var(--s)) calc(0px - var(--y) * var(--s));
-    background-size: calc(8192px * var(--s)) calc(4096px * var(--s));
+}
+
+.sprite-1 {
+    background-image: url("https://bb2b-assets.atty303.ninja/sactx-0-4096x4096-Uncompressed-IconAtlasCat1-f596d835.webp");
+    background-size: calc(4096px * var(--s)) calc(4096px * var(--s));
+}
+.sprite-2 {
+    background-image: url("https://bb2b-assets.atty303.ninja/sactx-0-2048x1024-Uncompressed-IconAtlasCat2-f796d700.webp");
+    background-size: calc(2048px * var(--s)) calc(1024px * var(--s));
+}
+.sprite-3 {
+    background-image: url("https://bb2b-assets.atty303.ninja/sactx-0-4096x4096-Uncompressed-IconAtlasCat3-5062fc32.webp");
+    background-size: calc(4096px * var(--s)) calc(4096px * var(--s));
 }

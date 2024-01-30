@@ -112,6 +112,7 @@ fn MainLayout() -> Element {
                                 "atty303"
                             }
                             ". This site is not affiliated with Nussygame."
+                            " Game version is 1.0.9"
                         }
                     }
                 }

@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 #[component]
 pub fn Sprite(sprite: Signal<data::Sprite>, scale: f64) -> Element {
     rsx! {
-        span { class: "inline-block sprite",
+        span { class: "inline-block sprite sprite-{sprite().index}",
             style: "--x: {sprite().x}px; --y: {sprite().y}px; --w: {sprite().width}px; --h: {sprite().height}px; --s: {scale}"
         }
     }
