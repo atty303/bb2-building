@@ -2,11 +2,11 @@ use anyhow::anyhow;
 use dioxus::prelude::*;
 use dioxus_router::prelude::{Router, RouterConfig, RouterConfigFactory, WebHistory};
 
+use data::{Database, LANGUAGES};
+
 use crate::global::{DATABASE, LANGUAGE, SEARCH_CATALOGS, THEME};
 use crate::hooks::{use_on_create, use_persistent};
 use crate::pages::Route;
-use data::{Database, LANGUAGES};
-
 use crate::search::{RuneSearch, SearchCatalogs, SkillSearch};
 
 async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
@@ -31,7 +31,7 @@ async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
 
 #[component]
 pub fn App() -> Element {
-    let theme_persistent = use_persistent("theme", || "dark".to_string());
+    let mut theme_persistent = use_persistent("theme", || "dark".to_string());
     use_on_create(|| {
         to_owned![theme_persistent];
         async move {
@@ -45,7 +45,7 @@ pub fn App() -> Element {
             .unwrap();
     });
 
-    let language_persistent = use_persistent("language", || "en".to_string());
+    let mut language_persistent = use_persistent("language", || "en".to_string());
     use_on_create(|| {
         to_owned![language_persistent];
         async move {
@@ -94,24 +94,43 @@ pub fn App() -> Element {
         }
     });
 
-    match *database_future.value().read() {
-        Some(Some(Ok(_))) => {
-            rsx! {
-                Router::<Route> {
-                    config: RouterConfigFactory::from(|| RouterConfig::default().history(WebHistory::<Route>::default())),
+    match database_future.value() {
+        None => None,
+        Some(v) => match *v.read() {
+            None => None,
+            Some(Ok(_)) => {
+                rsx! {
+                    Router::<Route> {
+                        config: RouterConfigFactory::from(|| RouterConfig::default().history(WebHistory::<Route>::default())),
+                    }
                 }
             }
-        }
-        Some(Some(Err(ref err))) => {
-            rsx! {
-                "An error occurred while fetching database: {err}"
+            Some(Err(ref err)) => {
+                rsx! {
+                    "An error occurred while fetching database: {err}"
+                }
             }
-        }
-        Some(None) | None => {
-            // While loading database
-            rsx! {
-                ""
-            }
-        }
+        },
     }
+
+    // match database_future.value() {
+    //     Some(Some(Ok(_))) => {
+    //         rsx! {
+    //             Router::<Route> {
+    //                 config: RouterConfigFactory::from(|| RouterConfig::default().history(WebHistory::<Route>::default())),
+    //             }
+    //         }
+    //     }
+    //     Some(Some(Err(ref err))) => {
+    //         rsx! {
+    //             "An error occurred while fetching database: {err}"
+    //         }
+    //     }
+    //     Some(None) | None => {
+    //         // While loading database
+    //         rsx! {
+    //             ""
+    //         }
+    //     }
+    // }
 }

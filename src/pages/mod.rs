@@ -2,7 +2,6 @@
 
 use data::LANGUAGES;
 use dioxus::prelude::*;
-use dioxus_router::prelude::*;
 use home::Home;
 use planner::{PlannerEditSlotPage, PlannerPage, PlannerState};
 use rune::{RuneDebugPage, RuneListPage, RuneListState, RunePage};

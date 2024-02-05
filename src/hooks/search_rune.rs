@@ -14,7 +14,7 @@ pub struct UseSearchRune {
 
 pub fn use_search_rune() -> UseSearchRune {
     let query = use_signal(|| String::new());
-    let results = use_signal(|| Vec::<Signal<Rune>>::new());
+    let mut results = use_signal(|| Vec::<Signal<Rune>>::new());
 
     use_effect(move || {
         let hashes: Vec<RuneHash> = if query().is_empty() {

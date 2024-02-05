@@ -127,7 +127,7 @@ pub fn Tooltip(name: String, #[props(default = false)] debug: bool, children: El
     let title = DATABASE().term.get(&format!("NM-{}", name));
     let body = DATABASE().term.get(&format!("DC-{}", name));
 
-    let popover_offset = use_signal(|| None::<f64>);
+    let mut popover_offset = use_signal(|| None::<f64>);
     let popover_style = use_memo(move || {
         if let Some(offset) = popover_offset() {
             format!("right: {}px;", offset)

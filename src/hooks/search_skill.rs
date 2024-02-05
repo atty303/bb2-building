@@ -11,7 +11,7 @@ pub struct UseSearchSkill {
 
 pub fn use_search_skill() -> UseSearchSkill {
     let query = use_signal(|| String::new());
-    let results = use_signal(|| Vec::<Signal<Skill>>::new());
+    let mut results = use_signal(|| Vec::<Signal<Skill>>::new());
 
     use_effect(move || {
         let hashes: Vec<SkillHash> = if query().is_empty() {

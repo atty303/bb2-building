@@ -65,10 +65,10 @@ pub fn SkillList(
     on_search: EventHandler<String>,
     on_select: Option<EventHandler<SkillHash>>,
 ) -> Element {
-    let detail_open = use_signal(|| false);
-    let detail_skill = use_signal(|| None);
+    let mut detail_open = use_signal(|| false);
+    let mut detail_skill = use_signal(|| None);
 
-    let search = use_search_skill();
+    let mut search = use_search_skill();
     if *search.query.peek() != *query.peek() {
         *search.query.write() = query.peek().clone();
     }

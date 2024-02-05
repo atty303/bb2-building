@@ -7,7 +7,7 @@ use crate::global::DATABASE;
 use crate::pages::planner::{PlannerState, SlotState};
 use crate::pages::skill::SkillList;
 use crate::pages::Route;
-use crate::ui::{Icon, SpriteIcon};
+use crate::ui::SpriteIcon;
 
 #[component]
 pub fn PlannerPage(state: PlannerState) -> Element {
@@ -35,7 +35,7 @@ pub fn PlannerPage(state: PlannerState) -> Element {
 
 #[component]
 pub fn PlannerEditSlotPage(state: PlannerState, index: i32) -> Element {
-    let query = use_signal(|| String::default());
+    let mut query = use_signal(|| String::default());
 
     rsx! {
         SkillList {

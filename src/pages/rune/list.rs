@@ -34,7 +34,7 @@ impl Display for RuneListState {
 
 #[component]
 pub fn RuneListPage(state: RuneListState) -> Element {
-    let search = use_search_rune();
+    let mut search = use_search_rune();
     if *search.query.peek() != *state.query.peek() {
         *search.query.write() = state.query.peek().clone();
     }
