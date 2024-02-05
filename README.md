@@ -34,7 +34,7 @@ npm run build
    ```
 5. Run in C# Console.
    ```csharp
-   BGJson.Export(BGRepo.I, "dump\\db.json");
+   BGJson.Export(BGRepo.I, "db.json");
    ```
 6. Install [Asset Ripper](https://github.com/AssetRipper/AssetRipper).
 7. Run Asset Ripper and select `File -> Open -> Open Folder`.
