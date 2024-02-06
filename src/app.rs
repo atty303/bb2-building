@@ -18,13 +18,12 @@ async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
 
         let database = {
             let res = reqwest::get(format!("{}i18n/{}/database.msgpack", base_uri, lang)).await?;
-            // let body = res.bytes().await?;
-            // let cursor = std::io::Cursor::new(body);
-            // Database::read(cursor)?
+            let body = res.bytes().await?;
+            let cursor = std::io::Cursor::new(body);
+            Database::read(cursor)?
         };
 
-        // Ok(database)
-        Err(anyhow!("unknown language: {}", lang))
+        Ok(database)
     } else {
         Err(anyhow!("unknown language: {}", lang))
     }
@@ -69,51 +68,48 @@ pub fn App() -> Element {
     let database_future = use_resource(|| async move {
         if let Some(lang) = LANGUAGE() {
             let db = fetch_database(&lang).await;
-            // match db {
-            //     Ok(v) => {
-            //         let skill = &v.skill;
-            //         let rune = &v.rune;
-            //         let catalogs = SearchCatalogs {
-            //             skill: crate::search::create_catalog::<SkillSearch, SkillSearch, SkillSearch>(
-            //                 skill.clone(),
-            //                 lang.clone(),
-            //             ),
-            //             rune: crate::search::create_catalog::<RuneSearch, RuneSearch, RuneSearch>(
-            //                 rune.clone(),
-            //                 lang.clone(),
-            //             ),
-            //         };
-            //
-            //         *SEARCH_CATALOGS.write() = catalogs;
-            //         *DATABASE.write() = v;
-            //         Some(Ok(()))
-            //     }
-            //     Err(e) => Some(Err(e)),
-            // }
-            None::<()>
+            match db {
+                Ok(v) => {
+                    let skill = &v.skill;
+                    let rune = &v.rune;
+                    let catalogs = SearchCatalogs {
+                        skill: crate::search::create_catalog::<SkillSearch, SkillSearch, SkillSearch>(
+                            skill.clone(),
+                            lang.clone(),
+                        ),
+                        rune: crate::search::create_catalog::<RuneSearch, RuneSearch, RuneSearch>(
+                            rune.clone(),
+                            lang.clone(),
+                        ),
+                    };
+
+                    *SEARCH_CATALOGS.write() = catalogs;
+                    *DATABASE.write() = v;
+                    Some(Ok(()))
+                }
+                Err(e) => Some(Err(e)),
+            }
         } else {
             None
         }
     });
 
-    // match database_future.suspend() {
-    //     None => None,
-    //     Some(v) => match *v.read() {
-    //         None => None,
-    //         Some(Ok(_)) => {
-    //             // rsx! {
-    //             //     Router::<Route> {
-    //             //         config: RouterConfigFactory::from(|| RouterConfig::default().history(WebHistory::<Route>::default())),
-    //             //     }
-    //             // }
-    //             None
-    //         }
-    //         Some(Err(ref err)) => {
-    //             rsx! {
-    //                 "An error occurred while fetching database: {err}"
-    //             }
-    //         }
-    //     },
-    // }
-    None
+    match database_future.value().as_ref() {
+        None => None,
+        Some(v) => match *v {
+            None => None,
+            Some(Ok(_)) => {
+                rsx! {
+                    Router::<Route> {
+                        config: RouterConfigFactory::from(|| RouterConfig::default().history(WebHistory::<Route>::default())),
+                    }
+                }
+            }
+            Some(Err(ref err)) => {
+                rsx! {
+                    "An error occurred while fetching database: {err}"
+                }
+            }
+        },
+    }
 }

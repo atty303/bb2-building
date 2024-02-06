@@ -10,8 +10,8 @@ edition = "2021"
 data = { path = "./data" }
 dioxus-headlessui = { git = "https://github.com/atty303/dioxus-headlessui.git" }
 
-dioxus = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "e767e49d5e79ae2960d16883fdb2b67eda00d206", features = ["router", "web"] }
-dioxus-signals = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "e767e49d5e79ae2960d16883fdb2b67eda00d206", features = ["serde"] }
+dioxus = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc", features = ["router", "web"] }
+dioxus-signals = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc", features = ["serde"] }
 
 wasm-bindgen = "0.2"
 web-sys = { version = "0.3", features = ["Window", "History", "Location", "HtmlDialogElement", "DomRect"] }
@@ -34,3 +34,5 @@ getrandom = { version = "0.2", features = ["js"] }
 
 anyhow = "1.0"
 ref-cast = "1.0"
+
+markdown-it = "0.6"

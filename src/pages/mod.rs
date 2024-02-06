@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use build::BuildEditPage;
 use data::LANGUAGES;
 use dioxus::prelude::*;
 use home::Home;
@@ -10,6 +11,7 @@ use skill::{SkillDebugPage, SkillListPage, SkillListState, SkillPage};
 use crate::global::{LANGUAGE, THEME};
 use crate::ui::Icon;
 
+mod build;
 mod home;
 mod planner;
 mod rune;
@@ -20,6 +22,9 @@ pub enum Route {
     #[layout(MainLayout)]
     #[route("/")]
     Home {},
+
+    #[route("/build")]
+    BuildEditPage {},
 
     #[route("/planner?:state")]
     PlannerPage { state: PlannerState },
@@ -136,6 +141,12 @@ fn NavMenu() -> Element {
             Link {
                 to: Route::PlannerPage { state: PlannerState::default() },
                 "Planner"
+            }
+        }
+        li {
+            Link {
+                to: Route::BuildEditPage { },
+                "Build"
             }
         }
         li {
