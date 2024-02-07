@@ -14,7 +14,7 @@ pub fn SpriteIcon(sprite: Signal<data::Sprite>, size: i32, class: &'static str) 
     let sprite_size = sprite().width.max(sprite().height);
     let scale = size as f64 / sprite_size as f64;
     rsx! {
-        span { class: "inline-block align-middle bg-black overflow-hidden {class}",
+        span { class: "inline-block bg-black overflow-hidden {class}",
             width: "{size}px",
             height: "{size}px",
             line_height: "{size}px",

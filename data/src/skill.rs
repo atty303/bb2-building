@@ -242,6 +242,10 @@ impl SkillRepository {
         self.order.iter().map(move |k| &self.inner[k])
     }
 
+    pub fn find(&self, name: &str) -> Option<&Skill> {
+        self.inner.values().find(|skill| skill.name == name)
+    }
+
     pub fn rarity_range(&self) -> Range<i8> {
         let mut min = i8::MAX;
         let mut max = i8::MIN;
