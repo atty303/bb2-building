@@ -1,6 +1,7 @@
 import {EditorView, basicSetup} from "codemirror";
 import {EditorState} from "@codemirror/state";
 import {markdown} from "@codemirror/lang-markdown";
+import {basicDark} from "cm6-theme-basic-dark";
 
 export class CodeMirror {
     constructor(parent, onChange) {
@@ -13,7 +14,7 @@ export class CodeMirror {
         });
 
         const state = EditorState.create({
-            extensions: [basicSetup, markdown(), updateListener],
+            extensions: [basicSetup, markdown(), basicDark, updateListener],
         });
 
         this.view = new EditorView({
