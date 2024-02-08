@@ -8,6 +8,7 @@ use crate::app::App;
 
 mod app;
 mod components;
+mod editor;
 mod global;
 mod hooks;
 mod pages;

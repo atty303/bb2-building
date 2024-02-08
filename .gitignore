@@ -4,6 +4,7 @@
 node_modules/
 target/
 public/tailwind.css
+src/bundle.js
 
 .idea
 *.iml

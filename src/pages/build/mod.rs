@@ -1,9 +1,12 @@
 use crate::components::SkillView;
+use crate::editor::CodeMirror;
 use crate::global::DATABASE;
 use crate::ui::{Dialog, SpriteIcon};
 use dioxus::prelude::*;
+use dioxus::web::WebEventExt;
 use markdown_it::plugins::cmark;
 use markdown_it::{parser, MarkdownIt};
+use wasm_bindgen::closure::Closure;
 
 #[component]
 pub fn BuildEditPage() -> Element {
@@ -12,6 +15,16 @@ pub fn BuildEditPage() -> Element {
 
     let mut doc = use_signal(|| {
         "<skill:エンシェントシールド> 強い。 <skill:インビンシブル> <skill:デーモンバイト> ドロップしない？ <skill:採掘> 便利".to_string()
+    });
+
+    let mut code_mirror = use_signal(|| None::<CodeMirror>);
+
+    use_effect(move || {
+        if let Some(ref cm) = *code_mirror.read() {
+            if doc() != cm.value() {
+                cm.set_value(doc());
+            }
+        }
     });
 
     let rendered = use_memo(move || {
@@ -27,14 +40,16 @@ pub fn BuildEditPage() -> Element {
     });
 
     rsx! {
-        textarea {
-            id: "build-edit",
-            rows: 10,
-            cols: 50,
-            oninput: move |e| {
-                *doc.write() = e.data.value();
-            },
-            "{doc}"
+        div {
+            onmounted: move |e| {
+                let parent = e.web_event();
+                let on_change = Closure::wrap(Box::new(move |value| {
+                    *doc.write() = value;
+                }) as Box<dyn FnMut(String)>);
+                let cm = CodeMirror::new(parent, &on_change);
+                on_change.forget();
+                *code_mirror.write() = Some(cm);
+            }
         }
 
         article { class: "prose md:prose-lg",
