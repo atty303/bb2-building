@@ -40,7 +40,7 @@ pub fn BuildEditPage() -> Element {
     });
 
     rsx! {
-        div {
+        div { class: "flex w-96 h-96",
             onmounted: move |e| {
                 let parent = e.web_event();
                 let on_change = Closure::wrap(Box::new(move |value| {

@@ -13,8 +13,14 @@ export class CodeMirror {
             }
         });
 
+        const height = EditorView.theme({
+            "&": {
+                height: "100%",
+            }
+        });
+
         const state = EditorState.create({
-            extensions: [basicSetup, markdown(), basicDark, updateListener],
+            extensions: [basicSetup, markdown(), basicDark, updateListener, height],
         });
 
         this.view = new EditorView({
