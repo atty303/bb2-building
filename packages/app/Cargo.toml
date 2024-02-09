@@ -1,0 +1,40 @@
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+data = { workspace = true }
+
+dioxus-headlessui = { git = "https://github.com/atty303/dioxus-headlessui.git" }
+
+dioxus = { workspace = true }
+dioxus-signals = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc", features = ["serde"] }
+
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = ["Window", "History", "Location", "HtmlDialogElement", "DomRect"] }
+gloo-utils = "0.2"
+gloo-storage = "0.3"
+
+tracing = "0.1"
+
+reqwest = "0.11"
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+rmp-serde = "1.1"
+base64 = "0.21"
+
+indicium = { git = "https://github.com/atty303/indicium.git", rev = "a3c8c168e0c4f9167612b80eda194b2a179e5338" }
+getrandom = { version = "0.2", features = ["js"] }
+
+anyhow = "1.0"
+ref-cast = "1.0"
+
+markdown-it = "0.6"
+
+worker = "0.0.18"
+axum-cloudflare-adapter = "0.7"

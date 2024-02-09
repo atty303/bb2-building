@@ -1,10 +1,11 @@
-/dist
+dist/
+build/
 /dump
 .cargo/
 node_modules/
 target/
-public/tailwind.css
-src/bundle.js
+tailwind.css
+packages/app/src/bundle.js
 
 .idea
 *.iml

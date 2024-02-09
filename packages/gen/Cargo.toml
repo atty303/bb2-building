@@ -3,7 +3,7 @@ name = "gen"
 version = "0.1.0"
 
 [dependencies]
-data = { path = "../data" }
+data = { workspace = true }
 json = "0.12"
 yaml-rust = "0.4"
 ahash = "0.8"

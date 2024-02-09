@@ -1,19 +1,15 @@
+extern crate app;
+extern crate dioxus;
+extern crate tracing_subscriber;
+extern crate tracing_web;
+
 use dioxus::prelude::*;
 use tracing_subscriber::fmt::format::Pretty;
 use tracing_subscriber::prelude::*;
 use tracing_subscriber::EnvFilter;
 use tracing_web::{performance_layer, MakeWebConsoleWriter};
 
-use crate::app::App;
-
-mod app;
-mod components;
-mod editor;
-mod global;
-mod hooks;
-mod pages;
-mod search;
-mod ui;
+use app::app::App;
 
 fn main() {
     let fmt_layer = tracing_subscriber::fmt::layer()
