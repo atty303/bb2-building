@@ -73,7 +73,7 @@ fn PlannerSlot(index: i32, state: SlotState, on_click: EventHandler<()>) -> Elem
                         onclick: move |_| on_click.call(()),
                         span { class: "relative",
                             SpriteIcon { class: "rounded-md",
-                                sprite: Signal::new(skill.read().modes[0].icon.clone()),
+                                sprite: Signal::new(skill().modes[0].icon.clone()),
                                 size: 48,
                             }
                         }

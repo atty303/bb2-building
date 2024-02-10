@@ -2,7 +2,7 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
 module.exports = {
     mode: "all",
-    content: ["./input.css", "./src/**/*.{rs,html,css}", "./dist/**/*.html"],
+    content: ["./input.css", "./packages/app/src/**/*.{rs,html,css}"],
     plugins: [require("@tailwindcss/typography"), require("daisyui")],
     daisyui: {
         themes: true,
