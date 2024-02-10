@@ -6,6 +6,7 @@ node_modules/
 target/
 tailwind.css
 packages/app/src/bundle.js
+.wrangler/
 
 .idea
 *.iml

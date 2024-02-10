@@ -3,9 +3,6 @@ name = "app"
 version = "0.1.0"
 edition = "2021"
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [dependencies]
 data = { workspace = true }
 
@@ -35,6 +32,3 @@ anyhow = "1.0"
 ref-cast = "1.0"
 
 markdown-it = "0.6"
-
-worker = "0.0.18"
-axum-cloudflare-adapter = "0.7"

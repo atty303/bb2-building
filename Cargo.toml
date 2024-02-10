@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["packages/app", "packages/data", "packages/gen", "packages/web", "sandbox"]
+members = ["packages/app", "packages/data", "packages/gen", "packages/web", "packages/worker", "sandbox"]
 
 [patch.crates-io]
 worker = { git = "https://github.com/spigaz/workers-rs.git", rev = "7bbd74efeda63852369a0725d6e45a006301a93e" }
