@@ -27,6 +27,7 @@
         "wrangler": "^3.28.1"
     },
     "dependencies": {
+        "@auth0/auth0-spa-js": "^2.1.3",
         "@codemirror/lang-markdown": "^6.2.4",
         "@codemirror/state": "^6.4.0",
         "cm6-theme-basic-dark": "^0.2.0",

@@ -1,4 +1,5 @@
 pub mod app;
+mod auth0;
 mod components;
 mod editor;
 mod global;

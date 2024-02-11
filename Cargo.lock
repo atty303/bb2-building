@@ -144,6 +144,7 @@ dependencies = [
  "serde_json",
  "tracing",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "web-sys",
 ]
 
