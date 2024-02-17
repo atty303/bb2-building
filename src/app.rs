@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use auth0_spa::use_auth0;
+use auth0_spa::{use_auth0, Auth0ClientOptions, CacheLocation};
 use dioxus::prelude::*;
 use dioxus_router::prelude::{Router, RouterConfig, RouterConfigFactory, WebHistory};
 
@@ -32,7 +32,15 @@ async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
 
 #[component]
 pub fn App() -> Element {
-    let _ = use_auth0::<()>();
+    let _ = use_auth0::<()>(
+        Auth0ClientOptions::builder()
+            .domain("bb2b.us.auth0.com".to_string())
+            .client_id("udNY8zDu6nALh3lQFJaYykONTiJgGob1".to_string())
+            .cache_location(CacheLocation::LocalStorage)
+            .use_refresh_tokens(true)
+            .legacy_same_site_cookie(false)
+            .build(),
+    );
 
     let mut theme_persistent = use_persistent("theme", || "dark".to_string());
     use_on_create(|| {

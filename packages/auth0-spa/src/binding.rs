@@ -4,8 +4,8 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(module = "/bundle.mjs")]
 extern "C" {
-    #[wasm_bindgen(js_name = createAuth0)]
-    pub async fn create_auth0() -> JsValue;
+    #[wasm_bindgen(js_name = createAuth0Client)]
+    pub async fn create_auth0_client(options: JsValue) -> JsValue;
 
     pub type Auth0Client;
 

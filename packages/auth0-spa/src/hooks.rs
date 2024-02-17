@@ -1,5 +1,5 @@
-use crate::binding::{create_auth0, Auth0Client};
-use crate::{LogoutOptions, RedirectLoginOptions};
+use crate::binding::{create_auth0_client, Auth0Client};
+use crate::{Auth0ClientOptions, LogoutOptions, RedirectLoginOptions};
 use dioxus::prelude::*;
 use futures_util::stream::StreamExt;
 use serde::{Deserialize, Serialize};
@@ -16,13 +16,16 @@ struct Auth0Context {
 }
 
 pub fn use_auth0<TAppState: Default + Copy + Clone + Serialize + for<'a> Deserialize<'a>>(
+    options: Auth0ClientOptions,
 ) -> UseAuth0<TAppState> {
     let mut is_authenticated = use_signal(|| false);
     let context = Auth0Context { is_authenticated };
     let context = use_context_provider(|| context);
 
     let channel = use_coroutine(|mut rx| async move {
-        let client: Auth0Client = create_auth0().await.into();
+        let object = serde_wasm_bindgen::to_value(&options).expect("failed to serialize options");
+        let client: Auth0Client = create_auth0_client(object).await.into();
+
         *is_authenticated.write() = client.is_authenticated().await.as_bool().unwrap_or(false);
 
         while let Some(action) = rx.next().await {
