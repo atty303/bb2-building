@@ -10,8 +10,6 @@ use home::Home;
 use planner::{PlannerEditSlotPage, PlannerPage, PlannerState};
 use rune::{RuneDebugPage, RuneListPage, RuneListState, RunePage};
 use skill::{SkillDebugPage, SkillListPage, SkillListState, SkillPage};
-use std::fmt::{Display, Formatter};
-use std::str::FromStr;
 
 use crate::global::{LANGUAGE, THEME};
 use crate::ui::Icon;
@@ -145,7 +143,7 @@ fn MainLayout() -> Element {
 
 #[component]
 fn Auth() -> Element {
-    let auth = use_auth0_context();
+    let auth = use_auth0_context::<()>();
     rsx! {
         "{auth.is_authenticated()}"
         button {

@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use futures_util::stream::StreamExt;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 use wasm_bindgen::prelude::*;
 
@@ -25,8 +25,10 @@ extern "C" {
 }
 
 #[derive(Default, Clone, Serialize, TypedBuilder)]
-pub struct RedirectLoginOptions {
-    // appState?: TAppState;
+pub struct RedirectLoginOptions<TAppState: Default + Clone + Serialize + for<'a> Deserialize<'a>> {
+    #[builder(default, setter(strip_option))]
+    #[serde(rename = "appState")]
+    app_state: Option<TAppState>,
     #[builder(default, setter(strip_option))]
     #[serde(rename = "authorizationParams")]
     authorization_params: Option<AuthorizationParams>,
@@ -87,10 +89,10 @@ pub struct LogoutParams {
     return_to: Option<String>,
 }
 
-enum Action {
-    Login(RedirectLoginOptions),
-    HandleRedirectCallback,
+enum Action<TAppState: Default + Clone + Serialize + for<'a> Deserialize<'a>> {
+    LoginWithRedirect(RedirectLoginOptions<TAppState>),
     Logout(LogoutOptions),
+    HandleRedirectCallback,
 }
 
 #[derive(Copy, Clone)]
@@ -98,17 +100,19 @@ struct Auth0Context {
     is_authenticated: Signal<bool>,
 }
 
-pub fn use_auth0() -> UseAuth0 {
+pub fn use_auth0<TAppState: Default + Copy + Clone + Serialize + for<'a> Deserialize<'a>>(
+) -> UseAuth0<TAppState> {
     let mut is_authenticated = use_signal(|| false);
     let context = Auth0Context { is_authenticated };
     let context = use_context_provider(|| context);
 
     let channel = use_coroutine(|mut rx| async move {
         let client: Auth0Client = create_auth0().await.into();
+        *is_authenticated.write() = client.is_authenticated().await.as_bool().unwrap_or(false);
 
         while let Some(action) = rx.next().await {
             match action {
-                Action::Login(options) => {
+                Action::LoginWithRedirect(options) => {
                     let object = serde_wasm_bindgen::to_value(&options)
                         .expect("failed to serialize options");
                     client.login_with_redirect(object).await;
@@ -139,33 +143,40 @@ pub fn use_auth0() -> UseAuth0 {
     auth0
 }
 
-pub fn use_auth0_context() -> UseAuth0 {
+pub fn use_auth0_context<
+    TAppState: Default + Copy + Clone + Serialize + for<'a> Deserialize<'a>,
+>() -> UseAuth0<TAppState> {
     let context = use_context::<Auth0Context>();
-    let channel = use_coroutine_handle::<Action>();
+    let channel = use_coroutine_handle::<Action<TAppState>>();
 
     UseAuth0 { context, channel }
 }
 
 #[derive(Copy, Clone)]
-pub struct UseAuth0 {
+pub struct UseAuth0<
+    TAppState: Default + Copy + Clone + Serialize + for<'a> Deserialize<'a> + 'static,
+> {
     context: Auth0Context,
-    channel: Coroutine<Action>,
+    channel: Coroutine<Action<TAppState>>,
 }
 
-impl UseAuth0 {
+impl<TAppState: Default + Copy + Clone + Serialize + for<'a> Deserialize<'a>> UseAuth0<TAppState> {
+    /// Returns true if there's valid information stored, otherwise returns false.
     pub fn is_authenticated(&self) -> Signal<bool> {
         self.context.is_authenticated
     }
 
-    pub fn login_with_redirect(&self, options: RedirectLoginOptions) {
-        self.channel.send(Action::Login(options))
-    }
-
-    pub fn handle_redirect_callback(&self) {
-        self.channel.send(Action::HandleRedirectCallback)
+    /// Performs a redirect to `/authorize` using the parameters provided as arguments.
+    /// Random and secure state and nonce parameters will be auto-generated.
+    pub fn login_with_redirect(&self, options: RedirectLoginOptions<TAppState>) {
+        self.channel.send(Action::LoginWithRedirect(options))
     }
 
     pub fn logout(&self, options: LogoutOptions) {
         self.channel.send(Action::Logout(options))
+    }
+
+    pub fn handle_redirect_callback(&self) {
+        self.channel.send(Action::HandleRedirectCallback)
     }
 }

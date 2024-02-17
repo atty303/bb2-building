@@ -32,18 +32,7 @@ async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
 
 #[component]
 pub fn App() -> Element {
-    let auth0 = use_auth0();
-    // use_effect(move || {
-    //     if (web_sys::window()
-    //         .unwrap()
-    //         .location()
-    //         .pathname()
-    //         .unwrap()
-    //         .starts_with("/auth/callback"))
-    //     {
-    //         auth0.handle_redirect_callback();
-    //     }
-    // });
+    let _ = use_auth0::<()>();
 
     let mut theme_persistent = use_persistent("theme", || "dark".to_string());
     use_on_create(|| {
