@@ -42,6 +42,13 @@ pub fn App() -> Element {
             .build(),
         |r| {
             tracing::info!("{:?}", r.app_state);
+            if let Some(url) = r.app_state {
+                web_sys::window()
+                    .unwrap()
+                    .location()
+                    .set_href(&url)
+                    .unwrap();
+            }
         },
     );
 
