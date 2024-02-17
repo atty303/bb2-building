@@ -9,6 +9,9 @@ extern "C" {
 
     pub type Auth0Client;
 
+    #[wasm_bindgen(constructor)]
+    pub fn new(options: JsValue) -> Auth0Client;
+
     #[wasm_bindgen(method, js_name = isAuthenticated)]
     pub async fn is_authenticated(this: &Auth0Client) -> JsValue;
 
