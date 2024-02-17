@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::auth0::{
+use auth0_spa::{
     use_auth0_context, AuthorizationParams, LogoutOptions, LogoutParams, RedirectLoginOptions,
 };
 use build::BuildEditPage;
@@ -146,19 +146,6 @@ fn Auth() -> Element {
     let auth = use_auth0_context::<()>();
     rsx! {
         "{auth.is_authenticated()}"
-        button {
-            onclick: move |_| {
-                auth.login_with_redirect(
-                    RedirectLoginOptions::builder()
-                    .authorization_params(
-                        AuthorizationParams::builder()
-                        .redirect_uri(format!("{}/auth/callback", web_sys::window().unwrap().origin()))
-                        .build()
-                    ).build()
-                );
-            },
-            "Login"
-        }
         if (auth.is_authenticated())() {
             button {
                 onclick: move |_| {
@@ -168,6 +155,20 @@ fn Auth() -> Element {
                     ).build());
                 },
                 "Logout"
+            }
+        } else {
+            button {
+                onclick: move |_| {
+                    auth.login_with_redirect(
+                        RedirectLoginOptions::builder()
+                        .authorization_params(
+                            AuthorizationParams::builder()
+                            .redirect_uri(format!("{}/auth/callback", web_sys::window().unwrap().origin()))
+                            .build()
+                        ).build()
+                    );
+                },
+                "Login"
             }
         }
     }

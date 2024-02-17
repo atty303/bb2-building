@@ -1,8 +1,8 @@
 use anyhow::anyhow;
+use auth0_spa::use_auth0;
 use dioxus::prelude::*;
 use dioxus_router::prelude::{Router, RouterConfig, RouterConfigFactory, WebHistory};
 
-use crate::auth0::use_auth0;
 use data::{Database, LANGUAGES};
 
 use crate::global::{DATABASE, LANGUAGE, SEARCH_CATALOGS, THEME};
