@@ -172,7 +172,7 @@ pub mod structs {
     }
 
     #[derive(Default, Clone, Serialize, TypedBuilder)]
-    pub struct RedirectLoginOptions<TAppState: Serialize> {
+    pub struct RedirectLoginOptions<TAppState> {
         #[builder(default, setter(strip_option))]
         #[serde(rename = "appState")]
         pub app_state: Option<TAppState>,
