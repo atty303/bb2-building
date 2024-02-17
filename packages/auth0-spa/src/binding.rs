@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 use wasm_bindgen::prelude::*;
@@ -27,7 +29,6 @@ extern "C" {
 
 pub mod structs {
     use super::*;
-    use std::collections::HashMap;
 
     #[derive(Default, Clone, Serialize, TypedBuilder)]
     pub struct Auth0ClientOptions {
@@ -171,17 +172,15 @@ pub mod structs {
     }
 
     #[derive(Default, Clone, Serialize, TypedBuilder)]
-    pub struct RedirectLoginOptions<
-        TAppState: Default + Clone + Serialize + for<'a> Deserialize<'a>,
-    > {
+    pub struct RedirectLoginOptions<TAppState: Serialize> {
         #[builder(default, setter(strip_option))]
         #[serde(rename = "appState")]
-        app_state: Option<TAppState>,
+        pub app_state: Option<TAppState>,
         #[builder(default, setter(strip_option))]
         #[serde(rename = "authorizationParams")]
-        authorization_params: Option<AuthorizationParams>,
+        pub authorization_params: Option<AuthorizationParams>,
         #[builder(default, setter(strip_option))]
-        fragment: Option<String>,
+        pub fragment: Option<String>,
         // onRedirect?: ((url) => Promise<void>);
         // openUrl?: ((url) => void | Promise<void>);
     }

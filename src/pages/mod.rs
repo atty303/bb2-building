@@ -142,9 +142,8 @@ fn MainLayout() -> Element {
 
 #[component]
 fn Auth() -> Element {
-    let auth = use_auth0_context::<()>();
+    let auth = use_auth0_context::<String>();
     rsx! {
-        "{auth.is_authenticated()}"
         if (auth.is_authenticated())() {
             button {
                 onclick: move |_| {
@@ -163,15 +162,17 @@ fn Auth() -> Element {
         } else {
             button {
                 onclick: move |_| {
+                    let window = web_sys::window().unwrap();
                     auth.login_with_redirect(
                         RedirectLoginOptions::builder()
                             .authorization_params(
                                 AuthorizationParams::builder()
                                     .redirect_uri(
-                                        format!("{}/auth/callback", web_sys::window().unwrap().origin()),
+                                        format!("{}/auth/callback", window.origin()),
                                     )
                                     .build(),
                             )
+                            .app_state(window.location().href().unwrap())
                             .build(),
                     );
                 },

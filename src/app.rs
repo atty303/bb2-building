@@ -32,7 +32,7 @@ async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
 
 #[component]
 pub fn App() -> Element {
-    let _ = use_auth0::<()>(
+    let _ = use_auth0::<String>(
         Auth0ClientOptions::builder()
             .domain("bb2b.us.auth0.com".to_string())
             .client_id("udNY8zDu6nALh3lQFJaYykONTiJgGob1".to_string())

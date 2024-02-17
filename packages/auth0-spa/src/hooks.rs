@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 use futures_util::stream::StreamExt;
 use serde::{Deserialize, Serialize};
 
-enum Action<TAppState: Default + Clone + Serialize + for<'a> Deserialize<'a>> {
+enum Action<TAppState: Serialize + 'static> {
     LoginWithRedirect(RedirectLoginOptions<TAppState>),
     Logout(LogoutOptions),
     HandleRedirectCallback,
@@ -15,7 +15,7 @@ struct Auth0Context {
     is_authenticated: Signal<bool>,
 }
 
-pub fn use_auth0<TAppState: Default + Copy + Clone + Serialize + for<'a> Deserialize<'a>>(
+pub fn use_auth0<TAppState: Default + Clone + Serialize + for<'a> Deserialize<'a>>(
     options: Auth0ClientOptions,
     mut redirect_callback: impl FnMut(RedirectLoginResult<TAppState>) + 'static,
 ) -> UseAuth0<TAppState> {
@@ -61,20 +61,20 @@ pub fn use_auth0<TAppState: Default + Copy + Clone + Serialize + for<'a> Deseria
     });
 
     let auth0 = UseAuth0 { context, channel };
-
-    use_effect(move || {
-        let pathname = web_sys::window().unwrap().location().pathname().unwrap();
-        if pathname.starts_with("/auth/callback") {
-            auth0.handle_redirect_callback();
-        }
-    });
-
+    {
+        let auth0 = auth0.clone();
+        use_effect(move || {
+            let pathname = web_sys::window().unwrap().location().pathname().unwrap();
+            if pathname.starts_with("/auth/callback") {
+                auth0.handle_redirect_callback();
+            }
+        });
+    }
     auth0
 }
 
-pub fn use_auth0_context<
-    TAppState: Default + Copy + Clone + Serialize + for<'a> Deserialize<'a>,
->() -> UseAuth0<TAppState> {
+pub fn use_auth0_context<TAppState: Default + Clone + Serialize + for<'a> Deserialize<'a>>(
+) -> UseAuth0<TAppState> {
     let context = use_context::<Auth0Context>();
     let channel = use_coroutine_handle::<Action<TAppState>>();
 
@@ -82,14 +82,12 @@ pub fn use_auth0_context<
 }
 
 #[derive(Copy, Clone)]
-pub struct UseAuth0<
-    TAppState: Default + Copy + Clone + Serialize + for<'a> Deserialize<'a> + 'static,
-> {
+pub struct UseAuth0<TAppState: Serialize + 'static> {
     context: Auth0Context,
     channel: Coroutine<Action<TAppState>>,
 }
 
-impl<TAppState: Default + Copy + Clone + Serialize + for<'a> Deserialize<'a>> UseAuth0<TAppState> {
+impl<TAppState: Default + Clone + Serialize + for<'a> Deserialize<'a>> UseAuth0<TAppState> {
     /// Returns true if there's valid information stored, otherwise returns false.
     pub fn is_authenticated(&self) -> Signal<bool> {
         self.context.is_authenticated
