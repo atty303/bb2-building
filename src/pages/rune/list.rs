@@ -49,7 +49,8 @@ pub fn RuneListPage(state: RuneListState) -> Element {
 
         div { class: "flex flex-row items-center gap-4",
             div { class: "relative flex-grow",
-                input { class: "input input-bordered input-primary w-full",
+                input {
+                    class: "input input-bordered input-primary w-full",
                     r#type: "text",
                     placeholder: "Search runes...",
                     autofocus: true,
@@ -57,32 +58,25 @@ pub fn RuneListPage(state: RuneListState) -> Element {
                     oninput: move |e| {
                         let q = e.data.value();
                         *search.query.write() = q.clone();
-                        router().replace(Route::RuneListPage {
-                            state: RuneListState {
-                                query: Signal::new(q.clone()),
-                            },
-                        });
+                        router()
+                            .replace(Route::RuneListPage {
+                                state: RuneListState {
+                                    query: Signal::new(q.clone()),
+                                },
+                            });
                     }
                 }
             }
             div { class: "badge badge-accent badge-lg gap-1 text-xs",
-                span { class: "font-bold",
-                    "{search.results.read().len()}"
-                }
-                span {
-                    "of"
-                }
-                span { class: "font-bold",
-                    "{DATABASE().rune.iter().count()}"
-                }
+                span { class: "font-bold", "{search.results.read().len()}" }
+                span { "of" }
+                span { class: "font-bold", "{DATABASE().rune.iter().count()}" }
             }
         }
 
         div { class: "flex flex-wrap gap-2 mt-4",
             for rune in search.results.read().iter() {
-                div { class: "flex-1 min-w-64",
-                    RuneView { rune: rune.clone() }
-                }
+                div { class: "flex-1 min-w-64", RuneView { rune: rune.clone() } }
             }
         }
     }

@@ -115,14 +115,14 @@ pub fn App() -> Element {
             Some(Ok(_)) => {
                 rsx! {
                     Router::<Route> {
-                        config: RouterConfigFactory::from(|| RouterConfig::default().history(WebHistory::<Route>::default())),
+                        config: RouterConfigFactory::from(|| {
+                            RouterConfig::default().history(WebHistory::<Route>::default())
+                        })
                     }
                 }
             }
             Some(Err(ref err)) => {
-                rsx! {
-                    "An error occurred while fetching database: {err}"
-                }
+                rsx! {"An error occurred while fetching database: {err}"}
             }
         },
     }

@@ -10,18 +10,17 @@ pub fn RuneView(rune: Signal<data::Rune>, #[props(default = false)] debug: bool)
             div { class: "flex flex-row items-center gap-2 bg-base-300 text-base-content p-2",
                 SpriteIcon { class: "rounded-md", sprite: Signal::new(rune().icon), size: 48 }
                 span { class: "flex-grow",
-                    Link { class: "text-primary hover:underline cursor-pointer",
-                        to: Route::RunePage { rune_id: rune().id },
+                    Link {
+                        class: "text-primary hover:underline cursor-pointer",
+                        to: Route::RunePage {
+                            rune_id: rune().id,
+                        },
                         "{rune().name}"
                     }
                 }
-                span {
-                    Rarity { rarity: rune().rarity }
-                }
+                span { Rarity { rarity: rune().rarity } }
             }
-            div { class: "flex flex-row flex-wrap gap-2 p-2",
-                Description { tokens: rune().format(), debug }
-            }
+            div { class: "flex flex-row flex-wrap gap-2 p-2", Description { tokens: rune().format(), debug } }
         }
     }
 }

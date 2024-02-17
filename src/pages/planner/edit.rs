@@ -21,10 +21,11 @@ pub fn PlannerPage(state: PlannerState) -> Element {
                         let state = state.clone();
                         move |_| {
                             let state = state.clone();
-                            router().replace(Route::PlannerEditSlotPage {
-                                state,
-                                index: i,
-                            });
+                            router()
+                                .replace(Route::PlannerEditSlotPage {
+                                    state,
+                                    index: i,
+                                });
                         }
                     }
                 }
@@ -47,10 +48,8 @@ pub fn PlannerEditSlotPage(state: PlannerState, index: i32) -> Element {
                 let mut state = state.clone();
                 state.build.slots[index as usize].skill = Some(hash);
                 let router = dioxus_router::router();
-                router.replace(Route::PlannerPage {
-                    state: state,
-                });
-            },
+                router.replace(Route::PlannerPage { state: state });
+            }
         }
     }
 }
@@ -63,41 +62,29 @@ fn PlannerSlot(index: i32, state: SlotState, on_click: EventHandler<()>) -> Elem
 
     rsx! {
         if let Some(skill) = maybe_skill {
-            div { class: "collapse collapse-arrow",
-                tabindex: "{index}",
+            div { class: "collapse collapse-arrow", tabindex: "{index}",
                 div { class: "collapse-title px-2 py-1",
-                    span { class: "badge badge-neutral mr-2",
-                        "{index + 1}"
-                    }
-                    span { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 inline-block",
+                    span { class: "badge badge-neutral mr-2", "{index + 1}" }
+                    span {
+                        class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 inline-block",
                         onclick: move |_| on_click.call(()),
                         span { class: "relative",
-                            SpriteIcon { class: "rounded-md",
+                            SpriteIcon {
+                                class: "rounded-md",
                                 sprite: Signal::new(skill().modes[0].icon.clone()),
-                                size: 48,
+                                size: 48
                             }
                         }
                     }
-                    span { class: "ml-2",
-                        "{skill().name}"
-                    }
+                    span { class: "ml-2", "{skill().name}" }
                 }
-                div { class: "collapse-content",
-                    SkillView { skill: skill }
-
-                    // for i in 0..5 {
-                    //     button { class: "ml-2 btn btn-primary btn-wide",
-                    //         "Click to select rune"
-                    //     }
-                    // }
-                }
+                div { class: "collapse-content", SkillView { skill: skill } }
             }
         } else {
             div { class: "px-2 py-1",
-                span { class: "badge badge-neutral mr-2",
-                    "{index + 1}"
-                }
-                button { class: "ml-2 btn btn-primary btn-wide",
+                span { class: "badge badge-neutral mr-2", "{index + 1}" }
+                button {
+                    class: "ml-2 btn btn-primary btn-wide",
                     onclick: move |_| on_click.call(()),
                     "Click to select skill"
                 }

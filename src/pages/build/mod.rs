@@ -40,26 +40,24 @@ pub fn BuildEditPage() -> Element {
     });
 
     rsx! {
-        div { class: "flex w-96 h-96",
+        div {
+            class: "flex w-96 h-96",
             onmounted: move |e| {
                 let parent = e.web_event();
-                let on_change = Closure::wrap(Box::new(move |value| {
-                    *doc.write() = value;
-                }) as Box<dyn FnMut(String)>);
+                let on_change = Closure::wrap(
+                    Box::new(move |value| {
+                        *doc.write() = value;
+                    }) as Box<dyn FnMut(String)>,
+                );
                 let cm = CodeMirror::new(parent, &on_change);
                 on_change.forget();
                 *code_mirror.write() = Some(cm);
             }
         }
 
-        article { class: "prose md:prose-lg",
-            {rendered()}
-        }
+        article { class: "prose md:prose-lg", {rendered()} }
 
-        DetailDialog {
-            open: detail_open,
-            target: detail_target,
-        }
+        DetailDialog { open: detail_open, target: detail_target }
     }
 }
 
@@ -70,9 +68,7 @@ struct RenderArgs<'a> {
 }
 impl RenderArgs<'_> {
     fn render_children(&self) -> Element {
-        rsx! {
-            {self.node.children.iter().map(|child| render_markdown(RenderArgs { node: child, open: self.open, target: self.target }))}
-        }
+        rsx! {{self.node.children.iter().map(|child| render_markdown(RenderArgs { node: child, open: self.open, target: self.target }))}}
     }
 }
 
@@ -81,85 +77,66 @@ fn render_markdown(mut args: RenderArgs) -> Element {
     if let Some(_) = node.cast::<parser::core::Root>() {
         args.render_children()
     } else if let Some(n) = node.cast::<parser::inline::Text>() {
-        rsx! {
-            "{n.content}"
-        }
+        rsx! {"{n.content}"}
     } else if let Some(n) = node.cast::<parser::inline::TextSpecial>() {
         if n.info == "autolink" {
             let content = n.content.split(":").last().unwrap_or(&n.content);
             if let Some(s) = DATABASE().skill.find(content) {
                 let t = DetailTarget::Skill(Signal::new(s.clone()));
                 rsx! {
-                    a { class: "cursor-pointer",
+                    a {
+                        class: "cursor-pointer",
                         onclick: move |_| {
                             *args.open.write() = true;
                             *args.target.write() = Some(t.clone());
                         },
                         prevent_default: "onclick",
-                        SpriteIcon { class: "rounded-md align-middle", sprite: Signal::new(s.modes[0].icon.clone()), size: 20 }
+                        SpriteIcon {
+                            class: "rounded-md align-middle",
+                            sprite: Signal::new(s.modes[0].icon.clone()),
+                            size: 20
+                        }
                         "{content}"
                     }
                 }
             } else {
-                rsx! {
-                    "{n.content}"
-                }
+                rsx! {"{n.content}"}
             }
         } else {
-            rsx! {
-                "{n.content}"
-            }
+            rsx! {"{n.content}"}
         }
     } else if let Some(_) = node.cast::<cmark::block::paragraph::Paragraph>() {
         rsx! {
-            p {
-                {args.render_children()}
-            }
+            p { {args.render_children()} }
         }
     } else if let Some(_) = node.cast::<cmark::block::list::BulletList>() {
         rsx! {
-            ul {
-                {args.render_children()}
-            }
+            ul { {args.render_children()} }
         }
     } else if let Some(_) = node.cast::<cmark::block::list::OrderedList>() {
         rsx! {
-            ol {
-                {args.render_children()}
-            }
+            ol { {args.render_children()} }
         }
     } else if let Some(_) = node.cast::<cmark::block::list::ListItem>() {
         rsx! {
-            li {
-                {args.render_children()}
-            }
+            li { {args.render_children()} }
         }
     } else if let Some(_) = node.cast::<cmark::inline::newline::Softbreak>() {
-        rsx! {
-            br {}
-        }
+        rsx! { br {} }
     } else if let Some(_) = node.cast::<cmark::inline::emphasis::Em>() {
         rsx! {
-            em {
-                {args.render_children()}
-            }
+            em { {args.render_children()} }
         }
     } else if let Some(_) = node.cast::<cmark::inline::emphasis::Strong>() {
         rsx! {
-            strong {
-                {args.render_children()}
-            }
+            strong { {args.render_children()} }
         }
     } else if let Some(_) = node.cast::<cmark::inline::backticks::CodeInline>() {
         rsx! {
-            code {
-                {args.render_children()}
-            }
+            code { {args.render_children()} }
         }
     } else if let Some(_) = node.cast::<cmark::inline::autolink::Autolink>() {
-        rsx! {
-            {args.render_children()}
-        }
+        rsx! {{args.render_children()}}
     } else {
         tracing::warn!("Unknown node: {:#?}", node);
         None

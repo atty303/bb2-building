@@ -10,7 +10,5 @@ pub fn Home() -> Element {
         state: SkillListState::default(),
     });
 
-    rsx! {
-        h1 { "BB2B" }
-    }
+    rsx! { h1 { "BB2B" } }
 }

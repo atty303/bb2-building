@@ -49,12 +49,13 @@ pub fn SkillListPage(state: SkillListState) -> Element {
         SkillList {
             query: state.query,
             on_search: move |q: String| {
-                router().replace(Route::SkillListPage {
-                    state: SkillListState {
-                        query: Signal::new(q.clone()),
-                    },
-                });
-            },
+                router()
+                    .replace(Route::SkillListPage {
+                        state: SkillListState {
+                            query: Signal::new(q.clone()),
+                        },
+                    });
+            }
         }
     }
 }
@@ -77,7 +78,8 @@ pub fn SkillList(
         div {
             div { class: "flex flex-row items-center gap-4",
                 div { class: "relative flex-grow",
-                    input { class: "input input-bordered input-primary w-full",
+                    input {
+                        class: "input input-bordered input-primary w-full",
                         r#type: "text",
                         placeholder: "Search skills...",
                         autofocus: true,
@@ -88,25 +90,11 @@ pub fn SkillList(
                             on_search.call(q.clone());
                         }
                     }
-                    // button { class: "absolute inset-y-0 right-0 flex items-center pr-2",
-                    //     onclick: move |_| {
-                    //         search.query.set("".to_string());
-                    //     },
-                    //     Icon {
-                    //         svg: r#"<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>"#,
-                    //     }
-                    // }
                 }
                 div { class: "badge badge-accent badge-lg gap-1 text-xs",
-                    span { class: "font-bold",
-                        "{search.results.read().len()}"
-                    }
-                    span {
-                        "of"
-                    }
-                    span { class: "font-bold",
-                        "{DATABASE().skill.iter().count()}"
-                    }
+                    span { class: "font-bold", "{search.results.read().len()}" }
+                    span { "of" }
+                    span { class: "font-bold", "{DATABASE().skill.iter().count()}" }
                 }
             }
 
@@ -117,7 +105,7 @@ pub fn SkillList(
                         on_click: move |skill: Signal<Skill>| {
                             *detail_open.write() = true;
                             *detail_skill.write() = Some(skill.clone());
-                        },
+                        }
                     }
                 }
             }
@@ -127,7 +115,7 @@ pub fn SkillList(
             open: detail_open,
             maybe_skill: detail_skill,
             selectable: on_select.is_some(),
-            on_select: move |e| on_select.clone().map_or((), |h| h.call(e)),
+            on_select: move |e| on_select.clone().map_or((), |h| h.call(e))
         }
     }
 }
@@ -149,7 +137,8 @@ pub fn DetailDialog(
                 },
                 if selectable {
                     div { class: "sticky top-0 h-0 p-2",
-                        button { class: "btn btn-primary btn-sm",
+                        button {
+                            class: "btn btn-primary btn-sm",
                             onclick: move |_| {
                                 on_select.call(skill().hash.clone());
                                 *open.write() = false;
@@ -159,9 +148,7 @@ pub fn DetailDialog(
                         }
                     }
                 }
-                div { class: "mt-12",
-                    SkillView { skill }
-                }
+                div { class: "mt-12", SkillView { skill } }
             }
         }
     } else {
@@ -179,12 +166,14 @@ fn SkillLink(skill: Signal<Skill>, on_click: EventHandler<Signal<Skill>>) -> Ele
         on_click: EventHandler<Signal<Skill>>,
     ) -> Element {
         rsx! {
-            button { class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 {class}",
+            button {
+                class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 {class}",
                 onclick: move |_| on_click.call(skill.clone()),
                 span { class: "relative",
-                    SpriteIcon { class: "rounded-md",
+                    SpriteIcon {
+                        class: "rounded-md",
                         sprite: Signal::new(skill().modes[0].icon.clone()),
-                        size,
+                        size
                     }
                     span { class: "absolute right-0 bg-black/50 text-white text-xs px-1 text-right",
                         "{skill().name}"
@@ -196,7 +185,17 @@ fn SkillLink(skill: Signal<Skill>, on_click: EventHandler<Signal<Skill>>) -> Ele
 
     let on_click2 = on_click.clone();
     rsx! {
-        SkillLinkInnerIcon { skill, class: "inline-block md:hidden", size: 56, on_click: move |e| on_click.call(e) }
-        SkillLinkInnerIcon { skill, class: "hidden md:inline-block", size: 96, on_click: move |e| on_click2.call(e) }
+        SkillLinkInnerIcon {
+            skill,
+            class: "inline-block md:hidden",
+            size: 56,
+            on_click: move |e| on_click.call(e)
+        }
+        SkillLinkInnerIcon {
+            skill,
+            class: "hidden md:inline-block",
+            size: 96,
+            on_click: move |e| on_click2.call(e)
+        }
     }
 }

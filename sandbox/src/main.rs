@@ -18,9 +18,9 @@ fn App() -> Element {
     });
 
     match b.value().as_ref() {
-        None => rsx! { "Loading..." },
+        None => rsx! {"Loading..."},
         Some(v) => {
-            rsx! { "{v}" }
+            rsx! {"{v}"}
         }
     }
 }

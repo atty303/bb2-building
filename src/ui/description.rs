@@ -69,14 +69,10 @@ fn to_nodes(tokens: &Tokens) -> Vec<Node> {
 #[component]
 fn RenderNode(node: Node, #[props(default = false)] debug: bool) -> Element {
     match node {
-        Node::Text(text) => rsx! { "{text}" },
+        Node::Text(text) => rsx! {"{text}"},
         Node::NewLine => rsx! { br {} },
-        Node::Var(name) => rsx! {
-            span { class: "text-error", "[{name}]" }
-        },
-        Node::Error(text) => rsx! {
-            span { class: "text-error font-bold", "{text}" }
-        },
+        Node::Var(name) => rsx! { span { class: "text-error", "[{name}]" } },
+        Node::Error(text) => rsx! { span { class: "text-error font-bold", "{text}" } },
         Node::Indent => rsx! {
             br {}
             "　"
@@ -95,10 +91,8 @@ fn RenderNode(node: Node, #[props(default = false)] debug: bool) -> Element {
             if let Some(tips) = tips {
                 rsx! {
                     span { class: "{debug_class} inline-block border-b-2 border-primary border-dotted",
-                        Tooltip {
-                            name: tips,
-                            span { class: "text-primary",
-                                title,
+                        Tooltip { name: tips,
+                            span { class: "text-primary", title: title,
                                 for node in children {
                                     RenderNode { node, debug }
                                 }
@@ -109,8 +103,7 @@ fn RenderNode(node: Node, #[props(default = false)] debug: bool) -> Element {
             } else {
                 rsx! {
                     span { class: "{debug_class} inline-block",
-                        span {
-                            title,
+                        span { title: title,
                             for node in children {
                                 RenderNode { node, debug }
                             }
@@ -138,34 +131,27 @@ pub fn Tooltip(name: String, #[props(default = false)] debug: bool, children: El
 
     rsx! {
         div { class: "dropdown dropdown-end",
+            div { tabindex: 0, role: "button", {children} }
             div {
-                tabindex: 0,
-                role: "button",
-                {children}
-            }
-            div { class: "dropdown-content z-[1] card card-compact card-bordered border-base-300 shadow-lg shadow-black/50 bg-base-100 text-base-content min-w-64 max-w-full",
+                class: "dropdown-content z-[1] card card-compact card-bordered border-base-300 shadow-lg shadow-black/50 bg-base-100 text-base-content min-w-64 max-w-full",
                 tabindex: 0,
                 style: "{popover_style}",
                 onmounted: move |e| {
                     async move {
                         let r = e.data.get_client_rect().await;
                         let x = r.unwrap().origin.x;
-
                         let el = e.web_event().dyn_ref::<web_sys::HtmlElement>().unwrap();
                         let dropdown = el.offset_parent().unwrap();
                         let dropdown = dropdown.dyn_ref::<web_sys::HtmlElement>().unwrap();
                         let parent = dropdown.offset_parent().unwrap();
                         let offset_x = parent.get_bounding_client_rect().x();
-
                         if x < offset_x {
-                            *popover_offset.write() = Some(x - offset_x - 16.0); // 16 = card-body's padding
+                            *popover_offset.write() = Some(x - offset_x - 16.0);
                         }
                     }
                 },
                 div { class: "card-body",
-                    span { class: "font-bold",
-                        Description { tokens: title, debug }
-                    }
+                    span { class: "font-bold", Description { tokens: title, debug } }
                     Description { tokens: body, debug }
                 }
             }

@@ -23,10 +23,6 @@ pub fn SkillPage(skill_id: String) -> Element {
             }
         })
         .unwrap_or_else(|| {
-            rsx! {
-                div {
-                    "Skill not found"
-                }
-            }
+            rsx! { div { "Skill not found" } }
         })
 }

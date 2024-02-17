@@ -23,10 +23,6 @@ pub fn RunePage(rune_id: String) -> Element {
             }
         })
         .unwrap_or_else(|| {
-            rsx! {
-                div {
-                    "Rune not found"
-                }
-            }
+            rsx! { div { "Rune not found" } }
         })
 }
