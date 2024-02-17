@@ -5,13 +5,13 @@
     "main": "index.js",
     "scripts": {
         "build": "npm run build:tailwind && npm run build:esbuild && npm run build:dx",
-        "build:tailwind": "tailwindcss -m -i input.css -o public/tailwind.css",
+        "build:tailwind": "tailwindcss -m -i tailwind.css -o public/tailwind.css",
         "build:dx": "dx build --release",
         "build:esbuild": "node esbuild.mjs",
         "serve": "concurrently \"npm run serve:dx\" \"npm run serve:tailwind\"",
-        "serve:tailwind": "tailwindcss --watch -i input.css -o packages/web/public/tailwind.css",
-        "serve:dx": "dx serve --bin web --hot-reload",
-        "serve:wrangler": "cd packages/worker && wrangler dev",
+        "serve:tailwind": "tailwindcss --watch -i tailwind.css -o public/tailwind.css",
+        "serve:dx": "dx serve --hot-reload",
+        "serve:wrangler": "wrangler dev pages",
         "image": "squoosh-cli --webp '{\"quality\": 75}' --quant --output-dir public/images dump/asset/ExportedProject/Assets/Texture2D/sactx-0-8192x4096-Uncompressed-IconAtlas-eaf9cd50.png"
     },
     "author": "",

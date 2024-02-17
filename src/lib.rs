@@ -1,4 +1,6 @@
-pub mod app;
+pub use app::App;
+
+mod app;
 mod auth0;
 mod components;
 mod editor;
@@ -7,3 +9,4 @@ mod hooks;
 mod pages;
 mod search;
 mod ui;
+mod worker;

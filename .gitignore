@@ -1,10 +1,10 @@
-dist/
-build/
-/dump
+/dist/
+/build/
+/dump/
 .cargo/
 node_modules/
 target/
-tailwind.css
+/public/tailwind.css
 packages/app/src/bundle.js
 .wrangler/
 

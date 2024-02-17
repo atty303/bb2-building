@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["packages/app", "packages/data", "packages/gen", "packages/web", "packages/worker", "sandbox"]
+members = ["packages/data", "packages/gen"]
 
 [patch.crates-io]
 worker = { git = "https://github.com/spigaz/workers-rs.git", rev = "7bbd74efeda63852369a0725d6e45a006301a93e" }
@@ -9,9 +9,55 @@ worker = { git = "https://github.com/spigaz/workers-rs.git", rev = "7bbd74efeda6
 version = "0.1.0"
 
 [workspace.dependencies]
-app = { path = "packages/app" }
 data = { path = "packages/data" }
 
 dioxus = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc" }
 dioxus-signals = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc" }
 dioxus-fullstack = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc" }
+
+[package]
+name = "bb2-building"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "bb2b_lib"
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+data = { workspace = true }
+
+dioxus-headlessui = { git = "https://github.com/atty303/dioxus-headlessui.git" }
+
+dioxus = { workspace = true, features = ["router", "web"] }
+dioxus-signals = { workspace = true, features = ["serde"] }
+
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = ["Window", "History", "Location", "HtmlDialogElement", "DomRect"] }
+gloo-utils = "0.2"
+gloo-storage = "0.3"
+
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-web = "0.1"
+
+reqwest = "0.11"
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+rmp-serde = "1.1"
+serde-wasm-bindgen = "0.6"
+base64 = "0.21"
+
+indicium = { git = "https://github.com/atty303/indicium.git", rev = "a3c8c168e0c4f9167612b80eda194b2a179e5338" }
+getrandom = { version = "0.2", features = ["js"] }
+
+anyhow = "1.0"
+ref-cast = "1.0"
+
+markdown-it = "0.6"
+futures-channel = "0.3.30"
+futures-util = "0.3.30"
+typed-builder = "0.18"
