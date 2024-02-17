@@ -40,6 +40,9 @@ pub fn App() -> Element {
             .use_refresh_tokens(true)
             .legacy_same_site_cookie(false)
             .build(),
+        |r| {
+            tracing::info!("{:?}", r.app_state);
+        },
     );
 
     let mut theme_persistent = use_persistent("theme", || "dark".to_string());

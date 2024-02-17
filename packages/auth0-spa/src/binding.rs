@@ -19,7 +19,7 @@ extern "C" {
     pub async fn login_with_redirect(this: &Auth0Client, options: JsValue);
 
     #[wasm_bindgen(method, js_name = handleRedirectCallback)]
-    pub async fn handle_redirect_callback(this: &Auth0Client);
+    pub async fn handle_redirect_callback(this: &Auth0Client) -> JsValue;
 
     #[wasm_bindgen(method)]
     pub async fn logout(this: &Auth0Client, options: JsValue);
@@ -214,6 +214,13 @@ pub mod structs {
         // screen_hint?: string;
         // ui_locales?: string;
         // [key: string]: any;
+    }
+
+    #[derive(Deserialize)]
+    pub struct RedirectLoginResult<TAppState> {
+        /// State stored when the redirect request was made
+        #[serde(rename = "appState")]
+        pub app_state: Option<TAppState>,
     }
 
     #[derive(Default, Clone, Serialize, TypedBuilder)]

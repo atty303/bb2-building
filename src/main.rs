@@ -15,7 +15,7 @@ fn main() {
         .without_time()
         .with_level(false)
         .with_writer(MakeWebConsoleWriter::new().with_pretty_level())
-        .with_filter(EnvFilter::new("web=debug"));
+        .with_filter(EnvFilter::new("bb2b_lib=debug"));
     let perf_layer = performance_layer().with_details_from_fields(Pretty::default());
 
     tracing_subscriber::registry()

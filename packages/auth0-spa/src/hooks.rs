@@ -1,5 +1,5 @@
 use crate::binding::{create_auth0_client, Auth0Client};
-use crate::{Auth0ClientOptions, LogoutOptions, RedirectLoginOptions};
+use crate::{Auth0ClientOptions, LogoutOptions, RedirectLoginOptions, RedirectLoginResult};
 use dioxus::prelude::*;
 use futures_util::stream::StreamExt;
 use serde::{Deserialize, Serialize};
@@ -17,12 +17,13 @@ struct Auth0Context {
 
 pub fn use_auth0<TAppState: Default + Copy + Clone + Serialize + for<'a> Deserialize<'a>>(
     options: Auth0ClientOptions,
+    mut redirect_callback: impl FnMut(RedirectLoginResult<TAppState>) + 'static,
 ) -> UseAuth0<TAppState> {
     let mut is_authenticated = use_signal(|| false);
     let context = Auth0Context { is_authenticated };
     let context = use_context_provider(|| context);
 
-    let channel = use_coroutine(|mut rx| async move {
+    let channel = use_coroutine(move |mut rx| async move {
         let object = serde_wasm_bindgen::to_value(&options).expect("failed to serialize options");
         let client: Auth0Client = create_auth0_client(object).await.into();
 
@@ -36,7 +37,18 @@ pub fn use_auth0<TAppState: Default + Copy + Clone + Serialize + for<'a> Deseria
                     client.login_with_redirect(object).await;
                 }
                 Action::HandleRedirectCallback => {
-                    client.handle_redirect_callback().await;
+                    let result_js = client.handle_redirect_callback().await;
+                    let result = serde_wasm_bindgen::from_value::<RedirectLoginResult<TAppState>>(
+                        result_js.clone(),
+                    );
+                    if let Ok(ok) = result {
+                        redirect_callback(ok);
+                    } else {
+                        tracing::error!(
+                            "failed to deserialize redirect login result: {:?}",
+                            result_js
+                        );
+                    }
                 }
                 Action::Logout(options) => {
                     let object = serde_wasm_bindgen::to_value(&options)
