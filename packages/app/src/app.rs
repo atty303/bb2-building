@@ -2,6 +2,7 @@ use anyhow::anyhow;
 use dioxus::prelude::*;
 use dioxus_router::prelude::{Router, RouterConfig, RouterConfigFactory, WebHistory};
 
+use crate::auth0::use_auth0;
 use data::{Database, LANGUAGES};
 
 use crate::global::{DATABASE, LANGUAGE, SEARCH_CATALOGS, THEME};
@@ -31,6 +32,19 @@ async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
 
 #[component]
 pub fn App() -> Element {
+    let auth0 = use_auth0();
+    // use_effect(move || {
+    //     if (web_sys::window()
+    //         .unwrap()
+    //         .location()
+    //         .pathname()
+    //         .unwrap()
+    //         .starts_with("/auth/callback"))
+    //     {
+    //         auth0.handle_redirect_callback();
+    //     }
+    // });
+
     let mut theme_persistent = use_persistent("theme", || "dark".to_string());
     use_on_create(|| {
         to_owned![theme_persistent];

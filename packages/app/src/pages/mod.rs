@@ -1,6 +1,8 @@
 #![allow(non_snake_case)]
 
-use crate::auth0::use_auth0;
+use crate::auth0::{
+    use_auth0_context, AuthorizationParams, LogoutOptions, LogoutParams, RedirectLoginOptions,
+};
 use build::BuildEditPage;
 use data::LANGUAGES;
 use dioxus::prelude::*;
@@ -8,6 +10,8 @@ use home::Home;
 use planner::{PlannerEditSlotPage, PlannerPage, PlannerState};
 use rune::{RuneDebugPage, RuneListPage, RuneListState, RunePage};
 use skill::{SkillDebugPage, SkillListPage, SkillListState, SkillPage};
+use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 
 use crate::global::{LANGUAGE, THEME};
 use crate::ui::Icon;
@@ -23,6 +27,9 @@ pub enum Route {
     #[layout(MainLayout)]
     #[route("/")]
     Home {},
+
+    #[route("/auth/callback")]
+    AuthCallback {},
 
     #[route("/build")]
     BuildEditPage {},
@@ -138,15 +145,39 @@ fn MainLayout() -> Element {
 
 #[component]
 fn Auth() -> Element {
-    let auth = use_auth0();
-    let is_authenticated = use_resource(move || async move { auth.is_authenticated().await });
+    let auth = use_auth0_context();
     rsx! {
-        if let Some(a) = *is_authenticated.value().read() {
-            "{a}"
-        } else {
-            "..."
+        "{auth.is_authenticated()}"
+        button {
+            onclick: move |_| {
+                auth.login_with_redirect(
+                    RedirectLoginOptions::builder()
+                    .authorization_params(
+                        AuthorizationParams::builder()
+                        .redirect_uri(format!("{}/auth/callback", web_sys::window().unwrap().origin()))
+                        .build()
+                    ).build()
+                );
+            },
+            "Login"
+        }
+        if (auth.is_authenticated())() {
+            button {
+                onclick: move |_| {
+                    auth.logout(LogoutOptions::builder().logout_params(
+                        LogoutParams::builder().return_to(web_sys::window().unwrap().origin())
+                        .build()
+                    ).build());
+                },
+                "Logout"
+            }
         }
     }
+}
+
+#[component]
+fn AuthCallback() -> Element {
+    None
 }
 
 #[component]

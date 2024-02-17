@@ -9,7 +9,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 app = { workspace = true }
 dioxus = { workspace = true }
-dioxus-fullstack = { workspace = true, features = ["server", "cloudflare-workers"]  }
+dioxus-fullstack = { workspace = true, features = ["server", "cloudflare"]  }
 
 #axum = { version = "0.7", default-features = false }
 #tokio = { version = "1.36", default-features = false, features = [] }
