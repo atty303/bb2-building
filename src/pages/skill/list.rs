@@ -173,9 +173,9 @@ fn SkillLink(skill: Signal<Skill>, on_click: EventHandler<Signal<Skill>>) -> Ele
     ) -> Element {
         rsx! {
             button {
-                class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 {class}",
+                class: "hover:bg-primary border-primary border-solid border-2 rounded-md p-1 text-[0] {class}",
                 onclick: move |_| on_click.call(skill.clone()),
-                span { class: "relative",
+                span { class: "relative inline-block",
                     SpriteIcon {
                         class: "rounded-md",
                         sprite: Signal::new(skill().modes[0].icon.clone()),

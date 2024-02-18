@@ -1,16 +1,18 @@
 #![allow(non_snake_case)]
 
+use anyhow::anyhow;
 use auth0_spa::{
     use_auth0_context, AuthorizationParams, LogoutOptions, LogoutParams, RedirectLoginOptions,
 };
 use build::BuildEditPage;
-use data::LANGUAGES;
+use data::{Database, LANGUAGES};
 use dioxus::prelude::*;
 use home::Home;
 use rune::{RuneDebugPage, RuneListPage, RuneListState, RunePage};
 use skill::{SkillDebugPage, SkillListPage, SkillListState, SkillPage};
 
-use crate::global::{LANGUAGE, THEME};
+use crate::global::{DATABASE, SEARCH_CATALOGS, THEME};
+use crate::search::{RuneSearch, SearchCatalogs, SkillSearch};
 use crate::ui::Icon;
 use crate::Language;
 
@@ -109,9 +111,61 @@ fn PageNotFound(route: Vec<String>) -> Element {
     }
 }
 
+async fn fetch_database(lang: &str) -> anyhow::Result<Database> {
+    if let Some(_) = LANGUAGES.iter().find(|l| *l == &lang) {
+        let base_uri = gloo_utils::document()
+            .base_uri()
+            .map_err(|err| anyhow!(format!("{:?}", err)))?;
+        let base_uri = base_uri.ok_or(anyhow!("base_uri"))?;
+
+        let database = {
+            let res = reqwest::get(format!("{}i18n/{}/database.msgpack", base_uri, lang)).await?;
+            let body = res.bytes().await?;
+            let cursor = std::io::Cursor::new(body);
+            Database::read(cursor)?
+        };
+
+        Ok(database)
+    } else {
+        Err(anyhow!("unknown language: {}", lang))
+    }
+}
+
 #[component]
 fn MainLayout(language: Language) -> Element {
-    rsx! {
+    let l = language.clone();
+    let mut lang = use_signal(move || l);
+    if lang() != language {
+        *lang.write() = language.clone();
+    }
+    tracing::info!("main layout: {:?}", lang);
+    let database_future = use_resource(move || async move {
+        tracing::info!("loading database: {:?}", lang);
+        let db = fetch_database(&lang()).await;
+        match db {
+            Ok(v) => {
+                let skill = &v.skill;
+                let rune = &v.rune;
+                let catalogs = SearchCatalogs {
+                    skill: crate::search::create_catalog::<SkillSearch, SkillSearch, SkillSearch>(
+                        skill.clone(),
+                        lang().clone().into(),
+                    ),
+                    rune: crate::search::create_catalog::<RuneSearch, RuneSearch, RuneSearch>(
+                        rune.clone(),
+                        lang().clone().into(),
+                    ),
+                };
+
+                *SEARCH_CATALOGS.write() = catalogs;
+                *DATABASE.write() = v;
+                Some(Ok(()))
+            }
+            Err(e) => Some(Err(e)),
+        }
+    });
+
+    let main = rsx! {
         div { class: "drawer",
             input {
                 class: "drawer-toggle",
@@ -140,7 +194,7 @@ fn MainLayout(language: Language) -> Element {
                                 "BB2B"
                             }
                             div { class: "hidden lg:block",
-                                ul { class: "menu menu-horizontal", NavMenu { language: language.clone() } }
+                                ul { class: "menu menu-horizontal", NavMenu { language: lang().clone() } }
                             }
                         }
                         div { class: "navbar-end pr-4",
@@ -182,10 +236,21 @@ fn MainLayout(language: Language) -> Element {
                     aria_label: "close sidebar"
                 }
                 ul { class: "menu p-4 w-40 min-h-full bg-neutral text-neutral-content mt-16",
-                    NavMenu { language: language.clone() }
+                    NavMenu { language: lang().clone() }
                 }
             }
         }
+    };
+
+    match database_future.value().as_ref() {
+        None => None,
+        Some(v) => match *v {
+            None => None,
+            Some(Ok(_)) => main,
+            Some(Err(ref err)) => {
+                rsx! {"An error occurred while fetching database: {err}"}
+            }
+        },
     }
 }
 
