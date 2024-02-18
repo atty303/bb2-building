@@ -52,7 +52,6 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 rmp-serde = "1.1"
 serde-wasm-bindgen = "0.6"
-base64 = "0.21"
 
 indicium = { git = "https://github.com/atty303/indicium.git", rev = "a3c8c168e0c4f9167612b80eda194b2a179e5338" }
 getrandom = { version = "0.2", features = ["js"] }
@@ -60,5 +59,6 @@ getrandom = { version = "0.2", features = ["js"] }
 anyhow = "1.0"
 ref-cast = "1.0"
 derive_more = { version = "1.0.0-beta.6", features = ["full"] }
+classes = "1.0"
 
 markdown-it = "0.6"

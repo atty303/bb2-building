@@ -4,6 +4,7 @@ use std::rc::Rc;
 use dioxus::prelude::*;
 
 pub mod dialog;
+pub mod tabs;
 
 pub struct RenderFn<T = ()> {
     pub(super) callback: Rc<RefCell<Option<RenderCallback<T>>>>,

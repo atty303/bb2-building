@@ -3,8 +3,12 @@ use crate::editor::CodeMirror;
 use crate::global::DATABASE;
 use crate::ui::{Dialog, SpriteIcon};
 use crate::Language;
+use classes::classes;
 use dioxus::prelude::*;
 use dioxus::web::WebEventExt;
+use headlessui::{
+    RenderFn, Tab, TabGroup, TabList, TabPanel, TabPanelRenderArgs, TabPanels, TabRenderArgs,
+};
 use markdown_it::plugins::cmark;
 use markdown_it::{parser, MarkdownIt};
 use wasm_bindgen::closure::Closure;
@@ -40,23 +44,69 @@ pub fn BuildEditPage(language: Language) -> Element {
         })
     });
 
-    rsx! {
-        div {
-            class: "flex w-96 h-96",
-            onmounted: move |e| {
-                let parent = e.web_event();
-                let on_change = Closure::wrap(
-                    Box::new(move |value| {
-                        *doc.write() = value;
-                    }) as Box<dyn FnMut(String)>,
-                );
-                let cm = CodeMirror::new(parent, &on_change);
-                on_change.forget();
-                *code_mirror.write() = Some(cm);
+    let render_tab = RenderFn::<TabRenderArgs>::new(move |args| {
+        let class = classes!["tab", "tab-active [--tab-bg:oklch(var(--b2))]" => args.selected];
+        rsx! {
+            a {
+                class,
+                ..args.attrs,
+                {args.children}
             }
         }
+    });
+    let render_tab_panel = RenderFn::<TabPanelRenderArgs>::new(move |args| {
+        let class = classes!["bg-base-200 rounded-b-lg p-4", "hidden" => !args.selected];
+        rsx! {
+            div {
+                class,
+                ..args.attrs,
+                {args.children}
+            }
+        }
+    });
 
-        article { class: "prose md:prose-lg", {rendered()} }
+    rsx! {
+        TabGroup {
+            TabList {
+                class: "tabs-lifted",
+                Tab {
+                    index: 0,
+                    render: Some(render_tab.clone()),
+                    "Write"
+                }
+                Tab {
+                    index: 1,
+                    render: Some(render_tab.clone()),
+                    "Preview"
+                }
+            }
+            TabPanels {
+                TabPanel {
+                    index: 0,
+                    r#static: true,
+                    render: Some(render_tab_panel.clone()),
+                    div {
+                        class: "w-full h-96",
+                        onmounted: move |e| {
+                            let parent = e.web_event();
+                            let on_change = Closure::wrap(
+                                Box::new(move |value| {
+                                    *doc.write() = value;
+                                }) as Box<dyn FnMut(String)>,
+                            );
+                            let cm = CodeMirror::new(parent, &on_change);
+                            on_change.forget();
+                            *code_mirror.write() = Some(cm);
+                        }
+                    }
+                }
+                TabPanel {
+                    index: 1,
+                    render: Some(render_tab_panel.clone()),
+                    article { class: "prose md:prose-lg max-w-full", {rendered()} }
+                }
+            }
+        }
 
         DetailDialog { language open: detail_open, target: detail_target }
     }
