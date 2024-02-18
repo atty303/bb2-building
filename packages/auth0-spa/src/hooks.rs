@@ -60,17 +60,7 @@ pub fn use_auth0<TAppState: Clone + Serialize + for<'de> Deserialize<'de>>(
         }
     });
 
-    let auth0 = UseAuth0 { context, channel };
-    {
-        let auth0 = auth0.clone();
-        use_effect(move || {
-            let pathname = web_sys::window().unwrap().location().pathname().unwrap();
-            if pathname.starts_with("/auth/callback") {
-                auth0.handle_redirect_callback();
-            }
-        });
-    }
-    auth0
+    UseAuth0 { context, channel }
 }
 
 pub fn use_auth0_context<TAppState: Clone + Serialize>() -> UseAuth0<TAppState> {

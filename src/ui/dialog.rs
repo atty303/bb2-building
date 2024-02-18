@@ -10,14 +10,14 @@ pub fn Dialog(
 ) -> Element {
     let on_close1 = on_close.clone();
     rsx! {
-        dioxus_headlessui::dialog::Dialog {
+        headlessui::Dialog {
             class: "modal backdrop:backdrop-blur",
             open: open(),
             on_close: move |_| {
                 *open.write() = false;
                 on_close.as_ref().map(|h| h.call(()));
             },
-            dioxus_headlessui::dialog::DialogPanel { class: "modal-box max-w-full h-full p-0",
+            headlessui::DialogPanel { class: "modal-box max-w-full h-full p-0",
                 div { class: "sticky top-0 right-0 left-0 w-full h-0 z-50",
                     button {
                         class: "btn btn-sm btn-circle btn-neutral absolute right-2 top-2",

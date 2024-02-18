@@ -1,0 +1,9 @@
+[package]
+name = "headlessui"
+edition = "2021"
+version.workspace = true
+
+[dependencies]
+dioxus = { workspace = true }
+web-sys = {  version = "0.3", features = ["HtmlDialogElement"] }
+tracing = "0.1"

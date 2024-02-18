@@ -216,11 +216,11 @@ dependencies = [
  "data",
  "derive_more 1.0.0-beta.6",
  "dioxus",
- "dioxus-headlessui",
  "dioxus-signals",
  "getrandom",
  "gloo-storage 0.3.0",
  "gloo-utils 0.2.0",
+ "headlessui",
  "indicium",
  "markdown-it",
  "ref-cast",
@@ -697,15 +697,6 @@ dependencies = [
  "serde",
  "serde_json",
  "server_fn",
- "tracing",
- "web-sys",
-]
-
-[[package]]
-name = "dioxus-headlessui"
-version = "0.1.0"
-dependencies = [
- "dioxus",
  "tracing",
  "web-sys",
 ]
@@ -1424,6 +1415,15 @@ name = "hashbrown"
 version = "0.14.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "290f1a1d9242c78d09ce40a5e87e7554ee637af1351968159f4952f028f75604"
+
+[[package]]
+name = "headlessui"
+version = "0.1.0"
+dependencies = [
+ "dioxus",
+ "tracing",
+ "web-sys",
+]
 
 [[package]]
 name = "heck"

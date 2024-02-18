@@ -27,8 +27,8 @@ pub enum Route {
     #[route("/")]
     Home {},
 
-    #[route("/auth/callback")]
-    AuthCallback {},
+    #[route("/auth/callback?:state&:code")]
+    AuthCallback { state: String, code: String },
 
     #[nest("/:language")]
     #[layout(MainLayout)]
@@ -138,7 +138,6 @@ fn MainLayout(language: Language) -> Element {
     if lang() != language {
         *lang.write() = language.clone();
     }
-    tracing::info!("main layout: {:?}", lang);
     let database_future = use_resource(move || async move {
         tracing::info!("loading database: {:?}", lang);
         let db = fetch_database(&lang()).await;
@@ -301,7 +300,9 @@ fn Auth() -> Element {
 }
 
 #[component]
-fn AuthCallback() -> Element {
+fn AuthCallback(state: String, code: String) -> Element {
+    let auth0 = use_auth0_context::<String>();
+    auth0.handle_redirect_callback();
     None
 }
 

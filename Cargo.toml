@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["packages/auth0-spa","packages/data", "packages/gen"]
+members = ["packages/auth0-spa","packages/data", "packages/gen", "packages/headlessui"]
 
 #[patch.crates-io]
 #worker = { git = "https://github.com/spigaz/workers-rs.git", rev = "7bbd74efeda63852369a0725d6e45a006301a93e" }
@@ -11,6 +11,7 @@ version = "0.1.0"
 [workspace.dependencies]
 data = { path = "packages/data" }
 auth0-spa = { path = "packages/auth0-spa" }
+headlessui = { path = "packages/headlessui" }
 
 dioxus = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc" }
 dioxus-signals = { git = "https://github.com/DioxusLabs/dioxus.git", rev = "902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc" }
@@ -30,8 +31,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 data = { workspace = true }
 auth0-spa = { workspace = true }
-
-dioxus-headlessui = { git = "https://github.com/atty303/dioxus-headlessui.git" }
+headlessui = { workspace = true }
 
 dioxus = { workspace = true, features = ["router", "web"] }
 dioxus-signals = { workspace = true, features = ["serde"] }
