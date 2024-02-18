@@ -283,13 +283,6 @@ fn Auth() -> Element {
                     let window = web_sys::window().unwrap();
                     auth.login_with_redirect(
                         RedirectLoginOptions::builder()
-                            .authorization_params(
-                                AuthorizationParams::builder()
-                                    .redirect_uri(
-                                        format!("{}/auth/callback", window.origin()),
-                                    )
-                                    .build(),
-                            )
                             .app_state(window.location().href().unwrap())
                             .build(),
                     );

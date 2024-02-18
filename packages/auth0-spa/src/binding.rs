@@ -14,6 +14,9 @@ extern "C" {
     #[wasm_bindgen(constructor)]
     pub fn new(options: JsValue) -> Auth0Client;
 
+    #[wasm_bindgen(method, js_name = getTokenSilently)]
+    pub async fn get_token_silently(this: &Auth0Client, options: JsValue) -> JsValue;
+
     #[wasm_bindgen(method, js_name = isAuthenticated)]
     pub async fn is_authenticated(this: &Auth0Client) -> JsValue;
 
@@ -30,7 +33,7 @@ extern "C" {
 pub mod structs {
     use super::*;
 
-    #[derive(Default, Clone, Serialize, TypedBuilder)]
+    #[derive(Debug, Default, Clone, Serialize, TypedBuilder)]
     pub struct Auth0ClientOptions {
         /// Internal property to send information about the client to the authorization server.
         #[builder(default, setter(strip_option))]
@@ -155,7 +158,7 @@ pub mod structs {
     }
 
     /// Internal property to send information about the client to the authorization server.
-    #[derive(Default, Clone, Serialize, TypedBuilder)]
+    #[derive(Debug, Default, Clone, Serialize, TypedBuilder)]
     pub struct Auth0ClientInternal {
         #[builder(default, setter(strip_option))]
         pub env: Option<HashMap<String, String>>,
@@ -163,33 +166,12 @@ pub mod structs {
         pub version: String,
     }
 
-    #[derive(Clone, Serialize)]
-    pub enum CacheLocation {
-        #[serde(rename = "memory")]
-        Memory,
-        #[serde(rename = "localstorage")]
-        LocalStorage,
-    }
-
-    #[derive(Default, Clone, Serialize, TypedBuilder)]
-    pub struct RedirectLoginOptions<TAppState> {
-        #[builder(default, setter(strip_option))]
-        #[serde(rename = "appState")]
-        pub app_state: Option<TAppState>,
-        #[builder(default, setter(strip_option))]
-        #[serde(rename = "authorizationParams")]
-        pub authorization_params: Option<AuthorizationParams>,
-        #[builder(default, setter(strip_option))]
-        pub fragment: Option<String>,
-        // onRedirect?: ((url) => Promise<void>);
-        // openUrl?: ((url) => void | Promise<void>);
-    }
-
-    #[derive(Default, Clone, Serialize, TypedBuilder)]
+    #[derive(Debug, Default, Clone, Serialize, TypedBuilder)]
     pub struct AuthorizationParams {
         // pub acr_values: Option<String>,
         /// The default audience to be used for requesting API access.
-        // pub audience: Option<String>,
+        #[builder(default, setter(strip_option))]
+        pub audience: Option<String>,
         /// The name of the connection configured for your application. If null, it will redirect to the Auth0 Login Page and show the Login Widget.
         // pub connection: Option<String>,
         // display?: "page" | "popup" | "touch" | "wap";
@@ -209,20 +191,78 @@ pub mod structs {
         /// The default URL where Auth0 will redirect your browser to with the authentication result. It must be whitelisted in the "Allowed Callback URLs" field in your Auth0 Application's settings. If not provided here, it should be provided in the other methods that provide authentication.
         #[builder(default, setter(strip_option))]
         redirect_uri: Option<String>,
-        // scope?: string;
+        #[builder(default, setter(strip_option))]
+        pub scope: Option<String>,
         // screen_hint?: string;
         // ui_locales?: string;
         // [key: string]: any;
     }
 
-    #[derive(Deserialize)]
+    #[derive(Debug, Clone, Serialize)]
+    pub enum CacheLocation {
+        #[serde(rename = "memory")]
+        Memory,
+        #[serde(rename = "localstorage")]
+        LocalStorage,
+    }
+
+    #[derive(Debug, Clone, Serialize)]
+    pub enum CacheMode {
+        #[serde(rename = "on")]
+        On,
+        #[serde(rename = "off")]
+        Off,
+        #[serde(rename = "cache-only")]
+        CacheOnly,
+    }
+
+    #[derive(Debug, Default, Clone, Serialize, TypedBuilder)]
+    pub struct GetTokenSilentlyOptions {
+        #[builder(default, setter(strip_option))]
+        #[serde(rename = "authorizationParams")]
+        pub authorization_params: Option<AuthorizationParams>,
+        #[builder(default, setter(strip_option))]
+        #[serde(rename = "cacheMode")]
+        pub cache_mode: Option<CacheMode>,
+        #[builder(default, setter(strip_option))]
+        #[serde(rename = "detailedResponse")]
+        pub detailed_response: Option<bool>,
+        #[builder(default, setter(strip_option))]
+        #[serde(rename = "timeoutInSeconds")]
+        pub timeout_in_seconds: Option<u32>,
+    }
+
+    #[derive(Debug, Clone, Deserialize)]
+    pub struct GetTokenSilentlyVerboseResponse {
+        access_token: String,
+        expires_in: u32,
+        id_token: String,
+        refresh_token: Option<String>,
+        scope: Option<String>,
+    }
+
+    #[derive(Debug, Default, Clone, Serialize, TypedBuilder)]
+    pub struct RedirectLoginOptions<TAppState> {
+        #[builder(default, setter(strip_option))]
+        #[serde(rename = "appState")]
+        pub app_state: Option<TAppState>,
+        #[builder(default, setter(strip_option))]
+        #[serde(rename = "authorizationParams")]
+        pub authorization_params: Option<AuthorizationParams>,
+        #[builder(default, setter(strip_option))]
+        pub fragment: Option<String>,
+        // onRedirect?: ((url) => Promise<void>);
+        // openUrl?: ((url) => void | Promise<void>);
+    }
+
+    #[derive(Debug, Clone, Deserialize)]
     pub struct RedirectLoginResult<TAppState> {
         /// State stored when the redirect request was made
         #[serde(rename = "appState")]
         pub app_state: Option<TAppState>,
     }
 
-    #[derive(Default, Clone, Serialize, TypedBuilder)]
+    #[derive(Debug, Default, Clone, Serialize, TypedBuilder)]
     pub struct LogoutOptions {
         #[builder(default, setter(strip_option))]
         #[serde(rename = "clientId")]
@@ -234,7 +274,7 @@ pub mod structs {
         // openUrl?: ((url) => void | Promise<void>);
     }
 
-    #[derive(Default, Clone, Serialize, TypedBuilder)]
+    #[derive(Debug, Default, Clone, Serialize, TypedBuilder)]
     pub struct LogoutParams {
         #[builder(default, setter(strip_option))]
         federated: Option<bool>,

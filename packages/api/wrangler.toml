@@ -1,0 +1,11 @@
+name = "bb2b-api"
+workers_dev = true
+main = "build/worker/shim.mjs"
+compatibility_date = "2024-01-29"
+
+[[kv_namespaces]]
+binding = "JWKS"
+id = "JWKS"
+
+[build]
+command = "cargo install -q worker-build && worker-build"

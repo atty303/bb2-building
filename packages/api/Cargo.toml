@@ -1,0 +1,18 @@
+[package]
+name = "api"
+edition = "2021"
+version = "0.1.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+worker = { git = "https://github.com/spigaz/workers-rs.git", rev = "7bbd74efeda63852369a0725d6e45a006301a93e" }
+reqwest = { version = "0.11", features = ["json"] }
+jsonwebtoken = "9.2"
+serde = { version = "1.0", features = ["derive"] }
+console_error_panic_hook = "0.1"
+thiserror = "1.0"
+
+[profile.release]
+opt-level = "s"

@@ -1,0 +1,11 @@
+{
+  "name": "api",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "wrangler": "^3.28.3"
+  },
+  "scripts": {
+    "serve": "wrangler dev"
+  }
+}
