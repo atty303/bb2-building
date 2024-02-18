@@ -7,6 +7,7 @@ use crate::pages::Route;
 #[component]
 pub fn Home() -> Element {
     router().replace(Route::SkillListPage {
+        language: "en".to_string().into(),
         state: SkillListState::default(),
     });
 

@@ -9,6 +9,7 @@ use crate::components::RuneView;
 use crate::global::DATABASE;
 use crate::hooks::use_search_rune;
 use crate::pages::Route;
+use crate::Language;
 
 #[derive(Default, PartialEq, Clone, Serialize, Deserialize)]
 pub struct RuneListState {
@@ -33,7 +34,7 @@ impl Display for RuneListState {
 }
 
 #[component]
-pub fn RuneListPage(state: RuneListState) -> Element {
+pub fn RuneListPage(language: Language, state: RuneListState) -> Element {
     let mut search = use_search_rune();
     if *search.query.peek() != *state.query.peek() {
         *search.query.write() = state.query.peek().clone();
@@ -60,6 +61,7 @@ pub fn RuneListPage(state: RuneListState) -> Element {
                         *search.query.write() = q.clone();
                         router()
                             .replace(Route::RuneListPage {
+                                language: language.clone(),
                                 state: RuneListState {
                                     query: Signal::new(q.clone()),
                                 },
@@ -76,7 +78,7 @@ pub fn RuneListPage(state: RuneListState) -> Element {
 
         div { class: "flex flex-wrap gap-2 mt-4",
             for rune in search.results.read().iter() {
-                div { class: "flex-1 min-w-64", RuneView { rune: rune.clone() } }
+                div { class: "flex-1 min-w-64", RuneView { language: language.clone(), rune: rune.clone() } }
             }
         }
     }

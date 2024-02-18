@@ -2,6 +2,7 @@ use crate::components::SkillView;
 use crate::editor::CodeMirror;
 use crate::global::DATABASE;
 use crate::ui::{Dialog, SpriteIcon};
+use crate::Language;
 use dioxus::prelude::*;
 use dioxus::web::WebEventExt;
 use markdown_it::plugins::cmark;
@@ -9,7 +10,7 @@ use markdown_it::{parser, MarkdownIt};
 use wasm_bindgen::closure::Closure;
 
 #[component]
-pub fn BuildEditPage() -> Element {
+pub fn BuildEditPage(language: Language) -> Element {
     let detail_open = use_signal(|| false);
     let detail_target = use_signal(|| None);
 
@@ -57,7 +58,7 @@ pub fn BuildEditPage() -> Element {
 
         article { class: "prose md:prose-lg", {rendered()} }
 
-        DetailDialog { open: detail_open, target: detail_target }
+        DetailDialog { language open: detail_open, target: detail_target }
     }
 }
 
@@ -149,7 +150,11 @@ enum DetailTarget {
 }
 
 #[component]
-fn DetailDialog(open: Signal<bool>, target: Signal<Option<DetailTarget>>) -> Element {
+fn DetailDialog(
+    language: Language,
+    open: Signal<bool>,
+    target: Signal<Option<DetailTarget>>,
+) -> Element {
     if let Some(t) = target.read().as_ref() {
         rsx! {
             Dialog {
@@ -162,7 +167,7 @@ fn DetailDialog(open: Signal<bool>, target: Signal<Option<DetailTarget>>) -> Ele
                     match t {
                         DetailTarget::Skill(skill) => {
                             rsx! {
-                                SkillView { skill: *skill }
+                                SkillView { language, skill: *skill }
                             }
                         }
                     }

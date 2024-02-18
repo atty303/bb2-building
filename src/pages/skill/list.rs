@@ -13,6 +13,7 @@ use crate::global::DATABASE;
 use crate::hooks::use_search_skill;
 use crate::pages::Route;
 use crate::ui::{Dialog, SpriteIcon};
+use crate::Language;
 
 #[derive(Default, PartialEq, Clone, Serialize, Deserialize)]
 pub struct SkillListState {
@@ -37,7 +38,7 @@ impl Display for SkillListState {
 }
 
 #[component]
-pub fn SkillListPage(state: SkillListState) -> Element {
+pub fn SkillListPage(language: Language, state: SkillListState) -> Element {
     rsx! {
         div { class: "text-sm breadcrumbs",
             ul {
@@ -47,10 +48,12 @@ pub fn SkillListPage(state: SkillListState) -> Element {
         }
 
         SkillList {
+            language: language.clone(),
             query: state.query,
             on_search: move |q: String| {
                 router()
                     .replace(Route::SkillListPage {
+                        language: language.clone(),
                         state: SkillListState {
                             query: Signal::new(q.clone()),
                         },
@@ -62,6 +65,7 @@ pub fn SkillListPage(state: SkillListState) -> Element {
 
 #[component]
 pub fn SkillList(
+    language: Language,
     query: Signal<String>,
     on_search: EventHandler<String>,
     on_select: Option<EventHandler<SkillHash>>,
@@ -112,6 +116,7 @@ pub fn SkillList(
         }
 
         DetailDialog {
+            language,
             open: detail_open,
             maybe_skill: detail_skill,
             selectable: on_select.is_some(),
@@ -122,6 +127,7 @@ pub fn SkillList(
 
 #[component]
 pub fn DetailDialog(
+    language: Language,
     open: Signal<bool>,
     maybe_skill: Signal<Option<Signal<Skill>>>,
     selectable: bool,
@@ -148,7 +154,7 @@ pub fn DetailDialog(
                         }
                     }
                 }
-                div { class: "mt-12", SkillView { skill } }
+                div { class: "mt-12", SkillView { language, skill } }
             }
         }
     } else {

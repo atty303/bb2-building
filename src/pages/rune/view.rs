@@ -2,9 +2,10 @@ use crate::components::RuneView;
 use dioxus::prelude::*;
 
 use crate::global::DATABASE;
+use crate::Language;
 
 #[component]
-pub fn RunePage(rune_id: String) -> Element {
+pub fn RunePage(language: Language, rune_id: String) -> Element {
     DATABASE()
         .rune
         .iter()
@@ -19,7 +20,7 @@ pub fn RunePage(rune_id: String) -> Element {
                     }
                 }
 
-                RuneView { rune: Signal::new(rune.clone()) }
+                RuneView { language, rune: Signal::new(rune.clone()) }
             }
         })
         .unwrap_or_else(|| {

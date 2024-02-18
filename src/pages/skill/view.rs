@@ -2,9 +2,10 @@ use dioxus::prelude::*;
 
 use crate::components::SkillView;
 use crate::global::DATABASE;
+use crate::Language;
 
 #[component]
-pub fn SkillPage(skill_id: String) -> Element {
+pub fn SkillPage(language: Language, skill_id: String) -> Element {
     DATABASE()
         .skill
         .iter()
@@ -19,7 +20,7 @@ pub fn SkillPage(skill_id: String) -> Element {
                     }
                 }
 
-                SkillView { skill: Signal::new(skill.clone()) }
+                SkillView { language, skill: Signal::new(skill.clone()) }
             }
         })
         .unwrap_or_else(|| {

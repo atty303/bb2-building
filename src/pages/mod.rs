@@ -7,52 +7,97 @@ use build::BuildEditPage;
 use data::LANGUAGES;
 use dioxus::prelude::*;
 use home::Home;
-use planner::{PlannerEditSlotPage, PlannerPage, PlannerState};
 use rune::{RuneDebugPage, RuneListPage, RuneListState, RunePage};
 use skill::{SkillDebugPage, SkillListPage, SkillListState, SkillPage};
 
 use crate::global::{LANGUAGE, THEME};
 use crate::ui::Icon;
+use crate::Language;
 
 mod build;
 mod home;
-mod planner;
+// mod planner;
 mod rune;
 mod skill;
 
 #[derive(Routable, Clone)]
 pub enum Route {
-    #[route("/auth/callback")]
-    AuthCallback {},
-
-    #[layout(MainLayout)]
     #[route("/")]
     Home {},
 
+    #[route("/auth/callback")]
+    AuthCallback {},
+
+    #[nest("/:language")]
+    #[layout(MainLayout)]
     #[route("/build")]
-    BuildEditPage {},
+    BuildEditPage { language: Language },
 
-    #[route("/planner?:state")]
-    PlannerPage { state: PlannerState },
-    #[route("/planner/:index?:state")]
-    PlannerEditSlotPage { index: i32, state: PlannerState },
-
+    // #[route("/planner?:state")]
+    // PlannerPage { state: PlannerState },
+    // #[route("/planner/:index?:state")]
+    // PlannerEditSlotPage { index: i32, state: PlannerState },
     #[route("/skill?:state")]
-    SkillListPage { state: SkillListState },
+    SkillListPage {
+        language: Language,
+        state: SkillListState,
+    },
     #[route("/skill/_debug")]
-    SkillDebugPage {},
+    SkillDebugPage { language: Language },
     #[route("/skill/:skill_id")]
-    SkillPage { skill_id: String },
+    SkillPage {
+        language: Language,
+        skill_id: String,
+    },
 
     #[route("/rune?:state")]
-    RuneListPage { state: RuneListState },
+    RuneListPage {
+        language: Language,
+        state: RuneListState,
+    },
     #[route("/rune/_debug")]
-    RuneDebugPage {},
+    RuneDebugPage { language: Language },
     #[route("/rune/:rune_id")]
-    RunePage { rune_id: String },
-
+    RunePage { language: Language, rune_id: String },
+    #[end_layout]
+    #[end_nest]
     #[route("/:..route")]
     PageNotFound { route: Vec<String> },
+}
+
+pub trait SetLanguage {
+    fn set_language(self: &mut Self, language: Language);
+}
+
+impl SetLanguage for Route {
+    fn set_language(self: &mut Self, lang: Language) {
+        match self {
+            Route::Home { .. } => (),
+            Route::AuthCallback { .. } => (),
+            Route::BuildEditPage {
+                ref mut language, ..
+            } => *language = lang,
+            Route::SkillListPage {
+                ref mut language, ..
+            } => *language = lang,
+            Route::SkillDebugPage {
+                ref mut language, ..
+            } => *language = lang,
+            Route::SkillPage {
+                ref mut language, ..
+            } => *language = lang,
+            Route::RuneListPage {
+                ref mut language, ..
+            } => *language = lang,
+            Route::RuneDebugPage {
+                ref mut language, ..
+            } => *language = lang,
+            Route::RunePage {
+                ref mut language, ..
+            } => *language = lang,
+            Route::PageNotFound { .. } => (),
+        }
+    }
 }
 
 #[component]
@@ -65,7 +110,7 @@ fn PageNotFound(route: Vec<String>) -> Element {
 }
 
 #[component]
-fn MainLayout() -> Element {
+fn MainLayout(language: Language) -> Element {
     rsx! {
         div { class: "drawer",
             input {
@@ -95,7 +140,7 @@ fn MainLayout() -> Element {
                                 "BB2B"
                             }
                             div { class: "hidden lg:block",
-                                ul { class: "menu menu-horizontal", NavMenu {} }
+                                ul { class: "menu menu-horizontal", NavMenu { language: language.clone() } }
                             }
                         }
                         div { class: "navbar-end pr-4",
@@ -137,7 +182,7 @@ fn MainLayout() -> Element {
                     aria_label: "close sidebar"
                 }
                 ul { class: "menu p-4 w-40 min-h-full bg-neutral text-neutral-content mt-16",
-                    NavMenu {}
+                    NavMenu { language: language.clone() }
                 }
             }
         }
@@ -196,22 +241,15 @@ fn AuthCallback() -> Element {
 }
 
 #[component]
-fn NavMenu() -> Element {
+fn NavMenu(language: Language) -> Element {
     rsx! {
         li {
-            Link {
-                to: Route::PlannerPage {
-                    state: PlannerState::default(),
-                },
-                "Planner"
-            }
-        }
-        li {
-            Link { to: Route::BuildEditPage {}, "Build" }
+            Link { to: Route::BuildEditPage { language: language.clone() }, "Build" }
         }
         li {
             Link {
                 to: Route::SkillListPage {
+                    language: language.clone(),
                     state: SkillListState::default(),
                 },
                 "Skill"
@@ -220,6 +258,7 @@ fn NavMenu() -> Element {
         li {
             Link {
                 to: Route::RuneListPage {
+                    language: language.clone(),
                     state: RuneListState::default(),
                 },
                 "Rune"
@@ -230,19 +269,23 @@ fn NavMenu() -> Element {
 
 #[component]
 fn LanguageSelect() -> Element {
+    let route = router().current::<Route>();
     rsx! {
-        div { class: "dropdown dropdown-end", tabindex: 0,
-            div { class: "btn btn-ghost btn-sm rounded-btn", role: "button",
+        div { class: "dropdown dropdown-end",
+            div { class: "btn btn-ghost btn-sm rounded-btn", role: "button", tabindex: 0,
                 Icon { svg: r#"<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802" /></svg>"# }
             }
-            div {
+            ul {
                 class: "p-2 shadow menu dropdown-content bg-base-100 text-base-content rounded-box z-10 max-h-fit overflow-y-auto w-48",
                 tabindex: 0,
-                div { class: "grid grid-cols-1 gap-2 p-4",
+                li {
                     for t in LANGUAGES.iter() {
-                        button {
-                            class: "btn btn-ghost btn-sm justify-start px-4 py-2",
-                            onclick: move |_| *LANGUAGE.write() = Some(t.to_string()),
+                        Link {
+                            to: {
+                                let mut r = route.clone();
+                                r.set_language(t.to_string().into());
+                                r
+                            },
                             "{t}"
                         }
                     }

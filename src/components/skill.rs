@@ -1,11 +1,16 @@
 use crate::pages::Route;
+use crate::Language;
 use dioxus::prelude::*;
 use dioxus::router::prelude::Link;
 
 use crate::ui::{Description, Rarity, SpriteIcon};
 
 #[component]
-pub fn SkillView(skill: Signal<data::Skill>, #[props(default = false)] debug: bool) -> Element {
+pub fn SkillView(
+    language: Language,
+    skill: Signal<data::Skill>,
+    #[props(default = false)] debug: bool,
+) -> Element {
     rsx! {
         div { class: "flex flex-col border-solid border border-base-300 rounded-md my-2",
             div { class: "flex flex-row items-center gap-2 bg-base-300 text-base-content p-2",
@@ -18,6 +23,7 @@ pub fn SkillView(skill: Signal<data::Skill>, #[props(default = false)] debug: bo
                     Link {
                         class: "text-primary hover:underline cursor-pointer",
                         to: Route::SkillPage {
+                            language,
                             skill_id: skill().id.clone(),
                         },
                         "{skill().name}"

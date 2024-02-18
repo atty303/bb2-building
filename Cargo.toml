@@ -59,5 +59,6 @@ getrandom = { version = "0.2", features = ["js"] }
 
 anyhow = "1.0"
 ref-cast = "1.0"
+derive_more = { version = "1.0.0-beta.6", features = ["full"] }
 
 markdown-it = "0.6"
