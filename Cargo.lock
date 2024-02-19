@@ -118,7 +118,9 @@ dependencies = [
  "jsonwebtoken",
  "reqwest",
  "serde",
+ "serde_json",
  "thiserror",
+ "uuid",
  "worker",
 ]
 
@@ -168,6 +170,12 @@ dependencies = [
  "quote",
  "syn 2.0.48",
 ]
+
+[[package]]
+name = "atomic"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c59bdb34bc650a32731b31bd8f0829cc15d24a708ee31559e0bb34f2bc320cba"
 
 [[package]]
 name = "atomic-waker"
@@ -3197,6 +3205,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
 
 [[package]]
+name = "uuid"
+version = "1.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f00cc9702ca12d3c81455259621e676d0f7251cec66a21e98fe2e9a37db93b2a"
+dependencies = [
+ "atomic",
+ "getrandom",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "valuable"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3533,8 +3552,7 @@ dependencies = [
 [[package]]
 name = "worker-kv"
 version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d4b9fe1a87b7aef252fceb4f30bf6303036a5de329c81ccad9be9c35d1fdbc7"
+source = "git+https://github.com/atty303/worker-kv.git?rev=caa7b23ed4f4eb978058f7f418b914f336b56a2b#caa7b23ed4f4eb978058f7f418b914f336b56a2b"
 dependencies = [
  "js-sys",
  "serde",

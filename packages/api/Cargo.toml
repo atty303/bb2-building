@@ -11,8 +11,10 @@ worker = { git = "https://github.com/spigaz/workers-rs.git", rev = "7bbd74efeda6
 reqwest = { version = "0.11", features = ["json"] }
 jsonwebtoken = "9.2"
 serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 console_error_panic_hook = "0.1"
 thiserror = "1.0"
+uuid = { version = "1.7", features = ["v7", "js"] }
 
 [profile.release]
 opt-level = "s"

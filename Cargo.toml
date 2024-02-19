@@ -2,8 +2,9 @@
 resolver = "2"
 members = [ "packages/api","packages/auth0-spa","packages/data", "packages/gen", "packages/headlessui"]
 
-#[patch.crates-io]
+[patch.crates-io]
 #worker = { git = "https://github.com/spigaz/workers-rs.git", rev = "7bbd74efeda63852369a0725d6e45a006301a93e" }
+worker-kv = { git = "https://github.com/atty303/worker-kv.git", rev = "caa7b23ed4f4eb978058f7f418b914f336b56a2b" }
 
 [workspace.package]
 version = "0.1.0"

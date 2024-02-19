@@ -1,9 +1,9 @@
 // use worker::*;
 
-use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use worker::console_debug;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -27,12 +27,12 @@ pub enum Error {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
-    sub: String,
+    pub sub: String,
 }
 
 pub async fn verify_jwt(
-    req: worker::Request,
-    env: worker::Env,
+    req: &worker::Request,
+    env: &worker::Env,
 ) -> Result<jsonwebtoken::TokenData<Claims>, Error> {
     let auth = req
         .headers()
@@ -65,7 +65,7 @@ pub async fn verify_jwt(
     Ok(data)
 }
 
-async fn fetch_jwks(kid: String, env: worker::Env) -> Result<jsonwebtoken::jwk::Jwk, Error> {
+async fn fetch_jwks(kid: String, env: &worker::Env) -> Result<jsonwebtoken::jwk::Jwk, Error> {
     let url = "https://bb2b.us.auth0.com/.well-known/jwks.json";
     let kv = env.kv("JWKS").map_err(Error::WorkerError)?;
     let name = format!("{}:{}", url, kid);
@@ -82,22 +82,20 @@ async fn fetch_jwks(kid: String, env: worker::Env) -> Result<jsonwebtoken::jwk::
     if let Some(cached) = cached {
         Ok(cached)
     } else {
-        console_debug!("fetching jwk: {}", name);
         let jwks = reqwest::get(url)
             .await
             .map_err(Error::FetchError)?
             .json::<jsonwebtoken::jwk::JwkSet>()
             .await
             .map_err(Error::FetchError)?;
-        console_debug!("fetched jwks: {:?}", jwks);
         let jwk = jwks.find(&kid).cloned().ok_or(Error::JwkNotFound(kid))?;
-        console_debug!("caching jwk: {}", name);
+
         kv.put(&name, &jwk)
             .map_err(Error::KvError)?
             .execute()
             .await
             .map_err(Error::KvError)?;
-        console_debug!("cached jwk: {}", name);
+
         Ok(jwk)
     }
 }

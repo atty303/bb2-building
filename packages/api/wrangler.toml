@@ -5,7 +5,11 @@ compatibility_date = "2024-01-29"
 
 [[kv_namespaces]]
 binding = "JWKS"
-id = "JWKS"
+id = "jwks"
+
+[[kv_namespaces]]
+binding = "BUILDS"
+id = "builds"
 
 [build]
 command = "cargo install -q worker-build && worker-build"

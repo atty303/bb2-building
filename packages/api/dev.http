@@ -1,0 +1,19 @@
+POST http://localhost:8787/viewer/build
+Authorization: Bearer {{access_token}}
+
+{
+  "value": {
+    "user_id": "",
+    "body": "this is body"
+  },
+  "metadata": {
+    "is_private": true,
+    "title": "this is title",
+    "created_at": 0,
+    "updated_at": 0
+  }
+}
+
+###
+GET http://localhost:8787/viewer/build
+Authorization: Bearer {{access_token}}
