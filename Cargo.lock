@@ -676,6 +676,7 @@ dependencies = [
 [[package]]
 name = "dioxus"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "dioxus-config-macro",
  "dioxus-core",
@@ -692,6 +693,7 @@ dependencies = [
 [[package]]
 name = "dioxus-cli-config"
 version = "0.4.1"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "once_cell",
  "serde",
@@ -702,6 +704,7 @@ dependencies = [
 [[package]]
 name = "dioxus-config-macro"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -710,6 +713,7 @@ dependencies = [
 [[package]]
 name = "dioxus-core"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "futures-channel",
  "futures-util",
@@ -723,6 +727,7 @@ dependencies = [
 [[package]]
 name = "dioxus-core-macro"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "constcat",
  "convert_case 0.6.0",
@@ -742,6 +747,7 @@ checksum = "2ea539174bb236e0e7dc9c12b19b88eae3cb574dedbd0252a2d43ea7e6de13e2"
 [[package]]
 name = "dioxus-fullstack"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "async-trait",
  "base64",
@@ -763,6 +769,7 @@ dependencies = [
 [[package]]
 name = "dioxus-hooks"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "dioxus-core",
  "dioxus-debug-cell",
@@ -777,6 +784,7 @@ dependencies = [
 [[package]]
 name = "dioxus-hot-reload"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "dioxus-core",
  "dioxus-html",
@@ -789,6 +797,7 @@ dependencies = [
 [[package]]
 name = "dioxus-html"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "async-trait",
  "dioxus-core",
@@ -809,6 +818,7 @@ dependencies = [
 [[package]]
 name = "dioxus-html-internal-macro"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "convert_case 0.6.0",
  "proc-macro2",
@@ -819,6 +829,7 @@ dependencies = [
 [[package]]
 name = "dioxus-interpreter-js"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "js-sys",
  "sledgehammer_bindgen",
@@ -830,6 +841,7 @@ dependencies = [
 [[package]]
 name = "dioxus-lib"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "dioxus-core",
  "dioxus-core-macro",
@@ -842,6 +854,7 @@ dependencies = [
 [[package]]
 name = "dioxus-router"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "dioxus-cli-config",
  "dioxus-lib",
@@ -859,6 +872,7 @@ dependencies = [
 [[package]]
 name = "dioxus-router-macro"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -869,6 +883,7 @@ dependencies = [
 [[package]]
 name = "dioxus-rsx"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -879,6 +894,7 @@ dependencies = [
 [[package]]
 name = "dioxus-signals"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "dioxus-core",
  "flume",
@@ -895,6 +911,7 @@ dependencies = [
 [[package]]
 name = "dioxus-web"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "async-trait",
  "console_error_panic_hook",
@@ -918,6 +935,7 @@ dependencies = [
 [[package]]
 name = "dioxus_server_macro"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "convert_case 0.6.0",
  "proc-macro2",
@@ -1197,6 +1215,7 @@ dependencies = [
 [[package]]
 name = "generational-box"
 version = "0.4.3"
+source = "git+https://github.com/DioxusLabs/dioxus.git?rev=902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc#902d6e2fd7b3192f2cf8b28438ab0df4bd590ddc"
 dependencies = [
  "parking_lot",
 ]
@@ -1436,9 +1455,9 @@ dependencies = [
 
 [[package]]
 name = "h2"
-version = "0.3.24"
+version = "0.3.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb2c4422095b67ee78da96fbb51a4cc413b3b25883c7717ff7ca1ab31022c9c9"
+checksum = "81fe527a889e1532da5c525686d96d4c2e74cdd345badf8dfef9f6b39dd5f5e8"
 dependencies = [
  "bytes",
  "fnv",
@@ -1864,9 +1883,9 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "0.8.10"
+version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f3d0b296e374a4e6f3c7b0a1f5a51d748a0d34c85e7dc48fc3fa9a87657fe09"
+checksum = "a4a650543ca06a924e8b371db273b2756685faae30f8487da1b56505a8f78b0c"
 dependencies = [
  "libc",
  "wasi",
